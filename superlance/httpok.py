@@ -81,7 +81,6 @@ httpok.py -p program1 -p group1:program2 http://localhost:8080/tasty
 
 import os
 import sys
-import socket
 import time
 import urlparse
 import xmlrpclib
@@ -143,6 +142,7 @@ class HTTPOk:
                 continue
 
             conn = ConnClass(hostport)
+            conn.timeout = self.timeout
 
             if query:
                 path += '?' + query
@@ -161,8 +161,6 @@ class HTTPOk:
                 status = None
                 msg = 'error contacting %s:\n\n %s' % (self.url, why)
 
-            self.stderr.flush()
-
             if str(status) != str(self.status):
                 subject = 'httpok for %s: bad status returned' % self.url
                 self.act(subject, msg)
@@ -180,9 +178,15 @@ class HTTPOk:
 
         def write(msg):
             self.stderr.write('%s\n' % msg)
+            self.stderr.flush()
             messages.append(msg)
 
-        specs = self.rpc.supervisor.getAllProcessInfo()
+        try:
+            specs = self.rpc.supervisor.getAllProcessInfo()
+        except Exception, why:
+            write('Exception retrieving process info %s, not acting' % why)
+            return
+            
         waiting = list(self.programs)
             
         if self.any:
@@ -227,6 +231,7 @@ class HTTPOk:
         m = os.popen(self.sendmail, 'w')
         m.write(body)
         m.close()
+        self.stderr.write('Mailed:\n\n%s' % body)
         self.mailed = body
 
     def restart(self, spec, write):
@@ -311,7 +316,17 @@ def main(argv=sys.argv):
             inbody = value
 
     url = arguments[-1]
-    rpc = childutils.getRPCInterface(os.environ)
+
+    try:
+        rpc = childutils.getRPCInterface(os.environ)
+    except KeyError, why:
+        if why[0] != 'SUPERVISOR_SERVER_URL':
+            raise
+        sys.stderr.write('httpok must be run as a supervisor event '
+                         'listener\n')
+        sys.stderr.flush()
+        return
+
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
                   sendmail)
     prog.runforever()
