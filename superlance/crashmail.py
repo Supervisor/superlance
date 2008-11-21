@@ -22,7 +22,7 @@
 #
 # [eventlistener:crashmail]
 # command=python -u /bin/paster serve myserver.ini
-# events=PROCESS_STATE_CHANGE
+# events=PROCESS_STATE
 
 doc = """\
 crashmail.py [-p processname] [-a] [-o string] [-m mail_address]
@@ -97,7 +97,7 @@ class CrashMail:
                     break
                 continue
 
-            pheaders, pdata = childutils.eventdata(payload)
+            pheaders, pdata = childutils.eventdata(payload+'\n')
 
             if int(pheaders['expected']):
                 childutils.listener.ok(self.stdout)

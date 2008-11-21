@@ -171,7 +171,7 @@ class CrashMailTests(unittest.TestCase):
         any = None
         prog = self._makeOnePopulated(programs, any)
         payload=('expected:1 processname:foo groupname:bar '
-                 'from_state:RUNNING pid:1\n')
+                 'from_state:RUNNING pid:1')
         prog.stdin.write(
             'eventname:PROCESS_STATE_EXITED len:%s\n' % len(payload))
         prog.stdin.write(payload)
@@ -184,7 +184,7 @@ class CrashMailTests(unittest.TestCase):
         any = None
         prog = self._makeOnePopulated(programs, any)
         payload=('expected:0 processname:foo groupname:bar '
-                 'from_state:RUNNING pid:1\n')
+                 'from_state:RUNNING pid:1')
         prog.stdin.write(
             'eventname:PROCESS_STATE_EXITED len:%s\n' % len(payload))
         prog.stdin.write(payload)
