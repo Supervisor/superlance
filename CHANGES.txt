@@ -1,4 +1,4 @@
-0.2
+Next release
 
   Add crashmail script.
 
