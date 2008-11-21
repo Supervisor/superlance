@@ -153,11 +153,6 @@ def main(argv=sys.argv):
     except:
         usage()
 
-    if not args:
-        usage()
-    if len(args) > 1:
-        usage()
-
     programs = []
     any = False
     sendmail = '/usr/sbin/sendmail -t -i'
@@ -165,6 +160,7 @@ def main(argv=sys.argv):
     timeout = 10
     status = '200'
     inbody = None
+    optionalheader = None
 
     for option, value in opts:
 

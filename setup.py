@@ -47,6 +47,7 @@ setup(name='superlance',
       entry_points = """\
       [console_scripts]
       httpok = superlance.httpok:main
+      crashmail = superlance.crashmail:main
       """
       )
 
