@@ -10,7 +10,8 @@ class HTTPOkTests(unittest.TestCase):
     def _makeOne(self, *opts):
         return self._getTargetClass()(*opts)
 
-    def _makeOnePopulated(self, programs, any, response=None, exc=None):
+    def _makeOnePopulated(self, programs, any, response=None, exc=None,
+                          gcore=None, coredir=None):
         if response is None:
             response = DummyResponse()
         rpc = DummyRPCServer()
@@ -20,8 +21,10 @@ class HTTPOkTests(unittest.TestCase):
         timeout = 10
         status = '200'
         inbody = None
+        gcore = gcore
+        coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
-                             inbody, email, sendmail)
+                             inbody, email, sendmail, coredir, gcore)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -124,6 +127,35 @@ class HTTPOkTests(unittest.TestCase):
            "Failed to start process foo:SPAWN_ERROR: <Fault 50: 'SPAWN_ERROR'>")
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 9)
+        self.assertEqual(mailed[0], 'To: chrism@plope.com')
+        self.assertEqual(mailed[1],
+                    'Subject: httpok for http://foo/bar: bad status returned')
+
+    def test_runforever_gcore(self):
+        programs = ['foo', 'bar', 'baz_01', 'notexisting']
+        any = None
+        prog = self._makeOnePopulated(programs, any, exc=True, gcore="true",
+                                      coredir="/tmp")
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertEqual(lines[0],
+                         ("Restarting selected processes ['foo', 'bar', "
+                          "'baz_01', 'notexisting']")
+                         )
+        self.assertEqual(lines[1], 'gcore output for foo:')
+        self.assertEqual(lines[2], '')
+        self.assertEqual(lines[3], ' ')
+        self.assertEqual(lines[4], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[5], 'foo restarted')
+        self.assertEqual(lines[6], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[7],
+                         'baz:baz_01 not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[8],
+          "Programs not restarted because they did not exist: ['notexisting']")
+        mailed = prog.mailed.split('\n')
+        self.assertEqual(len(mailed), 15)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')

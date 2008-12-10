@@ -25,7 +25,7 @@
 # events=TICK_60
 
 doc = """\
-httpok.py [-p processname] [-a] [-t timeout] [-c status_code] [-b inbody]
+httpok.py [-p processname] [-a] [-g] [-t timeout] [-c status_code] [-b inbody]
           [-m mail_address] [-s sendmail] URL
 
 Options:
@@ -40,6 +40,15 @@ Options:
       if the URL returns an unexpected result or times out.  Overrides
       any -p parameters passed in the same httpok process
       invocation.
+
+-g -- The ``gcore`` program.  By default, this is ``/usr/bin/gcore
+      -o``.  The program should accept two arguments on the command
+      line: a filename and a pid.
+
+-d -- Core directory.  If a core directory is specified, httpok will
+      try to use the ``gcore`` program (see ``-g``) to write a core
+      file into this directory against each hung process before we
+      restart it.  Append gcore stdout output to email.
 
 -t -- The number of seconds that httpok should wait for a response
       before timing out.  If this timeout is exceeded, httpok will
@@ -98,7 +107,7 @@ def usage():
 class HTTPOk:
     connclass = None
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
-                 email, sendmail):
+                 email, sendmail, coredir, gcore):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -108,6 +117,8 @@ class HTTPOk:
         self.inbody = inbody
         self.email = email
         self.sendmail = sendmail
+        self.coredir = coredir
+        self.gcore = gcore
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
@@ -237,6 +248,11 @@ class HTTPOk:
     def restart(self, spec, write):
         namespec = make_namespec(spec['group'], spec['name'])
         if spec['state'] is ProcessStates.RUNNING:
+            if self.coredir and self.gcore:
+                corename = os.path.join(self.coredir, namespec)
+                m = os.popen(self.gcore + ' "%s" %s' % (corename, spec['pid']))
+                write('gcore output for %s:\n\n %s' % (namespec, m.read()))
+                m.close()
             write('%s is in RUNNING state, restarting' % namespec)
             try:
                 self.rpc.supervisor.stopProcess(namespec)
@@ -258,17 +274,18 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:g:at:c:b:s:m:"
+    short_args="hp:at:c:b:s:m:g:d:"
     long_args=[
         "help",
         "program=",
-        "group=",
         "any",
         "timeout=",
         "code=",
         "body=",
         "sendmail_program=",
         "email=",
+        "gcore=",
+        "coredir=",
         ]
     arguments = argv[1:]
     try:
@@ -284,6 +301,8 @@ def main(argv=sys.argv):
     programs = []
     any = False
     sendmail = '/usr/sbin/sendmail -t -i'
+    gcore = '/usr/bin/gcore -o'
+    coredir = None
     email = None
     timeout = 10
     status = '200'
@@ -315,6 +334,12 @@ def main(argv=sys.argv):
         if option in ('-b', '--body'):
             inbody = value
 
+        if option in ('-g', '--gcore'):
+            gcore = value
+
+        if option in ('-d', '--coredir'):
+            coredir = value
+
     url = arguments[-1]
 
     try:
@@ -328,7 +353,7 @@ def main(argv=sys.argv):
         return
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
-                  sendmail)
+                  sendmail, coredir, gcore)
     prog.runforever()
 
 if __name__ == '__main__':
