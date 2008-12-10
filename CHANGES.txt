@@ -1,3 +1,7 @@
+0.3
+
+  Add ``gcore`` and ``coredir`` options to httpok.
+
 0.2
 
   Add crashmail script.
