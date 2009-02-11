@@ -1,7 +1,7 @@
 superlance Changelog
 ====================
 
-0.4 (unreleased)
+0.4 (2009-02-11)
 ----------------
 
 - Added ``eager`` and ``not-eager`` options to httpok.  If ``not-eager``
