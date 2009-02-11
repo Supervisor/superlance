@@ -172,32 +172,29 @@ class HTTPOk:
 
             act = False
 
-            if not self.eager:
-                specs = self.listProcesses(ProcessStates.RUNNING)
-                if len(specs) == 0:
-                    if test:
-                        break
-                    continue
+            specs = self.listProcesses(ProcessStates.RUNNING)
+            if self.eager or len(specs) > 0:
 
-            try:
-                conn.request('GET', path)
-                res = conn.getresponse()
-                body = res.read()
-                status = res.status
-                msg = 'status contacting %s: %s %s' % (self.url,
-                                                       res.status, res.reason)
-            except Exception, why:
-                body = ''
-                status = None
-                msg = 'error contacting %s:\n\n %s' % (self.url, why)
+                try:
+                    conn.request('GET', path)
+                    res = conn.getresponse()
+                    body = res.read()
+                    status = res.status
+                    msg = 'status contacting %s: %s %s' % (self.url,
+                                                           res.status,
+                                                           res.reason)
+                except Exception, why:
+                    body = ''
+                    status = None
+                    msg = 'error contacting %s:\n\n %s' % (self.url, why)
 
-            if str(status) != str(self.status):
-                subject = 'httpok for %s: bad status returned' % self.url
-                self.act(subject, msg)
-            elif self.inbody and self.inbody not in res.body:
-                act = True
-                subject = 'httpok for %s: bad body returned' % self.url
-                self.act(subject, msg)
+                if str(status) != str(self.status):
+                    subject = 'httpok for %s: bad status returned' % self.url
+                    self.act(subject, msg)
+                elif self.inbody and self.inbody not in res.body:
+                    act = True
+                    subject = 'httpok for %s: bad body returned' % self.url
+                    self.act(subject, msg)
 
             childutils.listener.ok(self.stdout)
             if test:
