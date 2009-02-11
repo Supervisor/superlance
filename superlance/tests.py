@@ -11,7 +11,7 @@ class HTTPOkTests(unittest.TestCase):
         return self._getTargetClass()(*opts)
 
     def _makeOnePopulated(self, programs, any, response=None, exc=None,
-                          gcore=None, coredir=None):
+                          gcore=None, coredir=None, eager=True):
         if response is None:
             response = DummyResponse()
         rpc = DummyRPCServer()
@@ -24,14 +24,46 @@ class HTTPOkTests(unittest.TestCase):
         gcore = gcore
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
-                             inbody, email, sendmail, coredir, gcore)
+                             inbody, email, sendmail, coredir, gcore, eager)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
         prog.connclass = make_connection(response, exc=exc)
         return prog
-        
-    def test_runforever_notatick(self):
+
+    def test_listProcesses_no_programs(self):
+        programs = []
+        any = None
+        prog = self._makeOnePopulated(programs, any)
+        specs = list(prog.listProcesses())
+        self.assertEqual(len(specs), 0)
+
+    def test_listProcesses_w_RUNNING_programs_default_state(self):
+        programs = ['foo']
+        any = None
+        prog = self._makeOnePopulated(programs, any)
+        specs = list(prog.listProcesses())
+        self.assertEqual(len(specs), 1)
+        self.assertEqual(specs[0],
+                         DummySupervisorRPCNamespace.all_process_info[0])
+
+    def test_listProcesses_w_nonRUNNING_programs_default_state(self):
+        programs = ['bar']
+        any = None
+        prog = self._makeOnePopulated(programs, any)
+        specs = list(prog.listProcesses())
+        self.assertEqual(len(specs), 1)
+        self.assertEqual(specs[0],
+                         DummySupervisorRPCNamespace.all_process_info[1])
+
+    def test_listProcesses_w_nonRUNNING_programs_RUNNING_state(self):
+        programs = ['bar']
+        any = None
+        prog = self._makeOnePopulated(programs, any)
+        specs = list(prog.listProcesses(ProcessStates.RUNNING))
+        self.assertEqual(len(specs), 0, (prog.programs, specs))
+
+    def test_runforever_eager_notatick(self):
         programs = {'foo':0, 'bar':0, 'baz_01':0 }
         groups = {}
         any = None
@@ -41,7 +73,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         self.assertEqual(prog.stderr.getvalue(), '')
 
-    def test_runforever_error_on_request_some(self):
+    def test_runforever_eager_error_on_request_some(self):
         programs = ['foo', 'bar', 'baz_01', 'notexisting']
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True)
@@ -67,7 +99,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
 
-    def test_runforever_error_on_request_any(self):
+    def test_runforever_eager_error_on_request_any(self):
         programs = []
         any = True
         prog = self._makeOnePopulated(programs, any, exc=True)
@@ -88,7 +120,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
 
-    def test_runforever_error_on_process_stop(self):
+    def test_runforever_eager_error_on_process_stop(self):
         programs = ['FAILED']
         any = False
         prog = self._makeOnePopulated(programs, any, exc=True)
@@ -109,7 +141,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
 
-    def test_runforever_error_on_process_start(self):
+    def test_runforever_eager_error_on_process_start(self):
         programs = ['SPAWN_ERROR']
         any = False
         prog = self._makeOnePopulated(programs, any, exc=True)
@@ -131,7 +163,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
 
-    def test_runforever_gcore(self):
+    def test_runforever_eager_gcore(self):
         programs = ['foo', 'bar', 'baz_01', 'notexisting']
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True, gcore="true",
@@ -159,6 +191,18 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
+
+    def test_runforever_not_eager_none_running(self):
+        programs = ['bar', 'baz_01']
+        any = None
+        prog = self._makeOnePopulated(programs, any, exc=True, gcore="true",
+                                      coredir="/tmp", eager=False)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = filter(None, prog.stderr.getvalue().split('\n'))
+        self.assertEqual(len(lines), 0, lines)
+        self.failIf('mailed' in prog.__dict__)
 
 class CrashMailTests(unittest.TestCase):
     def _getTargetClass(self):

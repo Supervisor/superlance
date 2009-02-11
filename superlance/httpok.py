@@ -59,7 +59,7 @@ Options:
       URL.  If this status code is not the status code provided by the
       response, httpok will attempt to restart processes in the
       RUNNING state specified by -p or -a.  This defaults to the
-      string"200".
+      string, "200".
 
 -b -- specify a string which should be present in the body resulting
       from the GET request.  If this string is not present in the
@@ -75,6 +75,12 @@ Options:
 -m -- specify an email address.  The script will send mail to this
       address when httpok attempts to restart processes.  If no email
       address is specified, email will not be sent.
+
+-e -- "eager":  check URL / emit mail even if no process we are monitoring
+      is in the RUNNING state.  Enabled by default.
+
+-E -- not "eager":  do not check URL / emit mail if no process we are
+      monitoring is in the RUNNING state.
 
 URL -- The URL to which to issue a GET request.
 
@@ -107,7 +113,7 @@ def usage():
 class HTTPOk:
     connclass = None
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
-                 email, sendmail, coredir, gcore):
+                 email, sendmail, coredir, gcore, eager):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -119,9 +125,15 @@ class HTTPOk:
         self.sendmail = sendmail
         self.coredir = coredir
         self.gcore = gcore
+        self.eager = eager
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
+
+    def listProcesses(self, state=None):
+        return [x for x in self.rpc.supervisor.getAllProcessInfo()
+                   if x['name'] in self.programs and
+                      (state is None or x['state'] == state)]
 
     def runforever(self, test=False):
         parsed = urlparse.urlsplit(self.url)
@@ -159,6 +171,13 @@ class HTTPOk:
                 path += '?' + query
 
             act = False
+
+            if not self.eager:
+                specs = self.listProcesses(ProcessStates.RUNNING)
+                if len(specs) == 0:
+                    if test:
+                        break
+                    continue
 
             try:
                 conn.request('GET', path)
@@ -274,7 +293,7 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:s:m:g:d:"
+    short_args="hp:at:c:b:s:m:g:d:eE"
     long_args=[
         "help",
         "program=",
@@ -286,6 +305,8 @@ def main(argv=sys.argv):
         "email=",
         "gcore=",
         "coredir=",
+        "eager",
+        "not-eager",
         ]
     arguments = argv[1:]
     try:
@@ -303,6 +324,7 @@ def main(argv=sys.argv):
     sendmail = '/usr/sbin/sendmail -t -i'
     gcore = '/usr/bin/gcore -o'
     coredir = None
+    eager = True
     email = None
     timeout = 10
     status = '200'
@@ -340,6 +362,12 @@ def main(argv=sys.argv):
         if option in ('-d', '--coredir'):
             coredir = value
 
+        if option in ('-e', '--eager'):
+            eager = True
+
+        if option in ('-E', '--not-eager'):
+            eager = False
+
     url = arguments[-1]
 
     try:
@@ -353,7 +381,7 @@ def main(argv=sys.argv):
         return
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
-                  sendmail, coredir, gcore)
+                  sendmail, coredir, gcore, eager)
     prog.runforever()
 
 if __name__ == '__main__':
