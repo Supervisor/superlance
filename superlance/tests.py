@@ -204,6 +204,26 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(lines), 0, lines)
         self.failIf('mailed' in prog.__dict__)
 
+    def test_runforever_not_eager_running(self):
+        programs = ['foo', 'bar']
+        any = None
+        prog = self._makeOnePopulated(programs, any, exc=True, eager=False)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = filter(None, prog.stderr.getvalue().split('\n'))
+        self.assertEqual(lines[0],
+                         ("Restarting selected processes ['foo', 'bar']")
+                         )
+        self.assertEqual(lines[1], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[2], 'foo restarted')
+        self.assertEqual(lines[3], 'bar not in RUNNING state, NOT restarting')
+        mailed = prog.mailed.split('\n')
+        self.assertEqual(len(mailed), 10)
+        self.assertEqual(mailed[0], 'To: chrism@plope.com')
+        self.assertEqual(mailed[1],
+                    'Subject: httpok for http://foo/bar: bad status returned')
+
 class CrashMailTests(unittest.TestCase):
     def _getTargetClass(self):
         from superlance.crashmail import CrashMail
