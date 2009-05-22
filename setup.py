@@ -16,7 +16,7 @@ except (IOError, OSError):
     CHANGES = ''
 
 setup(name='superlance',
-      version='0.4',
+      version='0.5',
       description='superlance plugins for supervisord',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
@@ -48,6 +48,7 @@ setup(name='superlance',
       [console_scripts]
       httpok = superlance.httpok:main
       crashmail = superlance.crashmail:main
+      memmon = superlance.memmon:main
       """
       )
 
