@@ -1,7 +1,7 @@
 superlance Changelog
 ====================
 
-0.5 (2009-05-22)
+0.5 (2009-05-24)
 
 - Added ``memmon`` script, originally bundled with supervisor and
   now moved to superlance.
