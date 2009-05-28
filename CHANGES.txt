@@ -1,6 +1,12 @@
 superlance Changelog
 ====================
 
+Next Release
+
+- Fixed test_suite to use the correct module name in setup.py.
+
+- Fixed the tests for memmon to import the correct module.
+
 0.5 (2009-05-24)
 
 - Added ``memmon`` script, originally bundled with supervisor and

@@ -304,14 +304,13 @@ class CrashMailTests(unittest.TestCase):
 
 class MemmonTests(unittest.TestCase):
     def _getTargetClass(self):
-        from supervisor.memmon import Memmon
+        from superlance.memmon import Memmon
         return Memmon
     
     def _makeOne(self, *opts):
         return self._getTargetClass()(*opts)
 
     def _makeOnePopulated(self, programs, groups, any):
-        from supervisor.tests.base import DummyRPCServer
         rpc = DummyRPCServer()
         sendmail = 'cat - > /dev/null'
         email = 'chrism@plope.com'
@@ -613,6 +612,8 @@ class DummySupervisorRPCNamespace:
     def stopProcess(self, name):
         from supervisor import xmlrpc
         from xmlrpclib import Fault
+        if name == 'BAD_NAME:BAD_NAME':
+            raise Fault(xmlrpc.Faults.BAD_NAME, 'BAD_NAME:BAD_NAME') 
         if name.endswith('FAILED'):
             raise Fault(xmlrpc.Faults.FAILED, 'FAILED')
         return True

@@ -43,7 +43,7 @@ setup(name='superlance',
       tests_require=[
             'supervisor',
             ],
-      test_suite="superlance",
+      test_suite='superlance.tests',
       entry_points = """\
       [console_scripts]
       httpok = superlance.httpok:main
