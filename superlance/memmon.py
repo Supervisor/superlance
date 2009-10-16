@@ -131,6 +131,11 @@ class Memmon:
                 group = info['group']
                 pname = '%s:%s' % (group, name)
 
+                if not pid:
+                    # ps throws an error in this case (for processes
+                    # in standby mode, non-auto-started).
+                    continue
+
                 data = shell(self.pscommand % pid)
                 if not data:
                     # no such pid (deal with race conditions)
