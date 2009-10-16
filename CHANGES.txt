@@ -2,6 +2,7 @@ superlance Changelog
 ====================
 
 Next Release
+------------
 
 - Fixed test_suite to use the correct module name in setup.py.
 
@@ -11,6 +12,7 @@ Next Release
   have pid "0".  This was crashing memmon.
 
 0.5 (2009-05-24)
+---------------
 
 - Added ``memmon`` script, originally bundled with supervisor and
   now moved to superlance.
