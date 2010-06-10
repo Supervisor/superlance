@@ -12,7 +12,7 @@ Currently, it provides three plugins:
     subscribed to ``TICK_*`` events.  It tests that a given child process
     which must in the ``RUNNING`` state, is viable via an HTTP ``GET``
     request to a configured URL.  If the request fails or times out,
-    :command:`httpok`` will restart the "hung" child process.
+    :command:`httpok` will restart the "hung" child process.
 
 :command:`crashmail`
     This plugin is meant to be used as a supervisor event listener,
