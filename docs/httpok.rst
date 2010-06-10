@@ -22,26 +22,26 @@ Command-Line Syntax
 
 .. code-block:: sh
 
-   $ httpok.py [-p processname] [-a] [-g] [-t timeout] [-c status_code] \
-               [-b inbody] [-m mail_address] [-s sendmail] URL
+   $ httpok [-p processname] [-a] [-g] [-t timeout] [-c status_code] \
+            [-b inbody] [-m mail_address] [-s sendmail] URL
 
 .. program:: httpok
 
-.. cmdoption:: -p <process_name>
+.. cmdoption:: -p <process_name>, --program=<process_name>
    
    Restart the :command:`supervisord` child process named ``process_name``
    if it is in the ``RUNNING`` state when the URL returns an unexpected
    result or times out.
 
-   This option may be specified more than once, allowing for specification
-   of multiple processes.
+   This option can be provided more than once to have :command:`httpok`
+   monitor more than one process.
    
    To monitor a process which is part of a :command:`supervisord` group,
    specify its name as ``process_name:group_name``.
 
 .. cmdoption:: -a
    
-   Restart any child of :command:`supervisord` in the RUNNING state
+   Restart any child of :command:`supervisord` in the ``RUNNING`` state
    if the URL returns an unexpected result or times out.
     
    Overrides any ``-p`` parameters passed in the same :command:`httpok`

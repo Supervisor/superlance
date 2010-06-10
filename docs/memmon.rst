@@ -26,7 +26,10 @@ isn't useful as a general-purpose script:  it must be run as a
 Command-Line Syntax
 -------------------
 
-:command:`memmon` accepts the following options:
+.. code-block:: sh
+
+   $ memmon [-p processname=byte_size] [-g groupname=byte_size] \
+            [-a byte_size] [-s sendmail] [-m email_address]
 
 .. program:: memmon
 
@@ -41,8 +44,8 @@ Command-Line Syntax
    represents the number of bytes (suffix-multiplied using "KB", "MB" or "GB")
    that should be considered "too much".
 
-   Multiple ``-p`` options can be provided to have :command:`memmon` monitor
-   more than one program.
+   This option can be provided more than once to have :command:`memmon`
+   monitor more than one program.
 
    Programs can be specified using a "namespec", to disambiguate same-named
    programs in different groups, e.g. ``foo:bar`` represents the program

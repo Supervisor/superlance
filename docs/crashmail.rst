@@ -19,18 +19,18 @@ Command-Line Syntax
 
 .. code-block:: sh
 
-   $ crashmail.py [-p processname] [-a] [-o string] [-m mail_address] \
-                  [-s sendmail]
+   $ crashmail [-p processname] [-a] [-o string] [-m mail_address] \
+               [-s sendmail]
 
 .. program:: crashmail
 
-.. cmdoption:: -p <process_name>
+.. cmdoption:: -p <process_name>, --program=<process_name>
    
    Send mail when the specified :command:`supervisord` child process
    transitions unexpectedly to the ``EXITED`` state.
 
-   This option may be specified more than once, allowing for specification
-   of multiple processes.
+   This option can be provided more than once to have :command:`crashmail`
+   monitor more than one program.
    
    To monitor a process which is part of a :command:`supervisord` group,
    specify its name as ``process_name:group_name``.
