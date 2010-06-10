@@ -88,7 +88,8 @@ An ``[eventlistener:x]`` section must be placed in :file:`supervisord.conf`
 in order for :command:`memmon` to do its work. See the "Events" chapter in the
 Supervisor manual for more information about event listeners.
 
-The following examples assume that the memmon is on your system :envvar:`PATH`.
+The following examples assume that :command:`memmon` is on your system
+:envvar:`PATH`.
 
 Example Configuration 1
 #######################

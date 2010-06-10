@@ -7,15 +7,21 @@ controlling processes that run under `supervisor
 
 Currently, it provides three scripts:
 
-``httpok`` -- This script can be used as a supervisor event listener
-(subscribed to TICK events) which will restart a "hung" HTTP server
-process, which is defined as a process in the RUNNING state which does
-not respond in an appropriate or timely manner to an HTTP GET request.
+:command:`httpok`
+    This script is meant to be used as a supervisor event listener,
+    subscribed to ``TICK_*`` events.  It tests that a given child process
+    which must in the ``RUNNING`` state, is viable via an HTTP ``GET``
+    request to a configured URL.  If the request fails or times out,
+    :command:`httpok`` will restart the "hung" child process.
 
-``crashmail`` -- This script will email a user when a process enters
-the EXITED state unexpectedly.
+:command:`crashmail`
+    This script is meant to be used as a supervisor event listener,
+    subscribed to ``PROCESS_STATE_EXITED`` events.  It email a user when
+    a process enters the ``EXITED`` state unexpectedly.
 
-``memmon`` -- See the description below.
+:command:`memmon`
+    This script is meant to be used as a supervisor event listener
+    (subscribed to ``TICK_*`` events.
 
 
 Contents:
@@ -24,6 +30,7 @@ Contents:
    :maxdepth: 2
 
    memmon
+   crashmail
 
 Indices and tables
 ==================
