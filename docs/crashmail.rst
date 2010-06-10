@@ -1,8 +1,26 @@
 :command:`crashmail` Documentation
 ==================================
 
+:command:`crashmail` is a supervisor "event listener", intended to be
+subscribed to ``PROCESS_STATE_EXITED`` events. When :command:`crashmail`
+receives that event, and the transition is "unexpected", :command:`crashmail``
+sends an email notification to a configured address..
+
+:command:`crashmail` is incapable of monitoring the process status of processes
+which are not :command:`supervisord` child processes.
+
+:command:`crashmail` is a "console script" installed when you install
+:mod:`superlance`.  Although :command:`crashmail` is an executable program, it
+isn't useful as a general-purpose script:  it must be run as a
+:command:`supervisor` event listener to do anything useful.
+
 Command-Line Syntax
 -------------------
+
+.. code-block:: sh
+
+   $ crashmail.py [-p processname] [-a] [-o string] [-m mail_address] \
+                  [-s sendmail]
 
 .. program:: crashmail
 
@@ -47,8 +65,8 @@ Configuring :command:`crashmail` Into the Supervisor Config
 -----------------------------------------------------------
 
 An ``[eventlistener:x]`` section must be placed in :file:`supervisord.conf`
-in order for :command:`memmon` to do its work. See the "Events" chapter in the
-Supervisor manual for more information about event listeners.
+in order for :command:`crashmail` to do its work. See the "Events" chapter in
+the Supervisor manual for more information about event listeners.
 
 The following example assumes that :command:`crashmail` is on your system
 :envvar:`PATH`.

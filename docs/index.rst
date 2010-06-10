@@ -29,8 +29,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   memmon
+   httpok
    crashmail
+   memmon
 
 Indices and tables
 ==================

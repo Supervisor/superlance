@@ -2,8 +2,8 @@
 ==========================
 
 :command:`memmon` is a supervisor "event listener" which may be subscribed to
-a concrete ``TICK_x`` event. When memmon receives a ``TICK_x`` event (
-``TICK_60`` is recommended, indicating activity every 60 seconds),
+a concrete ``TICK_x`` event. When :command:`memmon` receives a ``TICK_x``
+event (``TICK_60`` is recommended, indicating activity every 60 seconds),
 :command:`memmon` checks that a configurable list of programs (or all
 programs running under supervisor) are not exceeding a configurable about of
 memory (resident segment size, or RSS).  If one or more of these processes is
@@ -16,14 +16,15 @@ tested on other operating systems (it relies on :command:`ps` output and
 command-line switches).
 
 :command:`memmon` is incapable of monitoring the process status of processes
-which are not supervisord child processes.
+which are not :command:`supervisord` child processes.
+
+:command:`memmon` is a "console script" installed when you install
+:mod:`superlance`.  Although :command:`memmon` is an executable program, it
+isn't useful as a general-purpose script:  it must be run as a
+:command:`supervisor` event listener to do anything useful.
 
 Command-Line Syntax
 -------------------
-
-:command:`memmon` is a "console script" installed when you install supervisor.
-Although memmon is an executable program, it isn't useful as a general-purpose
-script:  it must be run as a supervisor event listener to do anything useful.
 
 :command:`memmon` accepts the following options:
 
