@@ -39,7 +39,7 @@ Command-Line Syntax
    To monitor a process which is part of a :command:`supervisord` group,
    specify its name as ``process_name:group_name``.
 
-.. cmdoption:: -a
+.. cmdoption:: -a, --any
    
    Restart any child of :command:`supervisord` in the ``RUNNING`` state
    if the URL returns an unexpected result or times out.
@@ -47,13 +47,13 @@ Command-Line Syntax
    Overrides any ``-p`` parameters passed in the same :command:`httpok`
    process invocation.
 
-.. cmdoption:: -g <gcore_program>
+.. cmdoption:: -g <gcore_program>, --gcore=<gcore_program>
    
    Use the specifed program to ``gcore`` the :command:`supervisord` child
    process.  The program should accept two arguments on the command line:
    a filename and a pid.  Defaults to ``/usr/bin/gcore -o``.
 
-.. cmdoption:: -d <core_directory>
+.. cmdoption:: -d <core_directory>, --coredir=<core_directory>
    
    If a core directory is specified, :command:`httpok` will try to use the
    ``gcore`` program (see ``-g``) to write a core file into this directory
@@ -61,7 +61,7 @@ Command-Line Syntax
    stdout output to the email message, if mail is configured (see the ``-m``
    option below).
 
-.. cmdoption:: -t <timeout>
+.. cmdoption:: -t <timeout>, --timeout=<timeout>
    
    The number of seconds that :command:`httpok` should wait for a response
    to the HTTP request before timing out.
@@ -72,7 +72,7 @@ Command-Line Syntax
 
    Defaults to 10 seconds.
 
-.. cmdoption:: -c <http_status_code>
+.. cmdoption:: -c <http_status_code>, --code=<http_status_code>
    
    Specify the expected HTTP status code for the configured URL.
    
@@ -82,7 +82,7 @@ Command-Line Syntax
    
    Defaults to the string, "200".
 
-.. cmdoption:: -b <body_string>
+.. cmdoption:: -b <body_string>, --body=<body_string>
    
    Specify a string which should be present in the body resulting
    from the GET request.
@@ -93,26 +93,26 @@ Command-Line Syntax
    
    The default is to ignore the body.
 
-.. cmdoption:: -s
+.. cmdoption:: -s <sendmail_command>, --sendmail_program=<sendmail_command>
    
    Specify the sendmail command to use to send email.
    
    Must be a command which accepts header and message data on stdin and
    sends mail.  Default is ``/usr/sbin/sendmail -t -i``.
 
-.. cmdoption:: -m
+.. cmdoption:: -m <email_address>, --email=<email_address>
    
    Specify an email address to which notification messages are sent.
    If no email address is specified, email will not be sent.
 
-.. cmdoption:: -e
+.. cmdoption:: -e, --eager
    
    Enable "eager" monitoring:  check the URL and emit mail even if no
    monitored child process is in the ``RUNNING`` state.
    
    Enabled by default.
 
-.. cmdoption:: -E
+.. cmdoption:: -E, --not-eager
    
    Disable "eager" monitoring:  do not check the URL or emit mail if no
    monitored process is in the RUNNING state.
