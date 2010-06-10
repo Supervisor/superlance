@@ -35,7 +35,7 @@ Command-Line Syntax
    To monitor a process which is part of a :command:`supervisord` group,
    specify its name as ``process_name:group_name``.
  
-.. cmdoption:: -a
+.. cmdoption:: -a, --any
    
    Send mail when any :command:`supervisord` child process transitions
    unexpectedly to the ``EXITED`` state.
@@ -43,19 +43,19 @@ Command-Line Syntax
    Overrides any ``-p`` parameters passed in the same :command:`crashmail`
    process invocation.
 
-.. cmdoption:: -o
+.. cmdoption:: -o <prefix>, --optionalheader=<prefix>
    
    Specify a parameter used as a prefix in the mail :mailheader:`Subject`
    header.
 
-.. cmdoption:: -s
+.. cmdoption:: -s <sendmail_command>, --sendmail_program=<sendmail_command>
    
    Specify the sendmail command to use to send email.
    
    Must be a command which accepts header and message data on stdin and
    sends mail.  Default is ``/usr/sbin/sendmail -t -i``.
 
-.. cmdoption:: -m
+.. cmdoption:: -m <email_address>, --email=<email_address>
    
    Specify an email address to which crash notification messages are sent.
    If no email address is specified, email will not be sent.
