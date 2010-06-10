@@ -4,6 +4,8 @@ superlance Changelog
 Next Release
 ------------
 
+- Sphinxified documentation.
+
 - Fixed test_suite to use the correct module name in setup.py.
 
 - Fixed the tests for memmon to import the correct module.
