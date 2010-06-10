@@ -6,35 +6,41 @@ Next Release
 
 - Sphinxified documentation.
 
-- Fixed test_suite to use the correct module name in setup.py.
+- Fixed ``test_suite`` to use the correct module name in setup.py.
 
-- Fixed the tests for memmon to import the correct module.
+- Fixed the tests for ``memmon`` to import the correct module.
 
-- Apply patch from Sam Bartlett: processes which are not autostarted
-  have pid "0".  This was crashing memmon.
+- Applied patch from Sam Bartlett: processes which are not autostarted
+  have pid "0".  This was crashing ``memmon``.
+
 
 0.5 (2009-05-24)
 ---------------
 
-- Added ``memmon`` script, originally bundled with supervisor and
+- Added the ``memmon`` plugin, originally bundled with supervisor and
   now moved to superlance.
+
 
 0.4 (2009-02-11)
 ----------------
 
-- Added ``eager`` and ``not-eager`` options to httpok.  If ``not-eager``
-  is set, and no process being monitored is in the RUNNING state, skip
-  the URL check / mail message.
+- Added ``eager`` and ``not-eager`` options to the ``httpok`` plugin.
+
+  If ``not-eager`` is set, and no process being monitored is in the
+  ``RUNNING`` state, skip the URL check / mail message.
+
 
 0.3 (2008-12-10)
 ----------------
 
-- Added ``gcore`` and ``coredir`` options to httpok.
+- Added ``gcore`` and ``coredir`` options to the ``httpok`` plugin.
+
 
 0.2 (2008-11-21)
 ----------------
 
-- Added crashmail script.
+- Added the ``crashmail`` plugin.
+
 
 0.1 (2008-09-18)
 ----------------
