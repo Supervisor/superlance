@@ -16,7 +16,9 @@ import os
 import sys
 import smtplib
 import copy
-from email.mime.text import MIMEText
+# Using old reference for Python 2.4
+from email.MIMEText import MIMEText
+# from email.mime.text import MIMEText
 from superlance.process_state_monitor import ProcessStateMonitor
 
 doc = """\

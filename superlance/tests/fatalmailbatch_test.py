@@ -8,8 +8,7 @@ class FatalMailBatchTests(unittest.TestCase):
     toEmail = 'testTo@blah.com'
     subject = 'Test Alert'
     now = 1279677400.1
-    unexpectedErrorMsg = '2010-07-20 18:56:40,099 -- Process bar:foo \
-failed to start too many times'
+    unexpectedErrorMsg = 'Process bar:foo failed to start too many times'
     
     def _getTargetClass(self):
         from superlance.fatalmailbatch import FatalMailBatch
@@ -42,7 +41,7 @@ failed to start too many times'
         crash = self._makeOneMocked()
         hdrs, payload = self.getProcessFatalEvent('foo', 'bar')
         msg = crash.getProcessStateChangeMsg(hdrs, payload)
-        self.assertEquals(self.unexpectedErrorMsg, msg)
+        self.failUnless(self.unexpectedErrorMsg in msg)
         
 if __name__ == '__main__':
     unittest.main()
