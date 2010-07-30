@@ -1,13 +1,11 @@
 import unittest
 import mock
-import time
 from StringIO import StringIO
 
 class FatalMailBatchTests(unittest.TestCase):
     fromEmail = 'testFrom@blah.com'
     toEmail = 'testTo@blah.com'
     subject = 'Test Alert'
-    now = 1279677400.1
     unexpectedErrorMsg = 'Process bar:foo failed to start too many times'
     
     def _getTargetClass(self):
@@ -21,7 +19,6 @@ class FatalMailBatchTests(unittest.TestCase):
         kwargs['fromEmail'] = kwargs.get('fromEmail', self.fromEmail)
         kwargs['toEmail'] = kwargs.get('toEmail', self.toEmail)
         kwargs['subject'] = kwargs.get('subject', self.subject)
-        kwargs['now'] = self.now
         
         obj = self._getTargetClass()(**kwargs)
         obj.sendEmail = mock.Mock()
