@@ -4,6 +4,12 @@ superlance Changelog
 Next Release
 ------------
 
+- Separated unit tests into their own files
+
+- Created ``fatalmailbatch`` plugin
+
+- Created ``crashmailbatch`` plugin
+
 - Sphinxified documentation.
 
 - Fixed ``test_suite`` to use the correct module name in setup.py.

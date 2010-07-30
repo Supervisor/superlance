@@ -42,12 +42,15 @@ setup(name='superlance',
             ],
       tests_require=[
             'supervisor',
+            'mock',
             ],
       test_suite='superlance.tests',
       entry_points = """\
       [console_scripts]
       httpok = superlance.httpok:main
       crashmail = superlance.crashmail:main
+      crashmailbatch = superlance.crashmailbatch:main
+      fatalmailbatch = superlance.fatalmailbatch:main
       memmon = superlance.memmon:main
       """
       )
