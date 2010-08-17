@@ -62,7 +62,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         self.fromEmail = kwargs['fromEmail']
         self.toEmail = kwargs['toEmail']
         self.subject = kwargs.get('subject', 'Alert from supervisord')
-        self.digestLen = 20
+        self.digestLen = 76
             
     def sendBatchNotification(self):
         email = self.getBatchEmail()
@@ -93,6 +93,16 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
         msg['From'] = email['from']
         msg['To'] = email['to']
 
+        try:
+            self.sendSMTP(msg)
+        except Exception, e:
+            self.writeToStderr("Error sending email: %s" % e)
+
+    def sendSMTP(self, mimeMsg):
         s = smtplib.SMTP('localhost')
-        s.sendmail(email['from'], [email['to']], msg.as_string())
+        try:
+            s.sendmail(email['from'], [email['to']], msg.as_string())
+        except:
+            s.quit()
+            raise
         s.quit()
