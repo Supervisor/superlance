@@ -21,8 +21,10 @@
 # as a listener is below.
 #
 # [eventlistener:crashmail]
-# command=python -u /bin/paster serve myserver.ini
+# command=/usr/bin/crashmail -o hostname -a -m notify-on-crash@domain.com -s '/usr/sbin/sendmail -t -i -f crash-notifier@domain.com'
 # events=PROCESS_STATE
+#
+# Sendmail is used explicitly here so that we can specify the 'from' address.
 
 doc = """\
 crashmail.py [-p processname] [-a] [-o string] [-m mail_address]
@@ -34,7 +36,7 @@ Options:
       transitions to the EXITED state unexpectedly. If this process is
       part of a group, it can be specified using the
       'process_name:group_name' syntax.
-      
+
 -a -- Send mail when any child of the supervisord transitions
       unexpectedly to the EXITED state unexpectedly.  Overrides any -p
       parameters passed in the same crashmail process invocation.
@@ -110,7 +112,7 @@ class CrashMail:
             msg = ('Process %(processname)s in group %(groupname)s exited '
                    'unexpectedly (pid %(pid)s) from state %(from_state)s' %
                    pheaders)
-            
+
             subject = ' %s crashed at %s' % (pheaders['processname'],
                                              childutils.get_asctime())
             if self.optionalheader:
@@ -182,19 +184,15 @@ def main(argv=sys.argv):
         if option in ('-o', '--optionalheader'):
             optionalheader = value
 
-    url = arguments[-1]
-
     if not 'SUPERVISOR_SERVER_URL' in os.environ:
-        sys.stderr.write('httpok must be run as a supervisor event '
+        sys.stderr.write('crashmail must be run as a supervisor event '
                          'listener\n')
         sys.stderr.flush()
         return
-        
+
     prog = CrashMail(programs, any, email, sendmail, optionalheader)
     prog.runforever()
 
 if __name__ == '__main__':
     main()
-    
-    
-    
+
