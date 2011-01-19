@@ -104,7 +104,7 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
     def sendSMTP(self, mimeMsg):
         s = smtplib.SMTP(self.smtpHost)
         try:
-            s.sendmail(email['from'], [email['to']], msg.as_string())
+            s.sendmail(mimeMsg['From'], [mimeMsg['To']], mimeMsg.as_string())
         except:
             s.quit()
             raise
