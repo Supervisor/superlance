@@ -99,7 +99,7 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
         try:
             self.sendSMTP(msg)
         except Exception, e:
-            self.writeToStderr("Error sending email: %s" % e)
+            self.writeToStderr("Error sending email: %s\n" % e)
 
     def sendSMTP(self, mimeMsg):
         s = smtplib.SMTP(self.smtpHost)
