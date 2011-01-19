@@ -41,7 +41,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
                           help="source email address")
         parser.add_option("-s", "--subject", dest="subject",
                           help="email subject")
-        parser.add_option("-h", "--smtpHost", dest="smtpHost", default="localhost",
+        parser.add_option("-H", "--smtpHost", dest="smtpHost", default="localhost",
                           help="SMTP server hostname or address")
         (options, args) = parser.parse_args()
 
