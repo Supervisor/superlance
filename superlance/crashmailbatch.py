@@ -29,18 +29,21 @@ crashmailbatch.py [--interval=<batch interval in minutes>]
         [--toEmail=<email address>]
         [--fromEmail=<email address>]
         [--subject=<email subject>]
+        [--smtpHost=<hostname or address>]
 
 Options:
 
 --interval  - batch cycle length (in minutes).  The default is 1 minute.
                   This means that all events in each cycle are batched together
                   and sent as a single email
-                  
+
 --toEmail   - the email address to send alerts to
 
 --fromEmail - the email address to send alerts from
 
---subject - the email subject line
+--subject   - the email subject line
+
+--smtpHost  - the SMTP server's hostname or address (defaults to 'localhost')
 
 A sample invocation:
 
@@ -52,20 +55,20 @@ from supervisor import childutils
 from superlance.process_state_email_monitor import ProcessStateEmailMonitor
 
 class CrashMailBatch(ProcessStateEmailMonitor):
-    
+
     processStateEvents = ['PROCESS_STATE_EXITED']
 
     def __init__(self, **kwargs):
         kwargs['subject'] = kwargs.get('subject', 'Crash alert from supervisord')
         ProcessStateEmailMonitor.__init__(self, **kwargs)
         self.now = kwargs.get('now', None)
- 
+
     def getProcessStateChangeMsg(self, headers, payload):
         pheaders, pdata = childutils.eventdata(payload+'\n')
-        
+
         if int(pheaders['expected']):
             return None
-        
+
         txt = 'Process %(groupname)s:%(processname)s (pid %(pid)s) died \
 unexpectedly' % pheaders
         return '%s -- %s' % (childutils.get_asctime(self.now), txt)
@@ -76,3 +79,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

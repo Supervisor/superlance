@@ -41,6 +41,8 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
                           help="source email address")
         parser.add_option("-s", "--subject", dest="subject",
                           help="email subject")
+        parser.add_option("-h", "--smtpHost", dest="smtpHost", default="localhost",
+                          help="SMTP server hostname or address")
         (options, args) = parser.parse_args()
 
         if not options.toEmail:
@@ -58,12 +60,13 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
 
     def __init__(self, **kwargs):
         ProcessStateMonitor.__init__(self, **kwargs)
-        
+
         self.fromEmail = kwargs['fromEmail']
         self.toEmail = kwargs['toEmail']
         self.subject = kwargs.get('subject', 'Alert from supervisord')
+        self.smtpHost = kwargs['smtpHost']
         self.digestLen = 76
-            
+
     def sendBatchNotification(self):
         email = self.getBatchEmail()
         if email:
@@ -76,7 +79,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
             email4Log['body'] = '%s...' % email4Log['body'][:self.digestLen]
         self.writeToStderr("Sending notification email:\nTo: %(to)s\n\
 From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
-            
+
     def getBatchEmail(self):
         if len(self.batchMsgs):
             return {
@@ -86,7 +89,7 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
                 'body': '\n'.join(self.getBatchMsgs()),
             }
         return None
-        
+
     def sendEmail(self, email):
         msg = MIMEText(email['body'])
         msg['Subject'] = email['subject']
@@ -99,10 +102,11 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
             self.writeToStderr("Error sending email: %s" % e)
 
     def sendSMTP(self, mimeMsg):
-        s = smtplib.SMTP('localhost')
+        s = smtplib.SMTP(self.smtpHost)
         try:
             s.sendmail(email['from'], [email['to']], msg.as_string())
         except:
             s.quit()
             raise
         s.quit()
+
