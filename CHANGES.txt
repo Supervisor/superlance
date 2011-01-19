@@ -19,6 +19,8 @@ Next Release
 - Applied patch from Sam Bartlett: processes which are not autostarted
   have pid "0".  This was crashing ``memmon``.
 
+- Add ``smtpHost`` command line flag to ``mailbatch`` processors.
+
 
 0.5 (2009-05-24)
 ---------------
