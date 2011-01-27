@@ -71,7 +71,7 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
         monitor.sendEmail(email)
 
         #Test that error was logged to stderr
-        self.assertEquals("Error sending email: test", monitor.stderr.getvalue())
+        self.assertEquals("Error sending email: test\n", monitor.stderr.getvalue())
     
     def test_sendBatchNotification(self):
         testMsgs = ['msg1', 'msg2']
