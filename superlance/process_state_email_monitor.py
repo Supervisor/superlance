@@ -41,7 +41,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
                           help="source email address")
         parser.add_option("-s", "--subject", dest="subject",
                           help="email subject")
-        parser.add_option("-h", "--smtpHost", dest="smtpHost", default="localhost",
+        parser.add_option("-H", "--smtpHost", dest="smtpHost", default="localhost",
                           help="SMTP server hostname or address")
         (options, args) = parser.parse_args()
 
@@ -99,12 +99,12 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
         try:
             self.sendSMTP(msg)
         except Exception, e:
-            self.writeToStderr("Error sending email: %s" % e)
+            self.writeToStderr("Error sending email: %s\n" % e)
 
     def sendSMTP(self, mimeMsg):
         s = smtplib.SMTP(self.smtpHost)
         try:
-            s.sendmail(email['from'], [email['to']], msg.as_string())
+            s.sendmail(mimeMsg['From'], [mimeMsg['To']], mimeMsg.as_string())
         except:
             s.quit()
             raise
