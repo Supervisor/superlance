@@ -64,7 +64,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         self.fromEmail = kwargs['fromEmail']
         self.toEmail = kwargs['toEmail']
         self.subject = kwargs.get('subject', 'Alert from supervisord')
-        self.smtpHost = kwargs['smtpHost']
+        self.smtpHost = kwargs.get('smtpHost', 'localhost')
         self.digestLen = 76
 
     def sendBatchNotification(self):

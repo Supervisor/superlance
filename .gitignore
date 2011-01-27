@@ -1,0 +1,6 @@
+env26/
+*.egg
+*.egg-info
+dist/
+*.pyc
+
