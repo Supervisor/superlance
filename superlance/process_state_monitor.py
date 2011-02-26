@@ -28,27 +28,28 @@ class ProcessStateMonitor:
 
     def __init__(self, **kwargs):
         self.interval = kwargs.get('interval', 1)
-        
+
         self.debug = kwargs.get('debug', False)
         self.stdin = kwargs.get('stdin', sys.stdin)
         self.stdout = kwargs.get('stdout', sys.stdout)
         self.stderr = kwargs.get('stderr', sys.stderr)
-        
+
         self.batchMsgs = []
         self.batchMins = 0
- 
+
     def run(self):
         while 1:
             hdrs, payload = childutils.listener.wait(self.stdin, self.stdout)
             self.handleEvent(hdrs, payload)
             childutils.listener.ok(self.stdout)
-    
+
     def handleEvent(self, headers, payload):
         if headers['eventname'] in self.processStateEvents:
             self.handleProcessStateChangeEvent(headers, payload)
-        elif headers['eventname'] == 'TICK_60':
-            self.handleTick60Event(headers, payload)
-    
+        elif headers['eventname'].startswith('TICK_'):
+            secs = headers['eventname'].split('_')[1]
+            self.handleTickEvent(headers, payload, int(secs))
+
     def handleProcessStateChangeEvent(self, headers, payload):
         msg = self.getProcessStateChangeMsg(headers, payload)
         if msg:
@@ -61,24 +62,31 @@ class ProcessStateMonitor:
     def getProcessStateChangeMsg(self, headers, payload):
         return None
 
-    def handleTick60Event(self, headers, payload):
-        self.batchMins += 1
+    def handleTickEvent(self, headers, payload, seconds):
+        try:
+          self.batchMins += float(seconds) / 60.0
+        except ValueError, e:
+          self.writeToStderr('TICK event value %s is not a number.' % seconds)
+          return
+
         if self.batchMins >= self.interval:
             self.sendBatchNotification()
             self.clearBatch()
-            
+
+
+
     """
     Override this method in child classes to send notification
     """
     def sendBatchNotification(self):
         pass
-    
+
     def getBatchMinutes(self):
         return self.batchMins
-    
+
     def getBatchMsgs(self):
         return self.batchMsgs
-        
+
     def clearBatch(self):
         self.batchMins = 0;
         self.batchMsgs = [];
