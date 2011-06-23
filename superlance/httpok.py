@@ -140,8 +140,7 @@ class HTTPOk:
         scheme = parsed[0].lower()
         hostport = parsed[1]
         path = parsed[2]
-        params = parsed[3]
-        query = parsed[4]
+        query = parsed[3]
 
         if self.connclass:
             ConnClass = self.connclass
