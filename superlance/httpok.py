@@ -34,7 +34,7 @@ Options:
       process named 'process_name' if it's in the RUNNING state when
       the URL returns an unexpected result or times out.  If this
       process is part of a group, it can be specified using the
-      'process_name:group_name' syntax.
+      'group_name:process_name' syntax.
       
 -a -- Restart any child of the supervisord under in the RUNNING state
       if the URL returns an unexpected result or times out.  Overrides
@@ -222,7 +222,7 @@ class HTTPOk:
                 name = spec['name']
                 group = spec['group']
                 self.restart(spec, write)
-                namespec = make_namespec(name, group)
+                namespec = make_namespec(group, name)
                 if name in waiting:
                     waiting.remove(name)
                 if namespec in waiting:
@@ -232,7 +232,7 @@ class HTTPOk:
             for spec in specs:
                 name = spec['name']
                 group = spec['group']
-                namespec = make_namespec(name, group)
+                namespec = make_namespec(group, name)
                 if (name in self.programs) or (namespec in self.programs):
                     self.restart(spec, write)
                     if name in waiting:
