@@ -33,9 +33,22 @@ class ProcessStateMonitor:
         self.stdin = kwargs.get('stdin', sys.stdin)
         self.stdout = kwargs.get('stdout', sys.stdout)
         self.stderr = kwargs.get('stderr', sys.stderr)
+        self.eventname = kwargs.get('eventname', 'TICK_60')
+        self.tickmins = self._get_tick_mins(self.eventname)
         
         self.batchMsgs = []
         self.batchMins = 0.0
+
+    def _get_tick_mins(self, eventname):
+        return float(self._get_tick_secs(eventname))/60.0
+
+    def _get_tick_secs(self, eventname):
+        self._validate_tick_name(eventname)
+        return int(eventname.split('_')[1])
+        
+    def _validate_tick_name(self, eventname):
+        if not eventname.startswith('TICK_'):
+            raise ValueError("Invalid TICK event name: %s" % eventname)
  
     def run(self):
         while 1:
@@ -46,8 +59,8 @@ class ProcessStateMonitor:
     def handleEvent(self, headers, payload):
         if headers['eventname'] in self.processStateEvents:
             self.handleProcessStateChangeEvent(headers, payload)
-        elif headers['eventname'] == 'TICK_60':
-            self.handleTick60Event(headers, payload)
+        elif headers['eventname'] == self.eventname:
+            self.handleTickEvent(headers, payload)
     
     def handleProcessStateChangeEvent(self, headers, payload):
         msg = self.getProcessStateChangeMsg(headers, payload)
@@ -61,8 +74,8 @@ class ProcessStateMonitor:
     def getProcessStateChangeMsg(self, headers, payload):
         return None
 
-    def handleTick60Event(self, headers, payload):
-        self.batchMins += 1.0
+    def handleTickEvent(self, headers, payload):
+        self.batchMins += self.tickmins
         if self.batchMins >= self.interval:
             self.sendBatchNotification()
             self.clearBatch()

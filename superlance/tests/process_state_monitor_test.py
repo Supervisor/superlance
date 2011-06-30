@@ -44,6 +44,17 @@ pid:58597' % (pname, gname, expected)
         }
         payload = 'when:1279665240'
         return (headers, payload)
+
+    def test__get_tick_secs(self):
+        monitor = self._makeOneMocked()
+        self.assertEquals(5, monitor._get_tick_secs('TICK_5'))
+        self.assertEquals(60, monitor._get_tick_secs('TICK_60'))
+        self.assertEquals(3600, monitor._get_tick_secs('TICK_3600'))
+        self.assertRaises(ValueError, monitor._get_tick_secs, 'JUNK_60')
+
+    def test__get_tick_mins(self):
+        monitor = self._makeOneMocked()
+        self.assertEquals(5.0/60.0, monitor._get_tick_mins('TICK_5'))
         
     def test_handleEvent_exit(self):
         monitor = self._makeOneMocked()

@@ -33,7 +33,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         from optparse import OptionParser
 
         parser = OptionParser()
-        parser.add_option("-i", "--interval", dest="interval", type="int",
+        parser.add_option("-i", "--interval", dest="interval", type="int", default=1,
                           help="batch interval in minutes (defaults to 1 minute)")
         parser.add_option("-t", "--toEmail", dest="toEmail",
                           help="destination email address")
@@ -43,6 +43,9 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
                           help="email subject")
         parser.add_option("-H", "--smtpHost", dest="smtpHost", default="localhost",
                           help="SMTP server hostname or address")
+        parser.add_option("-e", "--tickEvent", dest="eventname", default="TICK_60",
+                          help="TICK event name (defaults to TICK_60)")
+        
         (options, args) = parser.parse_args()
 
         if not options.toEmail:
