@@ -21,7 +21,7 @@
 # as a listener is below.
 #
 # [eventlistener:crashmailbatch]
-# command=python crashmailbatch
+# command=python crashmailbatch --toEmail=you@bar.com --fromEmail=me@bar.com
 # events=PROCESS_STATE,TICK_60
 
 doc = """\
