@@ -72,6 +72,8 @@ def usage():
     sys.exit(255)
 
 class CrashMail:
+    MESSAGE_FMT = 'Process %(processname)s in group %(groupname)s exited '
+                  'unexpectedly (pid %(pid)s) from state %(from_state)s'
 
     def __init__(self, programs, any, email, sendmail, optionalheader):
 
@@ -109,9 +111,7 @@ class CrashMail:
                     break
                 continue
 
-            msg = ('Process %(processname)s in group %(groupname)s exited '
-                   'unexpectedly (pid %(pid)s) from state %(from_state)s' %
-                   pheaders)
+            msg = (self.MESSAGE_FMT % pheaders)
 
             subject = ' %s crashed at %s' % (pheaders['processname'],
                                              childutils.get_asctime())

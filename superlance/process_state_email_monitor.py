@@ -45,6 +45,10 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
                           help="SMTP server hostname or address")
         (options, args) = parser.parse_args()
 
+
+        if options.subject and options.subject.lower() == 'none':
+            options.subject = None
+
         if not options.toEmail:
             parser.print_help()
             sys.exit(1)
@@ -92,7 +96,8 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
 
     def sendEmail(self, email):
         msg = MIMEText(email['body'])
-        msg['Subject'] = email['subject']
+        if self.subject:
+          msg['Subject'] = email['subject']
         msg['From'] = email['from']
         msg['To'] = email['to']
 
