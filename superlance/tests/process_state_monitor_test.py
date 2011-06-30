@@ -82,9 +82,9 @@ pid:58597' % (pname, gname, expected)
         monitor = self._makeOneMocked(interval=3)
         hdrs, payload = self.getTick60Event()
         monitor.handleEvent(hdrs, payload)
-        self.assertEquals(1, monitor.getBatchMinutes())
+        self.assertEquals(1.0, monitor.getBatchMinutes())
         monitor.handleEvent(hdrs, payload)
-        self.assertEquals(2, monitor.getBatchMinutes())
+        self.assertEquals(2.0, monitor.getBatchMinutes())
 
 if __name__ == '__main__':
     unittest.main()

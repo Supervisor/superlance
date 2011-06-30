@@ -35,7 +35,7 @@ class ProcessStateMonitor:
         self.stderr = kwargs.get('stderr', sys.stderr)
         
         self.batchMsgs = []
-        self.batchMins = 0
+        self.batchMins = 0.0
  
     def run(self):
         while 1:
@@ -62,7 +62,7 @@ class ProcessStateMonitor:
         return None
 
     def handleTick60Event(self, headers, payload):
-        self.batchMins += 1
+        self.batchMins += 1.0
         if self.batchMins >= self.interval:
             self.sendBatchNotification()
             self.clearBatch()
@@ -80,7 +80,7 @@ class ProcessStateMonitor:
         return self.batchMsgs
         
     def clearBatch(self):
-        self.batchMins = 0;
+        self.batchMins = 0.0;
         self.batchMsgs = [];
 
     def writeToStderr(self, msg):
