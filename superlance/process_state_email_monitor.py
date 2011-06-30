@@ -29,29 +29,29 @@ and sending email notification
 class ProcessStateEmailMonitor(ProcessStateMonitor):
 
     @classmethod
-    def createFromCmdLine(cls):
+    def create_from_cmd_line(cls):
         from optparse import OptionParser
 
         parser = OptionParser()
         parser.add_option("-i", "--interval", dest="interval", type="float", default=1.0,
                           help="batch interval in minutes (defaults to 1 minute)")
-        parser.add_option("-t", "--toEmail", dest="toEmail",
+        parser.add_option("-t", "--toEmail", dest="to_email",
                           help="destination email address")
-        parser.add_option("-f", "--fromEmail", dest="fromEmail",
+        parser.add_option("-f", "--fromEmail", dest="from_email",
                           help="source email address")
         parser.add_option("-s", "--subject", dest="subject",
                           help="email subject")
-        parser.add_option("-H", "--smtpHost", dest="smtpHost", default="localhost",
+        parser.add_option("-H", "--smtpHost", dest="smtp_host", default="localhost",
                           help="SMTP server hostname or address")
         parser.add_option("-e", "--tickEvent", dest="eventname", default="TICK_60",
                           help="TICK event name (defaults to TICK_60)")
         
         (options, args) = parser.parse_args()
 
-        if not options.toEmail:
+        if not options.to_email:
             parser.print_help()
             sys.exit(1)
-        if not options.fromEmail:
+        if not options.from_email:
             parser.print_help()
             sys.exit(1)
 
@@ -64,36 +64,36 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
     def __init__(self, **kwargs):
         ProcessStateMonitor.__init__(self, **kwargs)
 
-        self.fromEmail = kwargs['fromEmail']
-        self.toEmail = kwargs['toEmail']
+        self.from_email = kwargs['from_email']
+        self.to_email = kwargs['to_email']
         self.subject = kwargs.get('subject')
-        self.smtpHost = kwargs.get('smtpHost', 'localhost')
-        self.digestLen = 76
+        self.smtp_host = kwargs.get('smtp_host', 'localhost')
+        self.digest_len = 76
 
-    def sendBatchNotification(self):
-        email = self.getBatchEmail()
+    def send_batch_notification(self):
+        email = self.get_batch_email()
         if email:
-            self.sendEmail(email)
-            self.logEmail(email)
+            self.send_email(email)
+            self.log_email(email)
 
-    def logEmail(self, email):
-        email4Log = copy.copy(email)
-        if len(email4Log['body']) > self.digestLen:
-            email4Log['body'] = '%s...' % email4Log['body'][:self.digestLen]
-        self.writeToStderr("Sending notification email:\nTo: %(to)s\n\
-From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
+    def log_email(self, email):
+        email_for_log = copy.copy(email)
+        if len(email_for_log['body']) > self.digest_len:
+            email_for_log['body'] = '%s...' % email_for_log['body'][:self.digest_len]
+        self.write_stderr("Sending notification email:\nTo: %(to)s\n\
+From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
 
-    def getBatchEmail(self):
-        if len(self.batchMsgs):
+    def get_batch_email(self):
+        if len(self.batchmsgs):
             return {
-                'to': self.toEmail,
-                'from': self.fromEmail,
+                'to': self.to_email,
+                'from': self.from_email,
                 'subject': self.subject,
-                'body': '\n'.join(self.getBatchMsgs()),
+                'body': '\n'.join(self.get_batch_msgs()),
             }
         return None
 
-    def sendEmail(self, email):
+    def send_email(self, email):
         msg = MIMEText(email['body'])
         if self.subject:
           msg['Subject'] = email['subject']
@@ -101,12 +101,12 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
         msg['To'] = email['to']
 
         try:
-            self.sendSMTP(msg)
+            self.send_smtp(msg)
         except Exception, e:
-            self.writeToStderr("Error sending email: %s\n" % e)
+            self.write_stderr("Error sending email: %s\n" % e)
 
-    def sendSMTP(self, mimeMsg):
-        s = smtplib.SMTP(self.smtpHost)
+    def send_smtp(self, mimeMsg):
+        s = smtplib.SMTP(self.smtp_host)
         try:
             s.sendmail(mimeMsg['From'], [mimeMsg['To']], mimeMsg.as_string())
         except:

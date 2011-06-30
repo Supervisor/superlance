@@ -56,14 +56,14 @@ from superlance.process_state_email_monitor import ProcessStateEmailMonitor
 
 class CrashMailBatch(ProcessStateEmailMonitor):
 
-    processStateEvents = ['PROCESS_STATE_EXITED']
+    process_state_events = ['PROCESS_STATE_EXITED']
 
     def __init__(self, **kwargs):
         kwargs['subject'] = kwargs.get('subject', 'Crash alert from supervisord')
         ProcessStateEmailMonitor.__init__(self, **kwargs)
         self.now = kwargs.get('now', None)
 
-    def getProcessStateChangeMsg(self, headers, payload):
+    def get_process_state_change_msg(self, headers, payload):
         pheaders, pdata = childutils.eventdata(payload+'\n')
 
         if int(pheaders['expected']):
@@ -74,7 +74,7 @@ unexpectedly' % pheaders
         return '%s -- %s' % (childutils.get_asctime(self.now), txt)
 
 def main():
-    crash = CrashMailBatch.createFromCmdLine()
+    crash = CrashMailBatch.create_from_cmd_line()
     crash.run()
 
 if __name__ == '__main__':

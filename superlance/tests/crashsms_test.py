@@ -5,11 +5,11 @@ from StringIO import StringIO
 
 from crashmailbatch_test import CrashMailBatchTests
 
-class CrashSMSBatchTests(CrashMailBatchTests):
+class CrashSMSTests(CrashMailBatchTests):
     subject = 'None'
-    unexpectedErrorMsg = '[bar:foo](58597) exited unexpectedly'
+    unexpected_err_msg = '[bar:foo](58597) exited unexpectedly'
 
-    def _getTargetClass(self):
+    def _get_target_class(self):
         from superlance.crashsms import CrashSMS
         return CrashSMS
 

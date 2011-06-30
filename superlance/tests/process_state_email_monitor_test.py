@@ -7,49 +7,49 @@ class ProcessStateEmailMonitorTestException(Exception):
     pass
 
 class ProcessStateEmailMonitorTests(unittest.TestCase):
-    fromEmail = 'testFrom@blah.com'
-    toEmail = 'testTo@blah.com'
+    from_email = 'testFrom@blah.com'
+    to_email = 'testTo@blah.com'
     subject = 'Test Alert'
     
-    def _getTargetClass(self):
+    def _get_target_class(self):
         from superlance.process_state_email_monitor \
         import ProcessStateEmailMonitor
         return ProcessStateEmailMonitor
     
-    def _makeOne(self, **kwargs):
+    def _make_one(self, **kwargs):
         kwargs['stdin'] = StringIO()
         kwargs['stdout'] = StringIO()
         kwargs['stderr'] = StringIO()
-        kwargs['fromEmail'] = kwargs.get('fromEmail', self.fromEmail)
-        kwargs['toEmail'] = kwargs.get('toEmail', self.toEmail)
+        kwargs['from_email'] = kwargs.get('from_email', self.from_email)
+        kwargs['to_email'] = kwargs.get('to_email', self.to_email)
         kwargs['subject'] = kwargs.get('subject', self.subject)
         
-        obj = self._getTargetClass()(**kwargs)
+        obj = self._get_target_class()(**kwargs)
         return obj
             
-    def _makeOneMock_sendEmail(self, **kwargs):
-        obj = self._makeOne(**kwargs)
-        obj.sendEmail = mock.Mock()
+    def _make_one_mock_send_email(self, **kwargs):
+        obj = self._make_one(**kwargs)
+        obj.send_email = mock.Mock()
         return obj
 
-    def _makeOneMock_sendSMTP(self, **kwargs):
-        obj = self._makeOne(**kwargs)
-        obj.sendSMTP = mock.Mock()
+    def _make_one_mock_send_smtp(self, **kwargs):
+        obj = self._make_one(**kwargs)
+        obj.send_smtp = mock.Mock()
         return obj
     
-    def test_sendEmail_ok(self):
+    def test_send_email_ok(self):
         email = {
             'body': 'msg1\nmsg2',
             'to': 'testTo@blah.com',
             'from': 'testFrom@blah.com',
             'subject': 'Test Alert',
         }
-        monitor = self._makeOneMock_sendSMTP()
-        monitor.sendEmail(email)
+        monitor = self._make_one_mock_send_smtp()
+        monitor.send_email(email)
         
         #Test that email was sent
-        self.assertEquals(1, monitor.sendSMTP.call_count)
-        smtpCallArgs = monitor.sendSMTP.call_args[0]
+        self.assertEquals(1, monitor.send_smtp.call_count)
+        smtpCallArgs = monitor.send_smtp.call_args[0]
         mimeMsg = smtpCallArgs[0]
         self.assertEquals(email['to'], mimeMsg['To'])
         self.assertEquals(email['from'], mimeMsg['From'])
@@ -59,25 +59,25 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
     def _raiseSTMPException(self, mimeMsg):
         raise ProcessStateEmailMonitorTestException('test')
         
-    def test_sendEmail_exception(self):
+    def test_send_email_exception(self):
         email = {
             'body': 'msg1\nmsg2',
             'to': 'testTo@blah.com',
             'from': 'testFrom@blah.com',
             'subject': 'Test Alert',
         }
-        monitor = self._makeOneMock_sendSMTP()
-        monitor.sendSMTP.side_effect = self._raiseSTMPException
-        monitor.sendEmail(email)
+        monitor = self._make_one_mock_send_smtp()
+        monitor.send_smtp.side_effect = self._raiseSTMPException
+        monitor.send_email(email)
 
         #Test that error was logged to stderr
         self.assertEquals("Error sending email: test\n", monitor.stderr.getvalue())
     
-    def test_sendBatchNotification(self):
-        testMsgs = ['msg1', 'msg2']
-        monitor = self._makeOneMock_sendEmail()
-        monitor.batchMsgs = testMsgs
-        monitor.sendBatchNotification()
+    def test_send_batch_notification(self):
+        test_msgs = ['msg1', 'msg2']
+        monitor = self._make_one_mock_send_email()
+        monitor.batchmsgs = test_msgs
+        monitor.send_batch_notification()
         
         #Test that email was sent
         expected = {
@@ -86,8 +86,8 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
             'from': 'testFrom@blah.com',
             'subject': 'Test Alert',
         }
-        self.assertEquals(1, monitor.sendEmail.call_count)
-        monitor.sendEmail.assert_called_with(expected)
+        self.assertEquals(1, monitor.send_email.call_count)
+        monitor.send_email.assert_called_with(expected)
         
         #Test that email was logged
         self.assertEquals("""Sending notification email:
@@ -99,16 +99,16 @@ msg1
 msg2
 """, monitor.stderr.getvalue())
         
-    def test_logEmail_with_body_digest(self):
+    def test_log_email_with_body_digest(self):
         bodyLen = 80
-        monitor = self._makeOneMock_sendEmail()
+        monitor = self._make_one_mock_send_email()
         email = {
             'to': 'you@fubar.com',
             'from': 'me@fubar.com',
             'subject': 'yo yo',
             'body': 'a' * bodyLen,
         }
-        monitor.logEmail(email)
+        monitor.log_email(email)
         self.assertEquals("""Sending notification email:
 To: you@fubar.com
 From: me@fubar.com
@@ -118,15 +118,15 @@ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...
 """, monitor.stderr.getvalue())
         self.assertEquals('a' * bodyLen, email['body'])
 
-    def test_logEmail_without_body_digest(self):
-        monitor = self._makeOneMock_sendEmail()
+    def test_log_email_without_body_digest(self):
+        monitor = self._make_one_mock_send_email()
         email = {
             'to': 'you@fubar.com',
             'from': 'me@fubar.com',
             'subject': 'yo yo',
             'body': 'a' * 20,
         }
-        monitor.logEmail(email)
+        monitor.log_email(email)
         self.assertEquals("""Sending notification email:
 To: you@fubar.com
 From: me@fubar.com

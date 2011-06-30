@@ -53,14 +53,14 @@ from superlance.process_state_email_monitor import ProcessStateEmailMonitor
 
 class FatalMailBatch(ProcessStateEmailMonitor):
     
-    processStateEvents = ['PROCESS_STATE_FATAL']
+    process_state_events = ['PROCESS_STATE_FATAL']
 
     def __init__(self, **kwargs):
         kwargs['subject'] = kwargs.get('subject', 'Fatal start alert from supervisord')
         ProcessStateEmailMonitor.__init__(self, **kwargs)
         self.now = kwargs.get('now', None)
  
-    def getProcessStateChangeMsg(self, headers, payload):
+    def get_process_state_change_msg(self, headers, payload):
         pheaders, pdata = childutils.eventdata(payload+'\n')
 
         txt = 'Process %(groupname)s:%(processname)s failed to start too many \
@@ -68,7 +68,7 @@ times' % pheaders
         return '%s -- %s' % (childutils.get_asctime(self.now), txt)
 
 def main():
-    fatal = FatalMailBatch.createFromCmdLine()
+    fatal = FatalMailBatch.create_from_cmd_line()
     fatal.run()
 
 if __name__ == '__main__':

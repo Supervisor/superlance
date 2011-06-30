@@ -24,7 +24,7 @@ from supervisor import childutils
 class ProcessStateMonitor:
 
     # In child class, define a list of events to monitor
-    processStateEvents = []
+    process_state_events = []
 
     def __init__(self, **kwargs):
         self.interval = kwargs.get('interval', 1.0)
@@ -36,8 +36,8 @@ class ProcessStateMonitor:
         self.eventname = kwargs.get('eventname', 'TICK_60')
         self.tickmins = self._get_tick_mins(self.eventname)
         
-        self.batchMsgs = []
-        self.batchMins = 0.0
+        self.batchmsgs = []
+        self.batchmins = 0.0
 
     def _get_tick_mins(self, eventname):
         return float(self._get_tick_secs(eventname))/60.0
@@ -53,49 +53,49 @@ class ProcessStateMonitor:
     def run(self):
         while 1:
             hdrs, payload = childutils.listener.wait(self.stdin, self.stdout)
-            self.handleEvent(hdrs, payload)
+            self.handle_event(hdrs, payload)
             childutils.listener.ok(self.stdout)
     
-    def handleEvent(self, headers, payload):
-        if headers['eventname'] in self.processStateEvents:
-            self.handleProcessStateChangeEvent(headers, payload)
+    def handle_event(self, headers, payload):
+        if headers['eventname'] in self.process_state_events:
+            self.handle_process_state_change_event(headers, payload)
         elif headers['eventname'] == self.eventname:
-            self.handleTickEvent(headers, payload)
+            self.handle_tick_event(headers, payload)
     
-    def handleProcessStateChangeEvent(self, headers, payload):
-        msg = self.getProcessStateChangeMsg(headers, payload)
+    def handle_process_state_change_event(self, headers, payload):
+        msg = self.get_process_state_change_msg(headers, payload)
         if msg:
-            self.writeToStderr('%s\n' % msg)
-            self.batchMsgs.append(msg)
+            self.write_stderr('%s\n' % msg)
+            self.batchmsgs.append(msg)
 
     """
     Override this method in child classes to customize messaging
     """
-    def getProcessStateChangeMsg(self, headers, payload):
+    def get_process_state_change_msg(self, headers, payload):
         return None
 
-    def handleTickEvent(self, headers, payload):
-        self.batchMins += self.tickmins
-        if self.batchMins >= self.interval:
-            self.sendBatchNotification()
-            self.clearBatch()
+    def handle_tick_event(self, headers, payload):
+        self.batchmins += self.tickmins
+        if self.batchmins >= self.interval:
+            self.send_batch_notification()
+            self.clear_batch()
             
     """
     Override this method in child classes to send notification
     """
-    def sendBatchNotification(self):
+    def send_batch_notification(self):
         pass
     
-    def getBatchMinutes(self):
-        return self.batchMins
+    def get_batch_minutes(self):
+        return self.batchmins
     
-    def getBatchMsgs(self):
-        return self.batchMsgs
+    def get_batch_msgs(self):
+        return self.batchmsgs
         
-    def clearBatch(self):
-        self.batchMins = 0.0;
-        self.batchMsgs = [];
+    def clear_batch(self):
+        self.batchmins = 0.0;
+        self.batchmsgs = [];
 
-    def writeToStderr(self, msg):
+    def write_stderr(self, msg):
         self.stderr.write(msg)
         self.stderr.flush()

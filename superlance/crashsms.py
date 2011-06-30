@@ -63,13 +63,13 @@ from supervisor import childutils
 from superlance.process_state_email_monitor import ProcessStateEmailMonitor
 
 class CrashSMS(ProcessStateEmailMonitor):
-  processStateEvents = ['PROCESS_STATE_EXITED']
+  process_state_events = ['PROCESS_STATE_EXITED']
 
   def __init__(self, **kwargs):
     ProcessStateEmailMonitor.__init__(self, **kwargs)
     self.now = kwargs.get('now', None)
 
-  def getProcessStateChangeMsg(self, headers, payload):
+  def get_process_state_change_msg(self, headers, payload):
     pheaders, pdata = childutils.eventdata(payload+'\n')
 
     if int(pheaders['expected']):
@@ -80,7 +80,7 @@ class CrashSMS(ProcessStateEmailMonitor):
     return '%s %s' % (txt, childutils.get_asctime(self.now))
 
 def main():
-  crash = CrashSMS.createFromCmdLine()
+  crash = CrashSMS.create_from_cmd_line()
   crash.run()
 
 if __name__ == '__main__':
