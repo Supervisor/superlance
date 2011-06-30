@@ -33,7 +33,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         from optparse import OptionParser
 
         parser = OptionParser()
-        parser.add_option("-i", "--interval", dest="interval", type="int", default=1,
+        parser.add_option("-i", "--interval", dest="interval", type="float", default=1.0,
                           help="batch interval in minutes (defaults to 1 minute)")
         parser.add_option("-t", "--toEmail", dest="toEmail",
                           help="destination email address")

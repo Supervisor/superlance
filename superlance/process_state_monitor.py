@@ -27,7 +27,7 @@ class ProcessStateMonitor:
     processStateEvents = []
 
     def __init__(self, **kwargs):
-        self.interval = kwargs.get('interval', 1)
+        self.interval = kwargs.get('interval', 1.0)
         
         self.debug = kwargs.get('debug', False)
         self.stdin = kwargs.get('stdin', sys.stdin)

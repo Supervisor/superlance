@@ -28,7 +28,7 @@
 # as a listener is below.
 #
 # [eventlistener:crashsms]
-# command=python crashsms -e TICK_5
+# command=python crashsms -t <mobile phone>@<mobile provider> -f me@bar.com -e TICK_5
 # events=PROCESS_STATE,TICK_5
 
 doc = """\
@@ -55,7 +55,7 @@ Options:
 
 A sample invocation:
 
-crashsms.py -t=<mobile phone>@<mobile provider> -f=me@bar.com -e TICK_5
+crashsms.py -t <mobile phone>@<mobile provider> -f me@bar.com -e TICK_5
 
 """
 
