@@ -63,7 +63,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
 
         self.fromEmail = kwargs['fromEmail']
         self.toEmail = kwargs['toEmail']
-        self.subject = kwargs.get('subject', 'Alert from supervisord')
+        self.subject = kwargs.get('subject')
         self.smtpHost = kwargs.get('smtpHost', 'localhost')
         self.digestLen = 76
 
@@ -92,7 +92,8 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email4Log)
 
     def sendEmail(self, email):
         msg = MIMEText(email['body'])
-        msg['Subject'] = email['subject']
+        if self.subject:
+          msg['Subject'] = email['subject']
         msg['From'] = email['from']
         msg['To'] = email['to']
 
