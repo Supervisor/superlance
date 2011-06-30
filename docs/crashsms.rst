@@ -1,17 +1,15 @@
-:command:`crashmailbatch` Documentation
+:command:`crashsms` Documentation
 ==================================
 
-:command:`crashmailbatch` is a supervisor "event listener", intended to be
-subscribed to ``PROCESS_STATE`` and ``TICK_60`` events.  It monitors
+:command:`crashsms` is a supervisor "event listener", intended to be
+subscribed to ``PROCESS_STATE`` events and ``TICK`` events such as ``TICK_60``.  It monitors
 all processes running under a given supervisord instance.
 
-Similar to :command:`crashmail`, :command:`crashmailbatch` sends email 
-alerts when processes die unexpectedly.  The difference is that all alerts 
-generated within the configured time interval are batched together to avoid 
-sending too many emails.   
+Similar to :command:`crashmailbash`, :command:`crashsms` sends SMS alerts
+through an email gateway.  Messages are formatted to fit in SMS
 
-:command:`crashmailbatch` is a "console script" installed when you install
-:mod:`superlance`.  Although :command:`crashmailbatch` is an executable 
+:command:`crashsms` is a "console script" installed when you install
+:mod:`superlance`.  Although :command:`crashsms` is an executable 
 program, it isn't useful as a general-purpose script:  it must be run as a
 :command:`supervisor` event listener to do anything useful.
 
@@ -20,11 +18,11 @@ Command-Line Syntax
 
 .. code-block:: sh
 
-   $ crashmailbatch --toEmail=<email address> --fromEmail=<email address> \
+   $ crashsms --toEmail=<email address> --fromEmail=<email address> \
            [--interval=<batch interval in minutes>] [--subject=<email subject>] \
 		   [--tickEvent=<event name>]
    
-.. program:: crashmailbatch
+.. program:: crashsms
 
 .. cmdoption:: -t <destination email>, --toEmail=<destination email>
    
@@ -41,24 +39,24 @@ Command-Line Syntax
 
 .. cmdoption:: -s <email subject>, --subject=<email subject>
    
-   Override the email subject line.  Defaults to "Crash alert from supervisord"
+   Set the email subject line.  Default is None
 
 .. cmdoption:: -e <event name>, --tickEvent=<event name>
 
    Override the TICK event name.  Defaults to "TICK_60"
 
-Configuring :command:`crashmailbatch` Into the Supervisor Config
+Configuring :command:`crashsms` Into the Supervisor Config
 -----------------------------------------------------------
 
 An ``[eventlistener:x]`` section must be placed in :file:`supervisord.conf`
-in order for :command:`crashmailbatch` to do its work. See the "Events" chapter in
+in order for :command:`crashsms` to do its work. See the "Events" chapter in
 the Supervisor manual for more information about event listeners.
 
-The following example assumes that :command:`crashmailbatch` is on your system
+The following example assumes that :command:`crashsms` is on your system
 :envvar:`PATH`.
 
 .. code-block:: ini
 
-   [eventlistener:crashmailbatch]
-   crashmailbatch --toEmail="alertme@fubar.com" --fromEmail="supervisord@fubar.com" 
+   [eventlistener:crashsms]
+   crashsms --toEmail="<mobile number>@<sms email gateway>" --fromEmail="supervisord@fubar.com" 
    events=PROCESS_STATE,TICK_60

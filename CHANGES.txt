@@ -21,6 +21,10 @@ Next Release
 
 - Add ``smtpHost`` command line flag to ``mailbatch`` processors.
 
+- Added ``crashsms`` from Juan Batiz-Benet
+
+- Converted ``crashmailbatch`` and friends from camel case to pythonic style
+
 
 0.5 (2009-05-24)
 ---------------

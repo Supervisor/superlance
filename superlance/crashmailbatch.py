@@ -33,7 +33,7 @@ crashmailbatch.py [--interval=<batch interval in minutes>]
 
 Options:
 
---interval  - batch cycle length (in minutes).  The default is 1 minute.
+--interval  - batch cycle length (in minutes).  The default is 1.0 minute.
                   This means that all events in each cycle are batched together
                   and sent as a single email
 
