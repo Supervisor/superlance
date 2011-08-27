@@ -140,8 +140,10 @@ class HTTPOk:
         scheme = parsed[0].lower()
         hostport = parsed[1]
         path = parsed[2]
-        params = parsed[3]
-        query = parsed[4]
+        query = parsed[3]
+
+        if query:
+            path += '?' + query
 
         if self.connclass:
             ConnClass = self.connclass
@@ -166,9 +168,6 @@ class HTTPOk:
 
             conn = ConnClass(hostport)
             conn.timeout = self.timeout
-
-            if query:
-                path += '?' + query
 
             act = False
 
