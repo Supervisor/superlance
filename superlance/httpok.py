@@ -191,7 +191,7 @@ class HTTPOk:
                 if str(status) != str(self.status):
                     subject = 'httpok for %s: bad status returned' % self.url
                     self.act(subject, msg)
-                elif self.inbody and self.inbody not in res.body:
+                elif self.inbody and self.inbody not in body:
                     act = True
                     subject = 'httpok for %s: bad body returned' % self.url
                     self.act(subject, msg)
