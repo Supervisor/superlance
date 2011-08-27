@@ -1,8 +1,8 @@
 superlance Changelog
 ====================
 
-Next Release
-------------
+0.6 (2011-08-27)
+----------------
 
 - Separated unit tests into their own files
 
@@ -33,6 +33,7 @@ Next Release
 
 - Fixed a bug where ``httpok`` would not handle process names with a 
   group ("group:process") properly.  Patch by Joaquin Cuenca Abela.
+
 
 0.5 (2009-05-24)
 ---------------

@@ -12,7 +12,7 @@ except (IOError, OSError):
     CHANGES = ''
 
 setup(name='superlance',
-      version='0.5',
+      version='0.6',
       description='superlance plugins for supervisord',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
@@ -27,6 +27,8 @@ setup(name='superlance',
         ],
       author='Chris McDonough',
       author_email='chrism@plope.com',
+      maintainer = "Mike Naberezny",
+      maintainer_email = "mike@naberezny.com",
       url='http://supervisord.org',
       keywords = 'supervisor monitoring',
       packages = find_packages(),
