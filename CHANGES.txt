@@ -31,6 +31,9 @@ Next Release
 - Fixed a bug where ``httpok`` would not handle a URL with a query string
   correctly.  Patch by Joaquin Cuenca Abela.
 
+- Fixed a bug where ``httpok`` would not handle process names with a 
+  group ("group:process") properly.  Patch by Joaquin Cuenca Abela.
+
 0.5 (2009-05-24)
 ---------------
 
