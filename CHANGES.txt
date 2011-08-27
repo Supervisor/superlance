@@ -25,6 +25,8 @@ Next Release
 
 - Converted ``crashmailbatch`` and friends from camel case to pythonic style
 
+- Fixed a bug where ``httpok`` would crash with the ``-b`` (in-body)
+  option.  Patch by Joaquin Cuenca Abela.
 
 0.5 (2009-05-24)
 ---------------
