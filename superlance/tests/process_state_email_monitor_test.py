@@ -37,6 +37,26 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
         obj = self._make_one(**kwargs)
         obj.send_smtp = mock.Mock()
         return obj
+        
+    def test_validate_cmd_line_options_single_to_email_ok(self):
+        klass = self._get_target_class()
+        
+        options = mock.Mock()
+        options.from_email = 'blah'
+        options.to_emails = 'frog'
+        
+        validated = klass.validate_cmd_line_options(options)
+        self.assertEquals(['frog'], validated.to_emails)
+
+    def test_validate_cmd_line_options_multi_to_emails_ok(self):
+        klass = self._get_target_class()
+        
+        options = mock.Mock()
+        options.from_email = 'blah'
+        options.to_emails = 'frog, log,dog'
+        
+        validated = klass.validate_cmd_line_options(options)
+        self.assertEquals(['frog', 'log', 'dog'], validated.to_emails)
     
     def test_send_email_ok(self):
         email = {

@@ -30,7 +30,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
     COMMASPACE = ', '
 
     @classmethod
-    def create_from_cmd_line(cls):
+    def parse_cmd_line_options(cls):
         from optparse import OptionParser
 
         parser = OptionParser()
@@ -48,13 +48,28 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
                           help="TICK event name (defaults to TICK_60)")
         
         (options, args) = parser.parse_args()
-
+        return options
+        
+    @classmethod
+    def validate_cmd_line_options(cls, options):
         if not options.to_emails:
             parser.print_help()
             sys.exit(1)
         if not options.from_email:
             parser.print_help()
             sys.exit(1)
+        
+        validated = copy.copy(options)
+        validated.to_emails = [x.strip() for x in options.to_emails.split(",")]
+        return validated
+        
+    @classmethod
+    def get_cmd_line_options(cls):
+        return cls.validate_cmd_line_options(cls.parse_cmd_line_options())
+
+    @classmethod
+    def create_from_cmd_line(cls):
+        options = cls.get_cmd_line_options()
 
         if not 'SUPERVISOR_SERVER_URL' in os.environ:
             sys.stderr.write('Must run as a supervisor event listener\n')
