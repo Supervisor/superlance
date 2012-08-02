@@ -1,6 +1,8 @@
 superlance Changelog
 ====================
 
+- Allowing crashmailbatch --toEmail option to take a comma-separated list of email addresses
+
 0.6 (2011-08-27)
 ----------------
 
