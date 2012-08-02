@@ -27,6 +27,7 @@ and sending email notification
 """
 
 class ProcessStateEmailMonitor(ProcessStateMonitor):
+    COMMASPACE = ', '
 
     @classmethod
     def create_from_cmd_line(cls):
@@ -35,8 +36,8 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         parser = OptionParser()
         parser.add_option("-i", "--interval", dest="interval", type="float", default=1.0,
                           help="batch interval in minutes (defaults to 1 minute)")
-        parser.add_option("-t", "--toEmail", dest="to_email",
-                          help="destination email address")
+        parser.add_option("-t", "--toEmail", dest="to_emails",
+                          help="destination email address(es) - comma separated")
         parser.add_option("-f", "--fromEmail", dest="from_email",
                           help="source email address")
         parser.add_option("-s", "--subject", dest="subject",
@@ -48,7 +49,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         
         (options, args) = parser.parse_args()
 
-        if not options.to_email:
+        if not options.to_emails:
             parser.print_help()
             sys.exit(1)
         if not options.from_email:
@@ -65,7 +66,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         ProcessStateMonitor.__init__(self, **kwargs)
 
         self.from_email = kwargs['from_email']
-        self.to_email = kwargs['to_email']
+        self.to_emails = kwargs['to_emails']
         self.subject = kwargs.get('subject')
         self.smtp_host = kwargs.get('smtp_host', 'localhost')
         self.digest_len = 76
@@ -78,6 +79,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
 
     def log_email(self, email):
         email_for_log = copy.copy(email)
+        email_for_log['to'] = self.COMMASPACE.join(email['to'])
         if len(email_for_log['body']) > self.digest_len:
             email_for_log['body'] = '%s...' % email_for_log['body'][:self.digest_len]
         self.write_stderr("Sending notification email:\nTo: %(to)s\n\
@@ -86,7 +88,7 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
     def get_batch_email(self):
         if len(self.batchmsgs):
             return {
-                'to': self.to_email,
+                'to': self.to_emails,
                 'from': self.from_email,
                 'subject': self.subject,
                 'body': '\n'.join(self.get_batch_msgs()),
@@ -98,17 +100,17 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
         if self.subject:
           msg['Subject'] = email['subject']
         msg['From'] = email['from']
-        msg['To'] = email['to']
+        msg['To'] = self.COMMASPACE.join(email['to'])
 
         try:
-            self.send_smtp(msg)
+            self.send_smtp(msg, email['to'])
         except Exception, e:
             self.write_stderr("Error sending email: %s\n" % e)
 
-    def send_smtp(self, mimeMsg):
+    def send_smtp(self, mime_msg, to_emails):
         s = smtplib.SMTP(self.smtp_host)
         try:
-            s.sendmail(mimeMsg['From'], [mimeMsg['To']], mimeMsg.as_string())
+            s.sendmail(mime_msg['From'], to_emails, mime_msg.as_string())
         except:
             s.quit()
             raise

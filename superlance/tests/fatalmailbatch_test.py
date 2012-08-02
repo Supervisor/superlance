@@ -4,7 +4,7 @@ from StringIO import StringIO
 
 class FatalMailBatchTests(unittest.TestCase):
     from_email = 'testFrom@blah.com'
-    to_email = 'testTo@blah.com'
+    to_emails = ('testTo@blah.com')
     subject = 'Test Alert'
     unexpected_err_msg = 'Process bar:foo failed to start too many times'
     
@@ -17,7 +17,7 @@ class FatalMailBatchTests(unittest.TestCase):
         kwargs['stdout'] = StringIO()
         kwargs['stderr'] = StringIO()
         kwargs['from_email'] = kwargs.get('from_email', self.from_email)
-        kwargs['to_email'] = kwargs.get('to_email', self.to_email)
+        kwargs['to_emails'] = kwargs.get('to_emails', self.to_emails)
         kwargs['subject'] = kwargs.get('subject', self.subject)
         
         obj = self._get_target_class()(**kwargs)
