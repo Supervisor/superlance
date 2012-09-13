@@ -74,13 +74,23 @@ Command-Line Syntax
 
 .. cmdoption:: -c <http_status_code>, --code=<http_status_code>
    
-   Specify the expected HTTP status code for the configured URL.
+   Specify a comma-separated list of expected HTTP status codes for the configured URL.
    
-   If this status code is not the status code provided by the response,
+   If any of these status codes match the status code provided by the response,
    :command:`httpok` will attempt to restart child processes which are
    in the ``RUNNING`` state, and specified by ``-p`` or ``-a``.  
    
-   Defaults to the string, "200".
+   Defaults to the string, "200".  Can't be used in combination with -C.
+   
+.. cmdoption:: -C <http_status_code>, --not-code=<http_status_code>
+   
+   Specify a comma-separated list of unexpected HTTP status codes for the configured URL.
+   
+   If any of these status codes match the status code provided by the response,
+   :command:`httpok` will attempt to restart child processes which are
+   in the ``RUNNING`` state, and specified by ``-p`` or ``-a``.  
+   
+   This can't be used in combination with -c.
 
 .. cmdoption:: -b <body_string>, --body=<body_string>
    
