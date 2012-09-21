@@ -1,6 +1,12 @@
 superlance Changelog
 ====================
 
+0.7 (2012-08-22)
+----------------
+
+- The ``crashmailbatch --toEmail`` option now accepts a comma-separated
+  list of email addresses.
+
 0.6 (2011-08-27)
 ----------------
 
@@ -31,7 +37,7 @@ superlance Changelog
 - Fixed a bug where ``httpok`` would not handle a URL with a query string
   correctly.  Patch by Joaquin Cuenca Abela.
 
-- Fixed a bug where ``httpok`` would not handle process names with a 
+- Fixed a bug where ``httpok`` would not handle process names with a
   group ("group:process") properly.  Patch by Joaquin Cuenca Abela.
 
 
