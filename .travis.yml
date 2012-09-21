@@ -6,7 +6,7 @@ python:
 before_install:
 install:
 script:
-  - python test
+  - python setup.py test
 
 
 
