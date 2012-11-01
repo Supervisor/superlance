@@ -7,7 +7,7 @@ class MemmonTests(unittest.TestCase):
     def _getTargetClass(self):
         from superlance.memmon import Memmon
         return Memmon
-    
+
     def _makeOne(self, *opts):
         return self._getTargetClass()(*opts)
 
@@ -15,13 +15,14 @@ class MemmonTests(unittest.TestCase):
         rpc = DummyRPCServer()
         sendmail = 'cat - > /dev/null'
         email = 'chrism@plope.com'
-        memmon = self._makeOne(programs, groups, any, sendmail, email, rpc)
+        name = 'test'
+        memmon = self._makeOne(programs, groups, any, sendmail, email, name, rpc)
         memmon.stdin = StringIO()
         memmon.stdout = StringIO()
         memmon.stderr = StringIO()
         memmon.pscommand = 'echo 22%s'
         return memmon
-        
+
     def test_runforever_notatick(self):
         programs = {'foo':0, 'bar':0, 'baz_01':0 }
         groups = {}
@@ -54,7 +55,7 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(len(mailed), 4)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                         'Subject: memmon: process baz:baz_01 restarted')
+                         'Subject: memmon [test]: process baz:baz_01 restarted')
         self.assertEqual(mailed[2], '')
         self.failUnless(mailed[3].startswith('memmon.py restarted'))
 
@@ -76,7 +77,7 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(len(mailed), 4)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-          'Subject: memmon: process foo:foo restarted')
+          'Subject: memmon [test]: process foo:foo restarted')
         self.assertEqual(mailed[2], '')
         self.failUnless(mailed[3].startswith('memmon.py restarted'))
 
@@ -122,7 +123,7 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(len(mailed), 4)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                         'Subject: memmon: process baz:baz_01 restarted')
+                         'Subject: memmon [test]: process baz:baz_01 restarted')
         self.assertEqual(mailed[2], '')
         self.failUnless(mailed[3].startswith('memmon.py restarted'))
 
@@ -188,9 +189,27 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(len(mailed), 4)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-          'Subject: memmon: failed to stop process BAD_NAME:BAD_NAME, exiting')
+          'Subject: memmon [test]: failed to stop process BAD_NAME:BAD_NAME, exiting')
         self.assertEqual(mailed[2], '')
         self.failUnless(mailed[3].startswith('Failed'))
-        
+
+    def test_subject_no_name(self):
+        """set the name to None to check if subject
+        stays `memmon:...` instead `memmon [<name>]:...`
+        """
+        programs = {}
+        groups = {}
+        any = 0
+        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon.memmonName = None
+        memmon.stdin.write('eventname:TICK len:0\n')
+        memmon.stdin.seek(0)
+        memmon.runforever(test=True)
+
+        mailed = memmon.mailed.split('\n')
+        self.assertEqual(mailed[1],
+          'Subject: memmon: process baz:baz_01 restarted')
+
+
 if __name__ == '__main__':
-    unittest.main()  
+    unittest.main()
