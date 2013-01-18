@@ -3,6 +3,9 @@ Next Release
 
 - Superlance will now refuse to install on an unsupported version of Python.
 
+- Python 2.4 is no longer supported.  The last version that supported Python
+  2.4 is Superlance 0.7.
+
 0.7 (2012-08-22)
 ----------------
 
