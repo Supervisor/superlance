@@ -74,5 +74,5 @@ The following example assumes that :command:`crashmail` is on your system
 .. code-block:: ini
 
    [eventlistener:crashmail]
-   crashmail.py -p program1 -p group1:program2 -m dev@example.com
+   command=crashmail -p program1 -p group1:program2 -m dev@example.com
    events=PROCESS_STATE_EXITED
