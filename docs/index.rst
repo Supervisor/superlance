@@ -14,6 +14,13 @@ Currently, it provides these plugins:
     request to a configured URL.  If the request fails or times out,
     :command:`httpok` will restart the "hung" child process.
 
+:command:`httpctrl`
+    This plugin is meant to be used as a supervisor event listener,
+    subscribed to ``TICK_*`` events.  :command:`httctrl` makes an HTTP GET 
+    request to a confgured URL. If the response body contains required text, 
+    :command:`httpctrl` will start child process(es). If the response body does 
+    not contain required text :command:`httpctrl` will stop child process(es).
+
 :command:`crashmail`
     This plugin is meant to be used as a supervisor event listener,
     subscribed to ``PROCESS_STATE_EXITED`` events.  It email a user when
