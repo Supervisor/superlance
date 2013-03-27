@@ -29,7 +29,7 @@ Command-Line Syntax
 .. code-block:: sh
 
    $ memmon [-p processname=byte_size] [-g groupname=byte_size] \
-            [-a byte_size] [-s sendmail] [-m email_address]
+            [-a byte_size] [-s sendmail] [-m email_address] [-n memmon_name]
 
 .. program:: memmon
 
@@ -83,6 +83,17 @@ Command-Line Syntax
    An email address to which to send email when a process is restarted.
    By default, memmon will not send any mail unless an email address is
    specified.
+
+.. cmdoption:: -n <memmon name>, --name=<memmon name>
+
+   An optional name that identifies this memmon process. If given, the
+   email subject will start with ``memmon [<memmon name>]:`` instead
+   of ``memmon:``
+   In case you run multiple supervisors on a single host that control
+   different processes with the same name (eg `zopeinstance1`) you can
+   use this option to indicate which project the restarted instance
+   belongs to.
+
 
 
 Configuring :command:`memmon` Into the Supervisor Config
