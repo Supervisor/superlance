@@ -27,8 +27,9 @@
 # events=TICK_60
 
 doc = """\
-memmon.py [-p processname=byte_size]  [-g groupname=byte_size] 
+memmon.py [-p processname=byte_size]  [-g groupname=byte_size]
           [-a byte_size] [-s sendmail] [-m email_address]
+          [-n memmon_name]
 
 Options:
 
@@ -36,10 +37,10 @@ Options:
       process named 'process_name' when it uses more than byte_size
       RSS.  If this process is in a group, it can be specified using
       the 'process_name:group_name' syntax.
-      
+
 -g -- specify a group_name=byte_size pair.  Restart any process in this group
       when it uses more than byte_size RSS.
-      
+
 -a -- specify a global byte_size.  Restart any child of the supervisord
       under which this runs if it uses more than byte_size RSS.
 
@@ -52,6 +53,10 @@ Options:
       address when any process is restarted.  If no email address is
       specified, email will not be sent.
 
+-n -- optionally specify the name of the memmon process. This name will
+      be used in the email subject to identify which memmon process
+      restarted the process.
+
 The -p and -g options may be specified more than once, allowing for
 specification of multiple groups and processes.
 
@@ -61,7 +66,7 @@ and 'GB'.
 
 A sample invocation:
 
-memmon.py -p program1=200MB -p theprog:thegroup=100MB -g thegroup=100MB -a 1GB -s "/usr/sbin/sendmail -t -i" -m chrism@plope.com
+memmon.py -p program1=200MB -p theprog:thegroup=100MB -g thegroup=100MB -a 1GB -s "/usr/sbin/sendmail -t -i" -m chrism@plope.com -n "Project 1"
 """
 
 import os
@@ -80,12 +85,13 @@ def shell(cmd):
     return os.popen(cmd).read()
 
 class Memmon:
-    def __init__(self, programs, groups, any, sendmail, email, rpc):
+    def __init__(self, programs, groups, any, sendmail, email, name, rpc):
         self.programs = programs
         self.groups = groups
         self.any = any
         self.sendmail = sendmail
         self.email = email
+        self.memmonName = name
         self.rpc = rpc
         self.stdin = sys.stdin
         self.stdout = sys.stdout
@@ -174,7 +180,7 @@ class Memmon:
 
     def restart(self, name, rss):
         self.stderr.write('Restarting %s\n' % name)
-
+        memmonId = self.memmonName and " [%s]" % self.memmonName or ""
         try:
             self.rpc.supervisor.stopProcess(name)
         except xmlrpclib.Fault, what:
@@ -182,7 +188,7 @@ class Memmon:
                    (name, rss, what))
             self.stderr.write(str(msg))
             if self.email:
-                subject = 'memmon: failed to stop process %s, exiting' % name
+                subject = 'memmon%s: failed to stop process %s, exiting' % (memmonId, name)
                 self.mail(self.email, subject, msg)
             raise
 
@@ -193,7 +199,7 @@ class Memmon:
                    'exiting: %s' % (name, what))
             self.stderr.write(str(msg))
             if self.email:
-                subject = 'memmon: failed to start process %s, exiting' % name
+                subject = 'memmon%s: failed to start process %s, exiting' % (memmonId, name)
                 self.mail(self.email, subject, msg)
             raise
 
@@ -204,7 +210,7 @@ class Memmon:
                 'it was consuming too much memory (%s bytes RSS)' % (
                 name, now, rss)
                 )
-            subject = 'memmon: process %s restarted' % name
+            subject = 'memmon%s: process %s restarted' % (memmonId, name)
             self.mail(self.email, subject, msg)
 
     def mail(self, email, subject, msg):
@@ -216,7 +222,7 @@ class Memmon:
         m.write(body)
         m.close()
         self.mailed = body
-        
+
 def parse_namesize(option, value):
     try:
         name, size = value.split('=')
@@ -232,12 +238,12 @@ def parse_size(option, value):
     except:
         print 'Unparseable byte_size in %r for %r' % (value, option)
         usage()
-        
+
     return size
 
 def main():
     import getopt
-    short_args="hp:g:a:s:m:"
+    short_args="hp:g:a:s:m:n:"
     long_args=[
         "help",
         "program=",
@@ -245,6 +251,7 @@ def main():
         "any=",
         "sendmail_program=",
         "email=",
+        "name=",
         ]
     arguments = sys.argv[1:]
     if not arguments:
@@ -260,6 +267,7 @@ def main():
     any = None
     sendmail = '/usr/sbin/sendmail -t -i'
     email = None
+    name = None
 
     for option, value in opts:
 
@@ -284,12 +292,15 @@ def main():
         if option in ('-m', '--email'):
             email = value
 
+        if option in ('-n', '--name'):
+            name = value
+
     rpc = childutils.getRPCInterface(os.environ)
-    memmon = Memmon(programs, groups, any, sendmail, email, rpc)
+    memmon = Memmon(programs, groups, any, sendmail, email, name, rpc)
     memmon.runforever()
 
 if __name__ == '__main__':
     main()
-    
-    
-    
+
+
+

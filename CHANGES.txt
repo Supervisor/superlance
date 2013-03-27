@@ -3,6 +3,15 @@ Next Release
 
 - Superlance will now refuse to install on an unsupported version of Python.
 
+Next Release
+------------
+
+- Added ``-n`` option to memmon that adds this name to the email
+  subject to identify which memmon process restarted a process.
+  Useful in case you run multiple supervisors that control
+  different processes with the same name.
+  [fRiSi]
+  
 0.7 (2012-08-22)
 ----------------
 
