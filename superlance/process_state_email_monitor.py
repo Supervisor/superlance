@@ -18,6 +18,7 @@ import smtplib
 import copy
 # Using old reference for Python 2.4
 from email.MIMEText import MIMEText
+from email.Utils import formatdate, make_msgid
 # from email.mime.text import MIMEText
 from superlance.process_state_monitor import ProcessStateMonitor
 
@@ -46,10 +47,10 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
                           help="SMTP server hostname or address")
         parser.add_option("-e", "--tickEvent", dest="eventname", default="TICK_60",
                           help="TICK event name (defaults to TICK_60)")
-        
+
         (options, args) = parser.parse_args()
         return options
-        
+
     @classmethod
     def validate_cmd_line_options(cls, options):
         if not options.to_emails:
@@ -58,11 +59,11 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         if not options.from_email:
             parser.print_help()
             sys.exit(1)
-        
+
         validated = copy.copy(options)
         validated.to_emails = [x.strip() for x in options.to_emails.split(",")]
         return validated
-        
+
     @classmethod
     def get_cmd_line_options(cls):
         return cls.validate_cmd_line_options(cls.parse_cmd_line_options())
@@ -116,6 +117,8 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
           msg['Subject'] = email['subject']
         msg['From'] = email['from']
         msg['To'] = self.COMMASPACE.join(email['to'])
+        msg['Date'] = formatdate()
+        msg['Message-ID'] = make_msgid()
 
         try:
             self.send_smtp(msg, email['to'])
