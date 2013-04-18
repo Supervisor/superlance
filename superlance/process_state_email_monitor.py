@@ -47,6 +47,10 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
                           help="SMTP server hostname or address")
         parser.add_option("-e", "--tickEvent", dest="eventname", default="TICK_60",
                           help="TICK event name (defaults to TICK_60)")
+        parser.add_option("-u", "--userName", dest="smtp_user", default="",
+                          help="SMTP server user name (defaults to nothing)")
+        parser.add_option("-p", "--password", dest="smtp_password", default="",
+                          help="SMTP server password (defaults to nothing)")
 
         (options, args) = parser.parse_args()
         return options
@@ -85,6 +89,8 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         self.to_emails = kwargs['to_emails']
         self.subject = kwargs.get('subject')
         self.smtp_host = kwargs.get('smtp_host', 'localhost')
+        self.smtp_user = kwargs.get('smtp_user')
+        self.smtp_password = kwargs.get('smtp_password')
         self.digest_len = 76
 
     def send_batch_notification(self):
@@ -128,6 +134,8 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
     def send_smtp(self, mime_msg, to_emails):
         s = smtplib.SMTP(self.smtp_host)
         try:
+            if self.smtp_user and self.smtp_password:
+                s.login(self.smtp_user,self.smtp_password)
             s.sendmail(mime_msg['From'], to_emails, mime_msg.as_string())
         except:
             s.quit()
