@@ -6,6 +6,9 @@ Next Release
 Next Release
 ------------
 
+- Allow SMTP credentials to be supplied to ProcessStateEmailMonitor
+  Patch by Steven Davidson.
+
 - Added ``-n`` option to memmon that adds this name to the email
   subject to identify which memmon process restarted a process.
   Useful in case you run multiple supervisors that control
