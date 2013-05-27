@@ -21,7 +21,7 @@ except (IOError, OSError):
     CHANGES = ''
 
 setup(name='superlance',
-      version='0.7',
+      version='0.8',
       description='superlance plugins for supervisord',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[

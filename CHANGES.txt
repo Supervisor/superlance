@@ -1,5 +1,5 @@
-Next Release
-------------
+0.8 (2013-05-26)
+----------------
 
 - Superlance will now refuse to install on an unsupported version of Python.
 
