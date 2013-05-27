@@ -10,7 +10,10 @@ Next Release
   subject to identify which memmon process restarted a process.
   Useful in case you run multiple supervisors that control
   different processes with the same name.
-  [fRiSi]
+  Patch by Harald Friessnegger.
+
+- ProcessStateEmailMonitor now adds Date and Message-ID headers to emails.
+  Patch by Andrei Vereha.
 
 0.7 (2012-08-22)
 ----------------
