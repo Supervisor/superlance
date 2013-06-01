@@ -29,7 +29,8 @@ Command-Line Syntax
 .. code-block:: sh
 
    $ memmon [-p processname=byte_size] [-g groupname=byte_size] \
-            [-a byte_size] [-s sendmail] [-m email_address] [-n memmon_name]
+            [-a byte_size] [-s sendmail] [-m email_address] \
+            [-u email_uptime_limit] [-n memmon_name]
 
 .. program:: memmon
 
@@ -84,6 +85,15 @@ Command-Line Syntax
    By default, memmon will not send any mail unless an email address is
    specified.
 
+.. cmdoption:: -u <email uptime limit>, --uptime=<email uptime limit>
+
+   Only send an email in case the restarted process' uptime (in seconds)
+   is below this limit.
+   (Useful to only get notified if a processes gets restarted too frequently)
+   
+   Uptime is given in seconds (suffix-multiplied using "m" for minutes,
+   "h" for hours or "d" for days)
+   
 .. cmdoption:: -n <memmon name>, --name=<memmon name>
 
    An optional name that identifies this memmon process. If given, the
@@ -149,3 +159,20 @@ process group "bar" consuming more than 200MB of RSS, and will send mail to
    [eventlistener:memmon]
    command=memmon -g bar=200MB -m bob@example.com
    events=TICK_60
+
+
+Example Configuration 4
+#######################
+
+This configuration causes :command:`memmon` to restart any process meetig
+the same requirements as in `Example Configuration 2`_ with one difference:
+
+The email will only be sent if the process' uptime is less or equal than
+2 days (172800 seconds)
+
+.. code-block:: ini
+
+   [eventlistener:memmon]
+   command=memmon -p foo=200MB -m bob@example.com -u 2d
+   events=TICK_60
+      
