@@ -2,6 +2,7 @@ import sys
 import unittest
 from StringIO import StringIO
 from superlance.tests.dummy import *
+from superlance.memmon import seconds_size
 
 class MemmonTests(unittest.TestCase):
     def _getTargetClass(self):
@@ -16,7 +17,8 @@ class MemmonTests(unittest.TestCase):
         sendmail = 'cat - > /dev/null'
         email = 'chrism@plope.com'
         name = 'test'
-        memmon = self._makeOne(programs, groups, any, sendmail, email, name, rpc)
+        uptime_limit = 2000
+        memmon = self._makeOne(programs, groups, any, sendmail, email, uptime_limit, name, rpc)
         memmon.stdin = StringIO()
         memmon.stdout = StringIO()
         memmon.stderr = StringIO()
@@ -210,6 +212,57 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(mailed[1],
           'Subject: memmon: process baz:baz_01 restarted')
 
+    def test_parse_uptime(self):
+        """test parsing of time parameter for uptime
+        """
+        self.assertEqual(seconds_size('1'), 1, 'default is seconds')
+        self.assertEqual(seconds_size('1s'), 1, 'seconds suffix is allowed, too')
+        self.assertEqual(seconds_size('2m'), 120)
+        self.assertEqual(seconds_size('3h'), 10800)
+        self.assertEqual(seconds_size('1d'), 86400)
+        self.assertRaises(ValueError, seconds_size, '1y')
 
+    def test_uptime_short_email(self):
+        """in case an email is provided and the restarted process' uptime
+        is shorter than our uptime_limit we do send an email
+        """
+        programs = {'foo':0}
+        groups = {}
+        any = None
+        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon.email_uptime_limit = 101
+        
+        memmon.stdin.write('eventname:TICK len:0\n')
+        memmon.stdin.seek(0)
+        memmon.runforever(test=True)
+        self.assertTrue(memmon.mailed, 'email has been sent')
+        
+        #in case uptime == limit, we send an email too
+        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon.email_uptime_limit = 100
+        memmon.stdin.write('eventname:TICK len:0\n')
+        memmon.stdin.seek(0)
+        memmon.runforever(test=True)
+        self.assertTrue(memmon.mailed, 'email has been sent')
+        
+             
+        
+    def test_uptime_long_no_email(self):
+        """in case an email is provided and the restarted process' uptime
+        is longer than our uptime_limit we do not send an email
+        """
+        programs = {'foo':0}
+        groups = {}
+        any = None
+        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon.email_uptime_limit = 99
+        
+        memmon.stdin.write('eventname:TICK len:0\n')
+        memmon.stdin.seek(0)
+        memmon.runforever(test=True)
+        self.assertFalse(memmon.mailed, 'no email should be sent because uptime is above limit')
+              
+        
+        
 if __name__ == '__main__':
     unittest.main()
