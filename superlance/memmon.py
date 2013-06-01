@@ -84,8 +84,6 @@ import xmlrpclib
 from supervisor import childutils
 from supervisor.datatypes import byte_size, SuffixMultiplier
 
-
-
 def usage():
     print doc
     sys.exit(255)
@@ -114,7 +112,7 @@ class Memmon:
             # we explicitly use self.stdin, self.stdout, and self.stderr
             # instead of sys.* so we can unit test this code
             headers, payload = childutils.listener.wait(self.stdin, self.stdout)
-            
+
             if not headers['eventname'].startswith('TICK'):
                 # do nothing with non-TICK events
                 childutils.listener.ok(self.stdout)
@@ -140,6 +138,7 @@ class Memmon:
             self.stderr.write('\n'.join(status) + '\n')
 
             infos = self.rpc.supervisor.getAllProcessInfo()
+
             for info in infos:
                 pid = info['pid']
                 name = info['name']
