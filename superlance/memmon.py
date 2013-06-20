@@ -29,7 +29,7 @@
 doc = """\
 memmon.py [-p processname=byte_size]  [-g groupname=byte_size]
           [-a byte_size] [-s sendmail] [-m email_address]
-          [-n memmon_name]
+          [-u uptime][-n memmon_name]
 
 Options:
 
@@ -53,6 +53,13 @@ Options:
       address when any process is restarted.  If no email address is
       specified, email will not be sent.
 
+-u -- optionally specify the minimum uptime in seconds for the process.
+      if the process uptime is longer than this value, no email is sent
+      (useful to only be notified if processes are restarted too often/early)
+      
+      seconds can be specified as plain integer values or a suffix-multiplied integer
+      (e.g. 1m). Valid suffixes are m (minute), h (hour) and d (day).
+
 -n -- optionally specify the name of the memmon process. This name will
       be used in the email subject to identify which memmon process
       restarted the process.
@@ -75,7 +82,7 @@ import time
 import xmlrpclib
 
 from supervisor import childutils
-from supervisor.datatypes import byte_size
+from supervisor.datatypes import byte_size, SuffixMultiplier
 
 def usage():
     print doc
@@ -85,12 +92,13 @@ def shell(cmd):
     return os.popen(cmd).read()
 
 class Memmon:
-    def __init__(self, programs, groups, any, sendmail, email, name, rpc):
+    def __init__(self, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc):
         self.programs = programs
         self.groups = groups
         self.any = any
         self.sendmail = sendmail
         self.email = email
+        self.email_uptime_limit = email_uptime_limit
         self.memmonName = name
         self.rpc = rpc
         self.stdin = sys.stdin
@@ -179,6 +187,8 @@ class Memmon:
                 break
 
     def restart(self, name, rss):
+        info = self.rpc.supervisor.getProcessInfo(name)
+        uptime = info['now'] - info['start'] #uptime in seconds
         self.stderr.write('Restarting %s\n' % name)
         memmonId = self.memmonName and " [%s]" % self.memmonName or ""
         try:
@@ -203,7 +213,7 @@ class Memmon:
                 self.mail(self.email, subject, msg)
             raise
 
-        if self.email:
+        if self.email and uptime <= self.email_uptime_limit:
             now = time.asctime()
             msg = (
                 'memmon.py restarted the process named %s at %s because '
@@ -241,9 +251,23 @@ def parse_size(option, value):
 
     return size
 
+seconds_size = SuffixMultiplier({'s': 1,
+                                 'm': 60,
+                                 'h': 60*60,
+                                 'd': 60*60*24
+                                 })
+
+def parse_seconds(option, value):
+    try:
+        seconds = seconds_size(value)
+    except:
+        print 'Unparseable value for time in %r for %s' % (value, option)
+        usage()
+    return seconds
+ 
 def main():
     import getopt
-    short_args="hp:g:a:s:m:n:"
+    short_args="hp:g:a:s:m:n:u:"
     long_args=[
         "help",
         "program=",
@@ -251,6 +275,7 @@ def main():
         "any=",
         "sendmail_program=",
         "email=",
+        "uptime=",
         "name=",
         ]
     arguments = sys.argv[1:]
@@ -267,6 +292,7 @@ def main():
     any = None
     sendmail = '/usr/sbin/sendmail -t -i'
     email = None
+    uptime = sys.maxint
     name = None
 
     for option, value in opts:
@@ -292,11 +318,14 @@ def main():
         if option in ('-m', '--email'):
             email = value
 
+        if option in ('-u', '--uptime'):
+            uptime = parse_seconds(option, value)
+            
         if option in ('-n', '--name'):
             name = value
 
     rpc = childutils.getRPCInterface(os.environ)
-    memmon = Memmon(programs, groups, any, sendmail, email, name, rpc)
+    memmon = Memmon(programs, groups, any, sendmail, email, name, uptime, rpc)
     memmon.runforever()
 
 if __name__ == '__main__':

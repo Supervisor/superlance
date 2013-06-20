@@ -68,6 +68,12 @@ class DummySupervisorRPCNamespace:
     def getAllProcessInfo(self):
         return self.all_process_info
 
+    def getProcessInfo(self, name):
+        for info in self.all_process_info:
+            if info['name'] == name or name == '%s:%s' %(info['group'], info['name']):
+                return info
+        return None
+    
     def startProcess(self, name):
         from supervisor import xmlrpc
         from xmlrpclib import Fault
