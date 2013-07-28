@@ -1,3 +1,17 @@
+##############################################################################
+#
+# Copyright (c) 2008-2013 Agendaless Consulting and Contributors.
+# All Rights Reserved.
+#
+# This software is subject to the provisions of the BSD-like license at
+# http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
+# this distribution.  THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL
+# EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
+# FITNESS FOR A PARTICULAR PURPOSE
+#
+##############################################################################
+
 import os
 import sys
 
@@ -22,6 +36,7 @@ except (IOError, OSError):
 
 setup(name='superlance',
       version='0.8',
+      license='BSD-derived (http://www.repoze.org/LICENSE.txt)',
       description='superlance plugins for supervisord',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
