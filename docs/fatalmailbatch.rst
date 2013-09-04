@@ -57,5 +57,5 @@ The following example assumes that :command:`fatalmailbatch` is on your system
 .. code-block:: ini
 
    [eventlistener:fatalmailbatch]
-   fatalmailbatch --toEmail="alertme@fubar.com" --fromEmail="supervisord@fubar.com" 
+   command=fatalmailbatch --toEmail="alertme@fubar.com" --fromEmail="supervisord@fubar.com" 
    events=PROCESS_STATE,TICK_60
