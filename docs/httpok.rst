@@ -135,5 +135,5 @@ The following example assumes that :command:`httpok` is on your system
 .. code-block:: ini
 
    [eventlistener:httpok]
-   httpok.py -p program1 -p group1:program2 http://localhost:8080/tasty
+   command=httpok.py -p program1 -p group1:program2 http://localhost:8080/tasty
    events=TICK_60
