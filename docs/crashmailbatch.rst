@@ -60,5 +60,5 @@ The following example assumes that :command:`crashmailbatch` is on your system
 .. code-block:: ini
 
    [eventlistener:crashmailbatch]
-   crashmailbatch --toEmail="alertme@fubar.com" --fromEmail="supervisord@fubar.com" 
+   command=crashmailbatch --toEmail="alertme@fubar.com" --fromEmail="supervisord@fubar.com" 
    events=PROCESS_STATE,TICK_60
