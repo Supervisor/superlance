@@ -31,32 +31,37 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
     COMMASPACE = ', '
 
     @classmethod
-    def parse_cmd_line_options(cls):
+    def _get_opt_parser(cls):
         from optparse import OptionParser
 
         parser = OptionParser()
         parser.add_option("-i", "--interval", dest="interval", type="float", default=1.0,
-                          help="batch interval in minutes (defaults to 1 minute)")
+                        help="batch interval in minutes (defaults to 1 minute)")
         parser.add_option("-t", "--toEmail", dest="to_emails",
-                          help="destination email address(es) - comma separated")
+                        help="destination email address(es) - comma separated")
         parser.add_option("-f", "--fromEmail", dest="from_email",
-                          help="source email address")
+                        help="source email address")
         parser.add_option("-s", "--subject", dest="subject",
-                          help="email subject")
+                        help="email subject")
         parser.add_option("-H", "--smtpHost", dest="smtp_host", default="localhost",
-                          help="SMTP server hostname or address")
+                        help="SMTP server hostname or address")
         parser.add_option("-e", "--tickEvent", dest="eventname", default="TICK_60",
-                          help="TICK event name (defaults to TICK_60)")
+                        help="TICK event name (defaults to TICK_60)")
         parser.add_option("-u", "--userName", dest="smtp_user", default="",
-                          help="SMTP server user name (defaults to nothing)")
+                        help="SMTP server user name (defaults to nothing)")
         parser.add_option("-p", "--password", dest="smtp_password", default="",
-                          help="SMTP server password (defaults to nothing)")
-
+                        help="SMTP server password (defaults to nothing)")
+        return parser
+      
+    @classmethod
+    def parse_cmd_line_options(cls):
+        parser = cls._get_opt_parser()
         (options, args) = parser.parse_args()
         return options
 
     @classmethod
     def validate_cmd_line_options(cls, options):
+        parser = cls._get_opt_parser()
         if not options.to_emails:
             parser.print_help()
             sys.exit(1)
