@@ -3,6 +3,9 @@ Next Release
 
 - Added license.
 
+- Fixed bug in cmd line option validator for ProcessStateEmailMonitor
+  Bug report by Val Jordan
+
 0.8 (2013-05-26)
 ----------------
 
