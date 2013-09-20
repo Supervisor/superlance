@@ -1,6 +1,8 @@
 Next Release
 ------------
 
+- Removed ``setuptools`` from the ``install_requires`` list in ``setup.py``
+  because it caused installation issues on some systems.
 
 0.9 (2013-09-18)
 ----------------
