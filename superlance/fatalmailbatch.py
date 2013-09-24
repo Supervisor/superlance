@@ -51,6 +51,7 @@ fatalmailbatch.py --toEmail="you@bar.com" --fromEmail="me@bar.com"
 
 """
 
+from socket import gethostname
 from supervisor import childutils
 from superlance.process_state_email_monitor import ProcessStateEmailMonitor
 
@@ -62,12 +63,14 @@ class FatalMailBatch(ProcessStateEmailMonitor):
         kwargs['subject'] = kwargs.get('subject', 'Fatal start alert from supervisord')
         ProcessStateEmailMonitor.__init__(self, **kwargs)
         self.now = kwargs.get('now', None)
+        self.hostname = gethostname()
  
     def get_process_state_change_msg(self, headers, payload):
         pheaders, pdata = childutils.eventdata(payload+'\n')
+        pheaders.update({'hostname': self.hostname})
 
         txt = 'Process %(groupname)s:%(processname)s failed to start too many \
-times' % pheaders
+times at %(hostname)s' % pheaders
         return '%s -- %s' % (childutils.get_asctime(self.now), txt)
 
 def main():
