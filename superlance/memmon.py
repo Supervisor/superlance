@@ -170,8 +170,7 @@ class Memmon:
                         # no such pid (deal with race conditions)
                         continue
                     try:
-                        rss = data.lstrip().rstrip()
-                        rss = int(rss) * 1024 # rss is in KB
+                        rss += int(data.lstrip().rstrip()) * 1024
                     except ValueError:
                         # line doesn't contain any data, or rss cant be intified
                         continue
