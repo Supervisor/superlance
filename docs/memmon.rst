@@ -5,7 +5,7 @@
 a concrete ``TICK_x`` event. When :command:`memmon` receives a ``TICK_x``
 event (``TICK_60`` is recommended, indicating activity every 60 seconds),
 :command:`memmon` checks that a configurable list of programs (or all
-programs running under supervisor) are not exceeding a configurable about of
+programs running under supervisor) are not exceeding a configurable amount of
 memory (resident segment size, or RSS).  If one or more of these processes is
 consuming more than the amount of memory that :command:`memmon` believes it
 should, :command:`memmon` will restart the process. :command:`memmon` can be
