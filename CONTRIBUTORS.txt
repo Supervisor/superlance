@@ -108,3 +108,5 @@ Contributors
 - Tres Seaver, 2009-02-11
 
 - Joaquín Cuenca Abela, 2011-06-23
+
+- Mikhail Lukyanchenko, 2013-12-23
