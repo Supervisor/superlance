@@ -106,3 +106,5 @@ Contributors
 - Chris McDonough, 2008-09-18
 
 - Tres Seaver, 2009-02-11
+
+- Joaquín Cuenca Abela, 2011-06-23
