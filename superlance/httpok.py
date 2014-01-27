@@ -184,7 +184,7 @@ class HTTPOk:
                             conn.request('GET', path)
                             break
                         except socket.error, e:
-                            if e.errno == 111 and (will_retry or 0):
+                            if e.errno == 111 and will_retry:
                                 time.sleep(self.retry_time)
                             else:
                                 raise
