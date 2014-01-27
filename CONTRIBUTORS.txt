@@ -107,4 +107,7 @@ Contributors
 
 - Tres Seaver, 2009-02-11
 
+- Roger Hoover, 2010-07-30
+
 - Joaquín Cuenca Abela, 2011-06-23
+
