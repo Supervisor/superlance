@@ -69,13 +69,14 @@ class HTTPOkTests(unittest.TestCase):
         email = 'chrism@plope.com'
         url = 'http://foo/bar'
         timeout = 10
+        retry_time = 0
         status = '200'
         inbody = None
         gcore = gcore
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
-                             inbody, email, sendmail, coredir, gcore, eager)
-        prog.retry_time = 0
+                             inbody, email, sendmail, coredir, gcore, eager, 
+                             retry_time)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -286,6 +287,29 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         self.assertEqual(prog.stderr.getvalue(), '')
         self.assertEqual(prog.stdout.getvalue(), 'READY\nRESULT 2\nOK')
+
+    def test_runforever_connrefused_error(self):
+        programs = ['foo', 'bar']
+        any = None
+        error = socket.error()
+        error.errno = 111
+        prog = self._makeOnePopulated(programs, any, 
+            exc=[error for x in range(100)], eager=False)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = filter(None, prog.stderr.getvalue().split('\n'))
+        self.assertEqual(lines[0],
+                         ("Restarting selected processes ['foo', 'bar']")
+                         )
+        self.assertEqual(lines[1], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[2], 'foo restarted')
+        self.assertEqual(lines[3], 'bar not in RUNNING state, NOT restarting')
+        mailed = prog.mailed.split('\n')
+        self.assertEqual(len(mailed), 10)
+        self.assertEqual(mailed[0], 'To: chrism@plope.com')
+        self.assertEqual(mailed[1],
+                    'Subject: httpok for http://foo/bar: bad status returned')
 
 if __name__ == '__main__':
     unittest.main()

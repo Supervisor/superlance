@@ -114,13 +114,13 @@ def usage():
 class HTTPOk:
     connclass = None
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
-                 email, sendmail, coredir, gcore, eager):
+                 email, sendmail, coredir, gcore, eager, retry_time):
         self.rpc = rpc
         self.programs = programs
         self.any = any
         self.url = url
         self.timeout = timeout
-        self.retry_time = 10
+        self.retry_time = retry_time
         self.status = status
         self.inbody = inbody
         self.email = email
@@ -177,16 +177,18 @@ class HTTPOk:
             if self.eager or len(specs) > 0:
 
                 try:
-                    for ignore in range(0, self.timeout, int(self.retry_time) or 1):
+                    for will_retry in range(
+                            self.timeout // (self.retry_time or 1) - 1 , 
+                            -1, -1):
                         try:
                             conn.request('GET', path)
                             break
                         except socket.error, e:
-                            if e.errno == 111:
+                            if e.errno == 111 and (will_retry or 0):
                                 time.sleep(self.retry_time)
                             else:
                                 raise
-                        
+
                     res = conn.getresponse()
                     body = res.read()
                     status = res.status
@@ -334,6 +336,7 @@ def main(argv=sys.argv):
     eager = True
     email = None
     timeout = 10
+    retry_time = 10
     status = '200'
     inbody = None
 
@@ -388,7 +391,7 @@ def main(argv=sys.argv):
         return
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
-                  sendmail, coredir, gcore, eager)
+                  sendmail, coredir, gcore, eager, retry_time)
     prog.runforever()
 
 if __name__ == '__main__':
