@@ -1,3 +1,4 @@
+import socket
 import sys
 import time
 import unittest
@@ -39,7 +40,10 @@ def make_connection(response, exc=None):
 
         def request(self, method, path):
             if exc:
-                raise ValueError('foo')
+                if exc == True:
+                    raise ValueError('foo')
+                else:
+                    raise exc.pop()
             self.method = method
             self.path = path
 
@@ -71,6 +75,7 @@ class HTTPOkTests(unittest.TestCase):
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
                              inbody, email, sendmail, coredir, gcore, eager)
+        prog.retry_time = 0
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -269,6 +274,18 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
+
+    def test_runforever_honor_timeout_on_connrefused(self):
+        programs = ['foo', 'bar']
+        any = None
+        error = socket.error()
+        error.errno = 111
+        prog = self._makeOnePopulated(programs, any, exc=[error], eager=False)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        self.assertEqual(prog.stderr.getvalue(), '')
+        self.assertEqual(prog.stdout.getvalue(), 'READY\nRESULT 2\nOK')
 
 if __name__ == '__main__':
     unittest.main()

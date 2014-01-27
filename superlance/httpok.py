@@ -95,6 +95,7 @@ httpok.py -p program1 -p group1:program2 http://localhost:8080/tasty
 """
 
 import os
+import socket
 import sys
 import time
 import urlparse
@@ -119,6 +120,7 @@ class HTTPOk:
         self.any = any
         self.url = url
         self.timeout = timeout
+        self.retry_time = 10
         self.status = status
         self.inbody = inbody
         self.email = email
@@ -175,7 +177,16 @@ class HTTPOk:
             if self.eager or len(specs) > 0:
 
                 try:
-                    conn.request('GET', path)
+                    for ignore in range(0, self.timeout, int(self.retry_time) or 1):
+                        try:
+                            conn.request('GET', path)
+                            break
+                        except socket.error, e:
+                            if e.errno == 111:
+                                time.sleep(self.retry_time)
+                            else:
+                                raise
+                        
                     res = conn.getresponse()
                     body = res.read()
                     status = res.status
