@@ -1,3 +1,4 @@
+import socket
 import sys
 import time
 import unittest
@@ -39,7 +40,10 @@ def make_connection(response, exc=None):
 
         def request(self, method, path):
             if exc:
-                raise ValueError('foo')
+                if exc == True:
+                    raise ValueError('foo')
+                else:
+                    raise exc.pop()
             self.method = method
             self.path = path
 
@@ -65,12 +69,14 @@ class HTTPOkTests(unittest.TestCase):
         email = 'chrism@plope.com'
         url = 'http://foo/bar'
         timeout = 10
+        retry_time = 0
         status = '200'
         inbody = None
         gcore = gcore
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
-                             inbody, email, sendmail, coredir, gcore, eager)
+                             inbody, email, sendmail, coredir, gcore, eager, 
+                             retry_time)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -254,6 +260,41 @@ class HTTPOkTests(unittest.TestCase):
         programs = ['foo', 'bar']
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True, eager=False)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = filter(None, prog.stderr.getvalue().split('\n'))
+        self.assertEqual(lines[0],
+                         ("Restarting selected processes ['foo', 'bar']")
+                         )
+        self.assertEqual(lines[1], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[2], 'foo restarted')
+        self.assertEqual(lines[3], 'bar not in RUNNING state, NOT restarting')
+        mailed = prog.mailed.split('\n')
+        self.assertEqual(len(mailed), 10)
+        self.assertEqual(mailed[0], 'To: chrism@plope.com')
+        self.assertEqual(mailed[1],
+                    'Subject: httpok for http://foo/bar: bad status returned')
+
+    def test_runforever_honor_timeout_on_connrefused(self):
+        programs = ['foo', 'bar']
+        any = None
+        error = socket.error()
+        error.errno = 111
+        prog = self._makeOnePopulated(programs, any, exc=[error], eager=False)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        self.assertEqual(prog.stderr.getvalue(), '')
+        self.assertEqual(prog.stdout.getvalue(), 'READY\nRESULT 2\nOK')
+
+    def test_runforever_connrefused_error(self):
+        programs = ['foo', 'bar']
+        any = None
+        error = socket.error()
+        error.errno = 111
+        prog = self._makeOnePopulated(programs, any, 
+            exc=[error for x in range(100)], eager=False)
         prog.stdin.write('eventname:TICK len:0\n')
         prog.stdin.seek(0)
         prog.runforever(test=True)
