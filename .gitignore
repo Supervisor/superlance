@@ -1,6 +1,6 @@
-env26/
+.tox/
+env*/
+dist/
 *.egg
 *.egg-info
-dist/
 *.pyc
-
