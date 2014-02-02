@@ -35,7 +35,7 @@ Options:
       the URL returns an unexpected result or times out.  If this
       process is part of a group, it can be specified using the
       'group_name:process_name' syntax.
-      
+
 -a -- Restart any child of the supervisord under in the RUNNING state
       if the URL returns an unexpected result or times out.  Overrides
       any -p parameters passed in the same httpok process
@@ -98,17 +98,17 @@ import os
 import socket
 import sys
 import time
-import urlparse
-import xmlrpclib
+from superlance.compat import urlparse
+from superlance.compat import xmlrpclib
 
 from supervisor import childutils
 from supervisor.states import ProcessStates
 from supervisor.options import make_namespec
 
-import timeoutconn
+from superlance import timeoutconn
 
 def usage():
-    print doc
+    print(doc)
     sys.exit(255)
 
 class HTTPOk:
@@ -178,12 +178,12 @@ class HTTPOk:
 
                 try:
                     for will_retry in range(
-                            self.timeout // (self.retry_time or 1) - 1 , 
+                            self.timeout // (self.retry_time or 1) - 1 ,
                             -1, -1):
                         try:
                             conn.request('GET', path)
                             break
-                        except socket.error, e:
+                        except socket.error as e:
                             if e.errno == 111 and will_retry:
                                 time.sleep(self.retry_time)
                             else:
@@ -195,10 +195,10 @@ class HTTPOk:
                     msg = 'status contacting %s: %s %s' % (self.url,
                                                            res.status,
                                                            res.reason)
-                except Exception, why:
+                except Exception as e:
                     body = ''
                     status = None
-                    msg = 'error contacting %s:\n\n %s' % (self.url, why)
+                    msg = 'error contacting %s:\n\n %s' % (self.url, e)
 
                 if str(status) != str(self.status):
                     subject = 'httpok for %s: bad status returned' % self.url
@@ -222,12 +222,12 @@ class HTTPOk:
 
         try:
             specs = self.rpc.supervisor.getAllProcessInfo()
-        except Exception, why:
-            write('Exception retrieving process info %s, not acting' % why)
+        except Exception as e:
+            write('Exception retrieving process info %s, not acting' % e)
             return
-            
+
         waiting = list(self.programs)
-            
+
         if self.any:
             write('Restarting all running processes')
             for spec in specs:
@@ -267,9 +267,8 @@ class HTTPOk:
         body += 'Subject: %s\n' % subject
         body += '\n'
         body += msg
-        m = os.popen(self.sendmail, 'w')
-        m.write(body)
-        m.close()
+        with os.popen(self.sendmail, 'w') as m:
+            m.write(body)
         self.stderr.write('Mailed:\n\n%s' % body)
         self.mailed = body
 
@@ -278,27 +277,28 @@ class HTTPOk:
         if spec['state'] is ProcessStates.RUNNING:
             if self.coredir and self.gcore:
                 corename = os.path.join(self.coredir, namespec)
-                m = os.popen(self.gcore + ' "%s" %s' % (corename, spec['pid']))
-                write('gcore output for %s:\n\n %s' % (namespec, m.read()))
-                m.close()
+                cmd = self.gcore + ' "%s" %s' % (corename, spec['pid'])
+                with os.popen(cmd) as m:
+                    write('gcore output for %s:\n\n %s' % (
+                        namespec, m.read()))
             write('%s is in RUNNING state, restarting' % namespec)
             try:
                 self.rpc.supervisor.stopProcess(namespec)
-            except xmlrpclib.Fault, what:
+            except xmlrpclib.Fault as e:
                 write('Failed to stop process %s: %s' % (
-                    namespec, what))
+                    namespec, e))
 
             try:
                 self.rpc.supervisor.startProcess(namespec)
-            except xmlrpclib.Fault, what:
+            except xmlrpclib.Fault as e:
                 write('Failed to start process %s: %s' % (
-                    namespec, what))
+                    namespec, e))
             else:
                 write('%s restarted' % namespec)
 
         else:
             write('%s not in RUNNING state, NOT restarting' % namespec)
-            
+
 
 def main(argv=sys.argv):
     import getopt
@@ -382,8 +382,8 @@ def main(argv=sys.argv):
 
     try:
         rpc = childutils.getRPCInterface(os.environ)
-    except KeyError, why:
-        if why[0] != 'SUPERVISOR_SERVER_URL':
+    except KeyError as e:
+        if e.args[0] != 'SUPERVISOR_SERVER_URL':
             raise
         sys.stderr.write('httpok must be run as a supervisor event '
                          'listener\n')
@@ -396,6 +396,3 @@ def main(argv=sys.argv):
 
 if __name__ == '__main__':
     main()
-    
-    
-    

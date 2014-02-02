@@ -8,8 +8,8 @@ class DummyResponse:
     reason = 'OK'
     body = 'OK'
     def read(self):
-        return self.body 
-        
+        return self.body
+
 class DummySystemRPCNamespace:
     pass
 
@@ -18,7 +18,7 @@ import time
 from supervisor.process import ProcessStates
 
 _NOW = time.time()
-    
+
 class DummySupervisorRPCNamespace:
     _restartable = True
     _restarted = False
@@ -73,20 +73,20 @@ class DummySupervisorRPCNamespace:
             if info['name'] == name or name == '%s:%s' %(info['group'], info['name']):
                 return info
         return None
-    
+
     def startProcess(self, name):
         from supervisor import xmlrpc
-        from xmlrpclib import Fault
+        from superlance.compat import xmlrpclib
         if name.endswith('SPAWN_ERROR'):
-            raise Fault(xmlrpc.Faults.SPAWN_ERROR, 'SPAWN_ERROR')
+            raise xmlrpclib.Fault(xmlrpc.Faults.SPAWN_ERROR, 'SPAWN_ERROR')
         return True
 
     def stopProcess(self, name):
         from supervisor import xmlrpc
-        from xmlrpclib import Fault
+        from superlance.compat import xmlrpclib
         if name == 'BAD_NAME:BAD_NAME':
-            raise Fault(xmlrpc.Faults.BAD_NAME, 'BAD_NAME:BAD_NAME') 
+            raise xmlrpclib.Fault(xmlrpc.Faults.BAD_NAME, 'BAD_NAME:BAD_NAME')
         if name.endswith('FAILED'):
-            raise Fault(xmlrpc.Faults.FAILED, 'FAILED')
+            raise xmlrpclib.Fault(xmlrpc.Faults.FAILED, 'FAILED')
         return True
 

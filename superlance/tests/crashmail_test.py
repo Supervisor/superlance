@@ -1,12 +1,12 @@
 import sys
 import unittest
-from StringIO import StringIO
+from superlance.compat import StringIO
 
 class CrashMailTests(unittest.TestCase):
     def _getTargetClass(self):
         from superlance.crashmail import CrashMail
         return CrashMail
-    
+
     def _makeOne(self, *opts):
         return self._getTargetClass()(*opts)
 
@@ -19,7 +19,6 @@ class CrashMailTests(unittest.TestCase):
         shutil.rmtree(self.tempdir)
 
     def _makeOnePopulated(self, programs, any, response=None):
-
         import os
         sendmail = 'cat - > %s' % os.path.join(self.tempdir, 'email.log')
         email = 'chrism@plope.com'
@@ -70,13 +69,15 @@ class CrashMailTests(unittest.TestCase):
         self.assertEqual(lines[1], 'Mailed:')
         self.assertEqual(lines[2], '')
         self.assertEqual(lines[3], 'To: chrism@plope.com')
-        self.failUnless('Subject: [foo]: foo crashed at' in lines[4])
+        self.assertTrue('Subject: [foo]: foo crashed at' in lines[4])
         self.assertEqual(lines[5], '')
-        self.failUnless(
+        self.assertTrue(
             'Process foo in group bar exited unexpectedly' in lines[6])
         import os
-        mail = open(os.path.join(self.tempdir, 'email.log'), 'r').read()
-        self.failUnless(
+        f = open(os.path.join(self.tempdir, 'email.log'), 'r')
+        mail = f.read()
+        f.close()
+        self.assertTrue(
             'Process foo in group bar exited unexpectedly' in mail)
 
 if __name__ == '__main__':

@@ -56,7 +56,7 @@ Options:
 -u -- optionally specify the minimum uptime in seconds for the process.
       if the process uptime is longer than this value, no email is sent
       (useful to only be notified if processes are restarted too often/early)
-      
+
       seconds can be specified as plain integer values or a suffix-multiplied integer
       (e.g. 1m). Valid suffixes are m (minute), h (hour) and d (day).
 
@@ -79,17 +79,18 @@ memmon.py -p program1=200MB -p theprog:thegroup=100MB -g thegroup=100MB -a 1GB -
 import os
 import sys
 import time
-import xmlrpclib
+from superlance.compat import xmlrpclib
 
 from supervisor import childutils
 from supervisor.datatypes import byte_size, SuffixMultiplier
 
 def usage():
-    print doc
+    print(doc)
     sys.exit(255)
 
 def shell(cmd):
-    return os.popen(cmd).read()
+    with os.popen(cmd) as f:
+        return f.read()
 
 class Memmon:
     def __init__(self, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc):
@@ -122,15 +123,17 @@ class Memmon:
 
             status = []
             if self.programs:
+                keys = sorted(self.programs.keys())
                 status.append(
                     'Checking programs %s' % ', '.join(
-                    [ '%s=%s' % x for x in self.programs.items() ] )
+                    [ '%s=%s' % (k, self.programs[k]) for k in keys ] )
                     )
 
             if self.groups:
+                keys = sorted(self.groups.keys())
                 status.append(
                     'Checking groups %s' % ', '.join(
-                    [ '%s=%s' % x for x in self.groups.items() ] )
+                    [ '%s=%s' % (k, self.groups[k]) for k in keys ] )
                     )
             if self.any is not None:
                 status.append('Checking any=%s' % self.any)
@@ -193,9 +196,9 @@ class Memmon:
         memmonId = self.memmonName and " [%s]" % self.memmonName or ""
         try:
             self.rpc.supervisor.stopProcess(name)
-        except xmlrpclib.Fault, what:
+        except xmlrpclib.Fault as e:
             msg = ('Failed to stop process %s (RSS %s), exiting: %s' %
-                   (name, rss, what))
+                   (name, rss, e))
             self.stderr.write(str(msg))
             if self.email:
                 subject = 'memmon%s: failed to stop process %s, exiting' % (memmonId, name)
@@ -204,9 +207,9 @@ class Memmon:
 
         try:
             self.rpc.supervisor.startProcess(name)
-        except xmlrpclib.Fault, what:
+        except xmlrpclib.Fault as e:
             msg = ('Failed to start process %s after stopping it, '
-                   'exiting: %s' % (name, what))
+                   'exiting: %s' % (name, e))
             self.stderr.write(str(msg))
             if self.email:
                 subject = 'memmon%s: failed to start process %s, exiting' % (memmonId, name)
@@ -228,16 +231,15 @@ class Memmon:
         body += 'Subject: %s\n' % subject
         body += '\n'
         body += msg
-        m = os.popen(self.sendmail, 'w')
-        m.write(body)
-        m.close()
+        with os.popen(self.sendmail, 'w') as m:
+            m.write(body)
         self.mailed = body
 
 def parse_namesize(option, value):
     try:
         name, size = value.split('=')
     except ValueError:
-        print 'Unparseable value %r for %r' % (value, option)
+        print('Unparseable value %r for %r' % (value, option))
         usage()
     size = parse_size(option, size)
     return name, size
@@ -246,7 +248,7 @@ def parse_size(option, value):
     try:
         size = byte_size(value)
     except:
-        print 'Unparseable byte_size in %r for %r' % (value, option)
+        print('Unparseable byte_size in %r for %r' % (value, option))
         usage()
 
     return size
@@ -261,10 +263,10 @@ def parse_seconds(option, value):
     try:
         seconds = seconds_size(value)
     except:
-        print 'Unparseable value for time in %r for %s' % (value, option)
+        print('Unparseable value for time in %r for %s' % (value, option))
         usage()
     return seconds
- 
+
 def main():
     import getopt
     short_args="hp:g:a:s:m:n:u:"
@@ -284,7 +286,7 @@ def main():
     try:
         opts, args=getopt.getopt(arguments, short_args, long_args)
     except:
-        print __doc__
+        print(__doc__)
         sys.exit(2)
 
     programs = {}
@@ -320,7 +322,7 @@ def main():
 
         if option in ('-u', '--uptime'):
             uptime = parse_seconds(option, value)
-            
+
         if option in ('-n', '--name'):
             name = value
 
@@ -330,6 +332,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-

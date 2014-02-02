@@ -1,6 +1,7 @@
 import sys
 import unittest
-from StringIO import StringIO
+from superlance.compat import StringIO
+from superlance.compat import maxint
 from superlance.tests.dummy import *
 from superlance.memmon import seconds_size
 
@@ -45,7 +46,7 @@ class MemmonTests(unittest.TestCase):
         memmon.runforever(test=True)
         lines = memmon.stderr.getvalue().split('\n')
         self.assertEqual(len(lines), 8)
-        self.assertEqual(lines[0], 'Checking programs foo=0, bar=0, baz_01=0')
+        self.assertEqual(lines[0], 'Checking programs bar=0, baz_01=0, foo=0')
         self.assertEqual(lines[1], 'RSS of foo:foo is 2264064')
         self.assertEqual(lines[2], 'Restarting foo:foo')
         self.assertEqual(lines[3], 'RSS of bar:bar is 2265088')
@@ -59,7 +60,7 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(mailed[1],
                          'Subject: memmon [test]: process baz:baz_01 restarted')
         self.assertEqual(mailed[2], '')
-        self.failUnless(mailed[3].startswith('memmon.py restarted'))
+        self.assertTrue(mailed[3].startswith('memmon.py restarted'))
 
     def test_runforever_tick_groups(self):
         programs = {}
@@ -81,7 +82,7 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(mailed[1],
           'Subject: memmon [test]: process foo:foo restarted')
         self.assertEqual(mailed[2], '')
-        self.failUnless(mailed[3].startswith('memmon.py restarted'))
+        self.assertTrue(mailed[3].startswith('memmon.py restarted'))
 
     def test_runforever_tick_any(self):
         programs = {}
@@ -127,10 +128,10 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(mailed[1],
                          'Subject: memmon [test]: process baz:baz_01 restarted')
         self.assertEqual(mailed[2], '')
-        self.failUnless(mailed[3].startswith('memmon.py restarted'))
+        self.assertTrue(mailed[3].startswith('memmon.py restarted'))
 
     def test_runforever_tick_programs_norestart(self):
-        programs = {'foo': sys.maxint}
+        programs = {'foo': maxint}
         groups = {}
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
@@ -139,13 +140,13 @@ class MemmonTests(unittest.TestCase):
         memmon.runforever(test=True)
         lines = memmon.stderr.getvalue().split('\n')
         self.assertEqual(len(lines), 3)
-        self.assertEqual(lines[0], 'Checking programs foo=%s' % sys.maxint)
+        self.assertEqual(lines[0], 'Checking programs foo=%s' % maxint)
         self.assertEqual(lines[1], 'RSS of foo:foo is 2264064')
         self.assertEqual(lines[2], '')
         self.assertEqual(memmon.mailed, False)
 
     def test_stopprocess_fault_tick_programs_norestart(self):
-        programs = {'foo': sys.maxint}
+        programs = {'foo': maxint}
         groups = {}
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
@@ -154,7 +155,7 @@ class MemmonTests(unittest.TestCase):
         memmon.runforever(test=True)
         lines = memmon.stderr.getvalue().split('\n')
         self.assertEqual(len(lines), 3)
-        self.assertEqual(lines[0], 'Checking programs foo=%s' % sys.maxint)
+        self.assertEqual(lines[0], 'Checking programs foo=%s' % maxint)
         self.assertEqual(lines[1], 'RSS of foo:foo is 2264064')
         self.assertEqual(lines[2], '')
         self.assertEqual(memmon.mailed, False)
@@ -179,21 +180,21 @@ class MemmonTests(unittest.TestCase):
             'now':0,
             'description':'BAD_NAME description',
              } ]
-        import xmlrpclib
+        from superlance.compat import xmlrpclib
         self.assertRaises(xmlrpclib.Fault, memmon.runforever, True)
         lines = memmon.stderr.getvalue().split('\n')
         self.assertEqual(len(lines), 4)
         self.assertEqual(lines[0], 'Checking programs BAD_NAME=%s' % 0)
         self.assertEqual(lines[1], 'RSS of BAD_NAME:BAD_NAME is 2264064')
         self.assertEqual(lines[2], 'Restarting BAD_NAME:BAD_NAME')
-        self.failUnless(lines[3].startswith('Failed'))
+        self.assertTrue(lines[3].startswith('Failed'))
         mailed = memmon.mailed.split('\n')
         self.assertEqual(len(mailed), 4)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
           'Subject: memmon [test]: failed to stop process BAD_NAME:BAD_NAME, exiting')
         self.assertEqual(mailed[2], '')
-        self.failUnless(mailed[3].startswith('Failed'))
+        self.assertTrue(mailed[3].startswith('Failed'))
 
     def test_subject_no_name(self):
         """set the name to None to check if subject
@@ -231,12 +232,12 @@ class MemmonTests(unittest.TestCase):
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
         memmon.email_uptime_limit = 101
-        
+
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
         self.assertTrue(memmon.mailed, 'email has been sent')
-        
+
         #in case uptime == limit, we send an email too
         memmon = self._makeOnePopulated(programs, groups, any)
         memmon.email_uptime_limit = 100
@@ -244,9 +245,9 @@ class MemmonTests(unittest.TestCase):
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
         self.assertTrue(memmon.mailed, 'email has been sent')
-        
-             
-        
+
+
+
     def test_uptime_long_no_email(self):
         """in case an email is provided and the restarted process' uptime
         is longer than our uptime_limit we do not send an email
@@ -256,13 +257,13 @@ class MemmonTests(unittest.TestCase):
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
         memmon.email_uptime_limit = 99
-        
+
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
         self.assertFalse(memmon.mailed, 'no email should be sent because uptime is above limit')
-              
-        
-        
+
+
+
 if __name__ == '__main__':
     unittest.main()

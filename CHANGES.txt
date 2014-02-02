@@ -1,6 +1,10 @@
 Next Release
 ------------
 
+- Dropped support for Python 2.5.
+
+- Added support for Python 3.2 and 3.3.
+
 - Removed ``setuptools`` from the ``install_requires`` list in ``setup.py``
   because it caused installation issues on some systems.
 

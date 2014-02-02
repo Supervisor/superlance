@@ -2,7 +2,7 @@ import socket
 import sys
 import time
 import unittest
-from StringIO import StringIO
+from superlance.compat import StringIO
 from supervisor.process import ProcessStates
 from superlance.tests.dummy import *
 
@@ -56,7 +56,7 @@ class HTTPOkTests(unittest.TestCase):
     def _getTargetClass(self):
         from superlance.httpok import HTTPOk
         return HTTPOk
-    
+
     def _makeOne(self, *opts):
         return self._getTargetClass()(*opts)
 
@@ -75,7 +75,7 @@ class HTTPOkTests(unittest.TestCase):
         gcore = gcore
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
-                             inbody, email, sendmail, coredir, gcore, eager, 
+                             inbody, email, sendmail, coredir, gcore, eager,
                              retry_time)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
@@ -252,9 +252,9 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.write('eventname:TICK len:0\n')
         prog.stdin.seek(0)
         prog.runforever(test=True)
-        lines = filter(None, prog.stderr.getvalue().split('\n'))
+        lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(len(lines), 0, lines)
-        self.failIf('mailed' in prog.__dict__)
+        self.assertFalse('mailed' in prog.__dict__)
 
     def test_runforever_not_eager_running(self):
         programs = ['foo', 'bar']
@@ -263,7 +263,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.write('eventname:TICK len:0\n')
         prog.stdin.seek(0)
         prog.runforever(test=True)
-        lines = filter(None, prog.stderr.getvalue().split('\n'))
+        lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar']")
                          )
@@ -293,12 +293,12 @@ class HTTPOkTests(unittest.TestCase):
         any = None
         error = socket.error()
         error.errno = 111
-        prog = self._makeOnePopulated(programs, any, 
+        prog = self._makeOnePopulated(programs, any,
             exc=[error for x in range(100)], eager=False)
         prog.stdin.write('eventname:TICK len:0\n')
         prog.stdin.seek(0)
         prog.runforever(test=True)
-        lines = filter(None, prog.stderr.getvalue().split('\n'))
+        lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar']")
                          )

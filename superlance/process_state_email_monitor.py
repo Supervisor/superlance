@@ -16,10 +16,9 @@ import os
 import sys
 import smtplib
 import copy
-# Using old reference for Python 2.4
-from email.MIMEText import MIMEText
-from email.Utils import formatdate, make_msgid
-# from email.mime.text import MIMEText
+
+from email.mime.text import MIMEText
+from email.utils import formatdate, make_msgid
 from superlance.process_state_monitor import ProcessStateMonitor
 
 doc = """\
@@ -52,7 +51,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         parser.add_option("-p", "--password", dest="smtp_password", default="",
                         help="SMTP server password (defaults to nothing)")
         return parser
-      
+
     @classmethod
     def parse_cmd_line_options(cls):
         parser = cls._get_opt_parser()
@@ -133,7 +132,7 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
 
         try:
             self.send_smtp(msg, email['to'])
-        except Exception, e:
+        except Exception as e:
             self.write_stderr("Error sending email: %s\n" % e)
 
     def send_smtp(self, mime_msg, to_emails):
