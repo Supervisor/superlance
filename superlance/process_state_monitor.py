@@ -16,7 +16,6 @@ doc = """\
 Base class for common functionality when monitoring process state changes
 """
 
-import os
 import sys
 
 from supervisor import childutils

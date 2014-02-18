@@ -1,6 +1,5 @@
 import unittest
 import mock
-import time
 from superlance.compat import StringIO
 from superlance.process_state_monitor import ProcessStateMonitor
 

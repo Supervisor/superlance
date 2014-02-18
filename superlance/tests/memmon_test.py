@@ -1,4 +1,3 @@
-import sys
 import unittest
 from superlance.compat import StringIO
 from superlance.compat import maxint

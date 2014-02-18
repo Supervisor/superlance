@@ -1,6 +1,5 @@
 import unittest
 import mock
-import time
 from superlance.compat import StringIO
 
 class ProcessStateEmailMonitorTestException(Exception):

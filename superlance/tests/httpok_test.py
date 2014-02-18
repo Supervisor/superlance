@@ -1,5 +1,4 @@
 import socket
-import sys
 import time
 import unittest
 from superlance.compat import StringIO

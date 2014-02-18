@@ -1,7 +1,4 @@
 import unittest
-import mock
-import time
-from superlance.compat import StringIO
 
 from .crashmailbatch_test import CrashMailBatchTests
 
