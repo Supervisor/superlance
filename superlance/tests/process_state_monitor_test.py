@@ -1,26 +1,25 @@
 import unittest
 import mock
-import time
 from StringIO import StringIO
 from superlance.process_state_monitor import ProcessStateMonitor
 
 class TestProcessStateMonitor(ProcessStateMonitor):
-    
+
     process_state_events = ['PROCESS_STATE_EXITED']
-            
+
     def get_process_state_change_msg(self, headers, payload):
         return repr(payload)
 
 class ProcessStateMonitorTests(unittest.TestCase):
-    
+
     def _get_target_class(self):
         return TestProcessStateMonitor
-        
+
     def _make_one_mocked(self, **kwargs):
         kwargs['stdin'] = StringIO()
         kwargs['stdout'] = StringIO()
         kwargs['stderr'] = StringIO()
-        
+
         obj = self._get_target_class()(**kwargs)
         obj.send_batch_notification = mock.Mock()
         return obj
@@ -35,7 +34,7 @@ class ProcessStateMonitorTests(unittest.TestCase):
         payload = 'processname:%s groupname:%s from_state:RUNNING expected:%d \
 pid:58597' % (pname, gname, expected)
         return (headers, payload)
-        
+
     def get_tick60_event(self):
         headers = {
             'ver': '3.0', 'poolserial': '5', 'len': '15',
@@ -55,7 +54,7 @@ pid:58597' % (pname, gname, expected)
     def test__get_tick_mins(self):
         monitor = self._make_one_mocked()
         self.assertEquals(5.0/60.0, monitor._get_tick_mins('TICK_5'))
-        
+
     def test_handle_event_exit(self):
         monitor = self._make_one_mocked()
         hdrs, payload = self.get_process_exited_event('foo', 'bar', 0)
@@ -83,7 +82,7 @@ pid:58597' % (pname, gname, expected)
         #Time expired
         hdrs, payload = self.get_tick60_event()
         monitor.handle_event(hdrs, payload)
-        
+
         #Test that batch messages are now gone
         self.assertEquals([], monitor.get_batch_msgs())
         #Test that email was sent

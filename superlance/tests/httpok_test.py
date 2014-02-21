@@ -1,5 +1,4 @@
 import socket
-import sys
 import time
 import unittest
 from StringIO import StringIO
@@ -56,7 +55,7 @@ class HTTPOkTests(unittest.TestCase):
     def _getTargetClass(self):
         from superlance.httpok import HTTPOk
         return HTTPOk
-    
+
     def _makeOne(self, *opts):
         return self._getTargetClass()(*opts)
 
@@ -75,7 +74,7 @@ class HTTPOkTests(unittest.TestCase):
         gcore = gcore
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
-                             inbody, email, sendmail, coredir, gcore, eager, 
+                             inbody, email, sendmail, coredir, gcore, eager,
                              retry_time)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
@@ -293,7 +292,7 @@ class HTTPOkTests(unittest.TestCase):
         any = None
         error = socket.error()
         error.errno = 111
-        prog = self._makeOnePopulated(programs, any, 
+        prog = self._makeOnePopulated(programs, any,
             exc=[error for x in range(100)], eager=False)
         prog.stdin.write('eventname:TICK len:0\n')
         prog.stdin.seek(0)

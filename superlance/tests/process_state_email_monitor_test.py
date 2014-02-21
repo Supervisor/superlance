@@ -1,6 +1,5 @@
 import unittest
 import mock
-import time
 from StringIO import StringIO
 
 class ProcessStateEmailMonitorTestException(Exception):
@@ -11,12 +10,12 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
     to_emails = ('testTo@blah.com', 'testTo2@blah.com')
     to_str = 'testTo@blah.com, testTo2@blah.com'
     subject = 'Test Alert'
-    
+
     def _get_target_class(self):
         from superlance.process_state_email_monitor \
         import ProcessStateEmailMonitor
         return ProcessStateEmailMonitor
-    
+
     def _make_one(self, **kwargs):
         kwargs['stdin'] = StringIO()
         kwargs['stdout'] = StringIO()
@@ -24,10 +23,10 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
         kwargs['from_email'] = kwargs.get('from_email', self.from_email)
         kwargs['to_emails'] = kwargs.get('to_emails', self.to_emails)
         kwargs['subject'] = kwargs.get('subject', self.subject)
-        
+
         obj = self._get_target_class()(**kwargs)
         return obj
-            
+
     def _make_one_mock_send_email(self, **kwargs):
         obj = self._make_one(**kwargs)
         obj.send_email = mock.Mock()
@@ -37,27 +36,27 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
         obj = self._make_one(**kwargs)
         obj.send_smtp = mock.Mock()
         return obj
-        
+
     def test_validate_cmd_line_options_single_to_email_ok(self):
         klass = self._get_target_class()
-        
+
         options = mock.Mock()
         options.from_email = 'blah'
         options.to_emails = 'frog'
-        
+
         validated = klass.validate_cmd_line_options(options)
         self.assertEquals(['frog'], validated.to_emails)
 
     def test_validate_cmd_line_options_multi_to_emails_ok(self):
         klass = self._get_target_class()
-        
+
         options = mock.Mock()
         options.from_email = 'blah'
         options.to_emails = 'frog, log,dog'
-        
+
         validated = klass.validate_cmd_line_options(options)
         self.assertEquals(['frog', 'log', 'dog'], validated.to_emails)
-    
+
     def test_send_email_ok(self):
         email = {
             'body': 'msg1\nmsg2',
@@ -67,7 +66,7 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
         }
         monitor = self._make_one_mock_send_smtp()
         monitor.send_email(email)
-        
+
         #Test that email was sent
         self.assertEquals(1, monitor.send_smtp.call_count)
         smtpCallArgs = monitor.send_smtp.call_args[0]
@@ -79,7 +78,7 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
 
     def _raiseSTMPException(self, mime, to_emails):
         raise ProcessStateEmailMonitorTestException('test')
-        
+
     def test_send_email_exception(self):
         email = {
             'body': 'msg1\nmsg2',
@@ -93,13 +92,13 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
 
         #Test that error was logged to stderr
         self.assertEquals("Error sending email: test\n", monitor.stderr.getvalue())
-    
+
     def test_send_batch_notification(self):
         test_msgs = ['msg1', 'msg2']
         monitor = self._make_one_mock_send_email()
         monitor.batchmsgs = test_msgs
         monitor.send_batch_notification()
-        
+
         #Test that email was sent
         expected = {
             'body': 'msg1\nmsg2',
@@ -109,7 +108,7 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
         }
         self.assertEquals(1, monitor.send_email.call_count)
         monitor.send_email.assert_called_with(expected)
-        
+
         #Test that email was logged
         self.assertEquals("""Sending notification email:
 To: %s
@@ -119,7 +118,7 @@ Body:
 msg1
 msg2
 """ % (self.to_str), monitor.stderr.getvalue())
-        
+
     def test_log_email_with_body_digest(self):
         bodyLen = 80
         monitor = self._make_one_mock_send_email()

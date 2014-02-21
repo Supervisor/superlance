@@ -1,4 +1,3 @@
-import sys
 import unittest
 from StringIO import StringIO
 
@@ -6,7 +5,7 @@ class CrashMailTests(unittest.TestCase):
     def _getTargetClass(self):
         from superlance.crashmail import CrashMail
         return CrashMail
-    
+
     def _makeOne(self, *opts):
         return self._getTargetClass()(*opts)
 
