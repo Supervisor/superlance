@@ -37,7 +37,7 @@ def make_connection(response, exc=None):
         def __init__(self, hostport):
             self.hostport = hostport
 
-        def request(self, method, path):
+        def request(self, method, path, headers):
             if exc:
                 if exc == True:
                     raise ValueError('foo')
@@ -45,6 +45,7 @@ def make_connection(response, exc=None):
                     raise exc.pop()
             self.method = method
             self.path = path
+            self.headers = headers
 
         def getresponse(self):
             return response

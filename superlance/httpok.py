@@ -181,7 +181,8 @@ class HTTPOk:
                             self.timeout // (self.retry_time or 1) - 1 , 
                             -1, -1):
                         try:
-                            conn.request('GET', path)
+                            headers = {'User-Agent': 'httpok'}
+                            conn.request('GET', path, headers=headers)
                             break
                         except socket.error, e:
                             if e.errno == 111 and will_retry:
