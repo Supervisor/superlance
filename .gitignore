@@ -1,6 +1,7 @@
 .tox/
 env*/
 dist/
+docs/_build/
 *.egg
 *.egg-info
 *.pyc
