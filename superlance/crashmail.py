@@ -159,9 +159,6 @@ def main(argv=sys.argv):
     any = False
     sendmail = '/usr/sbin/sendmail -t -i'
     email = None
-    timeout = 10
-    status = '200'
-    inbody = None
     optionalheader = None
 
     for option, value in opts:
