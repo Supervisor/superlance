@@ -117,7 +117,6 @@ class HTTPOkTests(unittest.TestCase):
 
     def test_runforever_eager_notatick(self):
         programs = {'foo':0, 'bar':0, 'baz_01':0 }
-        groups = {}
         any = None
         prog = self._makeOnePopulated(programs, any)
         prog.stdin.write('eventname:NOTATICK len:0\n')

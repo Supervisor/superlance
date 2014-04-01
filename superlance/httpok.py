@@ -35,7 +35,7 @@ Options:
       the URL returns an unexpected result or times out.  If this
       process is part of a group, it can be specified using the
       'group_name:process_name' syntax.
-      
+
 -a -- Restart any child of the supervisord under in the RUNNING state
       if the URL returns an unexpected result or times out.  Overrides
       any -p parameters passed in the same httpok process
@@ -171,14 +171,12 @@ class HTTPOk:
             conn = ConnClass(hostport)
             conn.timeout = self.timeout
 
-            act = False
-
             specs = self.listProcesses(ProcessStates.RUNNING)
             if self.eager or len(specs) > 0:
 
                 try:
                     for will_retry in range(
-                            self.timeout // (self.retry_time or 1) - 1 , 
+                            self.timeout // (self.retry_time or 1) - 1 ,
                             -1, -1):
                         try:
                             headers = {'User-Agent': 'httpok'}
@@ -205,7 +203,6 @@ class HTTPOk:
                     subject = 'httpok for %s: bad status returned' % self.url
                     self.act(subject, msg)
                 elif self.inbody and self.inbody not in body:
-                    act = True
                     subject = 'httpok for %s: bad body returned' % self.url
                     self.act(subject, msg)
 
@@ -226,9 +223,9 @@ class HTTPOk:
         except Exception, why:
             write('Exception retrieving process info %s, not acting' % why)
             return
-            
+
         waiting = list(self.programs)
-            
+
         if self.any:
             write('Restarting all running processes')
             for spec in specs:
@@ -259,7 +256,6 @@ class HTTPOk:
                 waiting)
 
         if self.email:
-            now = time.asctime()
             message = '\n'.join(messages)
             self.mail(self.email, subject, message)
 
@@ -299,7 +295,7 @@ class HTTPOk:
 
         else:
             write('%s not in RUNNING state, NOT restarting' % namespec)
-            
+
 
 def main(argv=sys.argv):
     import getopt
@@ -397,6 +393,3 @@ def main(argv=sys.argv):
 
 if __name__ == '__main__':
     main()
-    
-    
-    
