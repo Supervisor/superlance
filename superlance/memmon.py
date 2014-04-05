@@ -56,13 +56,15 @@ Options:
 -u -- optionally specify the minimum uptime in seconds for the process.
       if the process uptime is longer than this value, no email is sent
       (useful to only be notified if processes are restarted too often/early)
-      
+
       seconds can be specified as plain integer values or a suffix-multiplied integer
       (e.g. 1m). Valid suffixes are m (minute), h (hour) and d (day).
 
 -n -- optionally specify the name of the memmon process. This name will
       be used in the email subject to identify which memmon process
       restarted the process.
+
+-t -- optionally monitor the memory usage of the entire process tree.
 
 The -p and -g options may be specified more than once, allowing for
 specification of multiple groups and processes.
@@ -80,6 +82,7 @@ import os
 import sys
 import time
 import xmlrpclib
+import re
 
 from supervisor import childutils
 from supervisor.datatypes import byte_size, SuffixMultiplier
@@ -92,7 +95,7 @@ def shell(cmd):
     return os.popen(cmd).read()
 
 class Memmon:
-    def __init__(self, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc):
+    def __init__(self, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc, tree):
         self.programs = programs
         self.groups = groups
         self.any = any
@@ -105,7 +108,9 @@ class Memmon:
         self.stdout = sys.stdout
         self.stderr = sys.stderr
         self.pscommand = 'ps -orss= -p %s'
+        self.pstreecommand = 'pstree -A -p %s'
         self.mailed = False # for unit tests
+        self.tree = tree
 
     def runforever(self, test=False):
         while 1:
@@ -150,17 +155,25 @@ class Memmon:
                     # in standby mode, non-auto-started).
                     continue
 
-                data = shell(self.pscommand % pid)
-                if not data:
-                    # no such pid (deal with race conditions)
-                    continue
+                if not self.tree:
+                    ps_data = [shell(self.pscommand % pid)]
+                else:
+                    raw = shell(self.pstreecommand % pid)
+                    # remove threads from pstree output
+                    raw_wo_threads = re.sub("\\{.*?\}\(\d+\)", '', raw, re.DOTALL)
+                    pids = re.findall("\((\d+)\)", raw_wo_threads, re.DOTALL)
+                    ps_data = [shell(self.pscommand % treepid) for treepid in pids]
 
-                try:
-                    rss = data.lstrip().rstrip()
-                    rss = int(rss) * 1024 # rss is in KB
-                except ValueError:
-                    # line doesn't contain any data, or rss cant be intified
-                    continue
+                rss = 0
+                for data in ps_data:
+                    if not data:
+                        # no such pid (deal with race conditions)
+                        continue
+                    try:
+                        rss += int(data.lstrip().rstrip()) * 1024
+                    except ValueError:
+                        # line doesn't contain any data, or rss cant be intified
+                        continue
 
                 for n in name, pname:
                     if n in self.programs:
@@ -264,10 +277,10 @@ def parse_seconds(option, value):
         print 'Unparseable value for time in %r for %s' % (value, option)
         usage()
     return seconds
- 
+
 def main():
     import getopt
-    short_args="hp:g:a:s:m:n:u:"
+    short_args="hp:g:a:s:m:n:u:t"
     long_args=[
         "help",
         "program=",
@@ -294,6 +307,7 @@ def main():
     email = None
     uptime = sys.maxint
     name = None
+    tree = False
 
     for option, value in opts:
 
@@ -320,16 +334,16 @@ def main():
 
         if option in ('-u', '--uptime'):
             uptime = parse_seconds(option, value)
-            
+
         if option in ('-n', '--name'):
             name = value
 
+        if option in ('-t', '--tree'):
+            tree = True
+
     rpc = childutils.getRPCInterface(os.environ)
-    memmon = Memmon(programs, groups, any, sendmail, email, name, uptime, rpc)
+    memmon = Memmon(programs, groups, any, sendmail, email, name, uptime, rpc, tree)
     memmon.runforever()
 
 if __name__ == '__main__':
     main()
-
-
-
