@@ -58,5 +58,5 @@ The following example assumes that :command:`crashsms` is on your system
 .. code-block:: ini
 
    [eventlistener:crashsms]
-   crashsms --toEmail="<mobile number>@<sms email gateway>" --fromEmail="supervisord@fubar.com" 
+   command=crashsms --toEmail="<mobile number>@<sms email gateway>" --fromEmail="supervisord@fubar.com" 
    events=PROCESS_STATE,TICK_60
