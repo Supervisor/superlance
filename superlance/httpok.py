@@ -171,8 +171,6 @@ class HTTPOk:
             conn = ConnClass(hostport)
             conn.timeout = self.timeout
 
-            act = False
-
             specs = self.listProcesses(ProcessStates.RUNNING)
             if self.eager or len(specs) > 0:
 
@@ -181,7 +179,8 @@ class HTTPOk:
                             self.timeout // (self.retry_time or 1) - 1 ,
                             -1, -1):
                         try:
-                            conn.request('GET', path)
+                            headers = {'User-Agent': 'httpok'}
+                            conn.request('GET', path, headers=headers)
                             break
                         except socket.error as e:
                             if e.errno == 111 and will_retry:
@@ -204,7 +203,6 @@ class HTTPOk:
                     subject = 'httpok for %s: bad status returned' % self.url
                     self.act(subject, msg)
                 elif self.inbody and self.inbody not in body:
-                    act = True
                     subject = 'httpok for %s: bad body returned' % self.url
                     self.act(subject, msg)
 
@@ -258,7 +256,6 @@ class HTTPOk:
                 waiting)
 
         if self.email:
-            now = time.asctime()
             message = '\n'.join(messages)
             self.mail(self.email, subject, message)
 

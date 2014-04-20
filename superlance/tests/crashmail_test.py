@@ -30,7 +30,6 @@ class CrashMailTests(unittest.TestCase):
 
     def test_runforever_not_process_state_exited(self):
         programs = {'foo':0, 'bar':0, 'baz_01':0 }
-        groups = {}
         any = None
         prog = self._makeOnePopulated(programs, any)
         prog.stdin.write('eventname:PROCESS_STATE len:0\n')

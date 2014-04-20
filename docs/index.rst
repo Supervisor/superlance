@@ -50,6 +50,9 @@ Contents:
    httpok
    crashmail
    memmon
+   crashmailbatch
+   fatalmailbatch
+   crashsms
 
 Indices and tables
 ==================

@@ -1,11 +1,12 @@
 # Configuration for Travis CI
 
 language: python
-python:
-  - "2.6"
-  - "2.7"
-  - "3.2"
-  - "3.3"
-# command to run tests
+env:
+    - TOXENV=py26
+    - TOXENV=py27
+    - TOXENV=py32
+    - TOXENV=py33
+install:
+    - travis_retry pip install tox==1.6.1
 script:
-  - python setup.py test -q
+    - travis_retry tox
