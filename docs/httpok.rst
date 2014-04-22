@@ -37,7 +37,7 @@ Command-Line Syntax
    monitor more than one process.
 
    To monitor a process which is part of a :command:`supervisord` group,
-   specify its name as ``process_name:group_name``.
+   specify its name as ``group_name:process_name``.
 
 .. cmdoption:: -a, --any
 
