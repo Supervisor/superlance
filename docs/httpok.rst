@@ -2,15 +2,16 @@
 ==================================
 
 :command:`httpok` is a supervisor "event listener" which may be subscribed to
-a concrete ``TICK_x`` event. When :command:`httpok` receives a ``TICK_x``
+a concrete ``TICK_5``, ``TICK_60`` or ``TICK_3600``  event.
+When :command:`httpok` receives a ``TICK_x``
 event (``TICK_60`` is recommended, indicating activity every 60 seconds),
 :command:`httpk` makes an HTTP GET request to a confgured URL. If the request
 fails or times out, :command:`httpok`` will restart the "hung" child
 process(es). :command:`httpok` can be configured to send an email notification
 when it restarts a process.
 
-:command:`httpok` is incapable of monitoring the process status of processes
-which are not :command:`supervisord` child processes.
+:command:`httpok` can only monitor the process status of processes
+which are :command:`supervisord` child processes.
 
 :command:`httpok` is a "console script" installed when you install
 :mod:`superlance`.  Although :command:`httpok` is an executable program, it
@@ -67,7 +68,7 @@ Command-Line Syntax
    to the HTTP request before timing out.
 
    If this timeout is exceeded, :command:`httpok` will attempt to restart
-   child processes which are in the ``RUNNING state, and specified by
+   child processes which are in the ``RUNNING`` state, and specified by
    ``-p`` or ``-a``.
 
    Defaults to 10 seconds.
@@ -80,7 +81,7 @@ Command-Line Syntax
    :command:`httpok` will attempt to restart child processes which are
    in the ``RUNNING`` state, and specified by ``-p`` or ``-a``.
 
-   Defaults to the string, "200".
+   Defaults to the string "200".
 
 .. cmdoption:: -b <body_string>, --body=<body_string>
 
@@ -126,7 +127,8 @@ Configuring :command:`httpok` Into the Supervisor Config
 -----------------------------------------------------------
 
 An ``[eventlistener:x]`` section must be placed in :file:`supervisord.conf`
-in order for :command:`memmon` to do its work. See the "Events" chapter in the
+in order for :command:`httpok` to do its work.
+See the "Events" chapter in the
 Supervisor manual for more information about event listeners.
 
 The following example assumes that :command:`httpok` is on your system
