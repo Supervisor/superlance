@@ -64,6 +64,8 @@ Options:
       be used in the email subject to identify which memmon process
       restarted the process.
 
+-f -- fast mode. Memmon will not wait to see if restarted processes come up successfully.
+
 The -p and -g options may be specified more than once, allowing for
 specification of multiple groups and processes.
 
@@ -93,7 +95,7 @@ def shell(cmd):
         return f.read()
 
 class Memmon:
-    def __init__(self, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc):
+    def __init__(self, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc, fast_restarts):
         self.programs = programs
         self.groups = groups
         self.any = any
@@ -102,6 +104,7 @@ class Memmon:
         self.email_uptime_limit = email_uptime_limit
         self.memmonName = name
         self.rpc = rpc
+        self.fast_restarts = fast_restarts
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
@@ -206,7 +209,7 @@ class Memmon:
             raise
 
         try:
-            self.rpc.supervisor.startProcess(name)
+            self.rpc.supervisor.startProcess(name, not self.fast_restarts)
         except xmlrpclib.Fault as e:
             msg = ('Failed to start process %s after stopping it, '
                    'exiting: %s' % (name, e))
@@ -269,7 +272,7 @@ def parse_seconds(option, value):
 
 def main():
     import getopt
-    short_args="hp:g:a:s:m:n:u:"
+    short_args="hp:g:a:s:m:n:u:f:"
     long_args=[
         "help",
         "program=",
@@ -279,6 +282,7 @@ def main():
         "email=",
         "uptime=",
         "name=",
+        "fast",
         ]
     arguments = sys.argv[1:]
     if not arguments:
@@ -296,6 +300,7 @@ def main():
     email = None
     uptime = sys.maxint
     name = None
+    fast = False
 
     for option, value in opts:
 
@@ -326,8 +331,11 @@ def main():
         if option in ('-n', '--name'):
             name = value
 
+        if option in ('-f', '--fast'):
+            fast = True
+
     rpc = childutils.getRPCInterface(os.environ)
-    memmon = Memmon(programs, groups, any, sendmail, email, name, uptime, rpc)
+    memmon = Memmon(programs, groups, any, sendmail, email, name, uptime, rpc, fast)
     memmon.runforever()
 
 if __name__ == '__main__':

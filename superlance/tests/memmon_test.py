@@ -12,13 +12,13 @@ class MemmonTests(unittest.TestCase):
     def _makeOne(self, *opts):
         return self._getTargetClass()(*opts)
 
-    def _makeOnePopulated(self, programs, groups, any):
+    def _makeOnePopulated(self, programs, groups, any, fast_restart):
         rpc = DummyRPCServer()
         sendmail = 'cat - > /dev/null'
         email = 'chrism@plope.com'
         name = 'test'
         uptime_limit = 2000
-        memmon = self._makeOne(programs, groups, any, sendmail, email, uptime_limit, name, rpc)
+        memmon = self._makeOne(programs, groups, any, sendmail, email, uptime_limit, name, rpc, fast_restart)
         memmon.stdin = StringIO()
         memmon.stdout = StringIO()
         memmon.stderr = StringIO()
@@ -29,7 +29,7 @@ class MemmonTests(unittest.TestCase):
         programs = {'foo':0, 'bar':0, 'baz_01':0 }
         groups = {}
         any = None
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.stdin.write('eventname:NOTATICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
@@ -39,7 +39,7 @@ class MemmonTests(unittest.TestCase):
         programs = {'foo':0, 'bar':0, 'baz_01':0 }
         groups = {}
         any = None
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
@@ -65,7 +65,7 @@ class MemmonTests(unittest.TestCase):
         programs = {}
         groups = {'foo':0}
         any = None
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
@@ -87,7 +87,7 @@ class MemmonTests(unittest.TestCase):
         programs = {}
         groups = {}
         any = 0
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
@@ -108,7 +108,7 @@ class MemmonTests(unittest.TestCase):
         programs = {'baz_01':0}
         groups = {'foo':0}
         any = None
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
@@ -133,7 +133,7 @@ class MemmonTests(unittest.TestCase):
         programs = {'foo': maxint}
         groups = {}
         any = None
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
@@ -148,7 +148,7 @@ class MemmonTests(unittest.TestCase):
         programs = {'foo': maxint}
         groups = {}
         any = None
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
@@ -163,7 +163,7 @@ class MemmonTests(unittest.TestCase):
         programs = {'BAD_NAME': 0}
         groups = {}
         any = None
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         from supervisor.process import ProcessStates
@@ -202,7 +202,7 @@ class MemmonTests(unittest.TestCase):
         programs = {}
         groups = {}
         any = 0
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.memmonName = None
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
@@ -229,7 +229,7 @@ class MemmonTests(unittest.TestCase):
         programs = {'foo':0}
         groups = {}
         any = None
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.email_uptime_limit = 101
 
         memmon.stdin.write('eventname:TICK len:0\n')
@@ -238,7 +238,7 @@ class MemmonTests(unittest.TestCase):
         self.assertTrue(memmon.mailed, 'email has been sent')
 
         #in case uptime == limit, we send an email too
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.email_uptime_limit = 100
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
@@ -254,7 +254,7 @@ class MemmonTests(unittest.TestCase):
         programs = {'foo':0}
         groups = {}
         any = None
-        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon = self._makeOnePopulated(programs, groups, any, False)
         memmon.email_uptime_limit = 99
 
         memmon.stdin.write('eventname:TICK len:0\n')

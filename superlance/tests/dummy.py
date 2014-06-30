@@ -74,14 +74,14 @@ class DummySupervisorRPCNamespace:
                 return info
         return None
 
-    def startProcess(self, name):
+    def startProcess(self, name, wait=True):
         from supervisor import xmlrpc
         from superlance.compat import xmlrpclib
-        if name.endswith('SPAWN_ERROR'):
+        if name.endswith('SPAWN_ERROR') and wait:
             raise xmlrpclib.Fault(xmlrpc.Faults.SPAWN_ERROR, 'SPAWN_ERROR')
         return True
 
-    def stopProcess(self, name):
+    def stopProcess(self, name, wait=True):
         from supervisor import xmlrpc
         from superlance.compat import xmlrpclib
         if name == 'BAD_NAME:BAD_NAME':
