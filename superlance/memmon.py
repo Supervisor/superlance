@@ -272,7 +272,7 @@ def parse_seconds(option, value):
 
 def main():
     import getopt
-    short_args="hp:g:a:s:m:n:u:f:"
+    short_args="hp:g:a:s:m:n:u:f"
     long_args=[
         "help",
         "program=",
