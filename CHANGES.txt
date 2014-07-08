@@ -1,12 +1,12 @@
-0.10 (2014-07-08)
------------------
+1.0.0-dev (Next Release)
+------------------------
 
 - Dropped support for Python 2.5.
 
 - Added support for Python 3.2 and 3.3.
 
-- Removed ``setuptools`` from the ``install_requires`` list in ``setup.py``
-  because it caused installation issues on some systems.
+0.10 (2014-07-08)
+-----------------
 
 - Honor timeout in httok checks even on trying the connection.
   Without it, processes that take make than 60 seconds to accept connections
