@@ -9,6 +9,8 @@ Contributors
 
 - Joaquín Cuenca Abela, 2011-06-23
 
+- Harald Friessnegger, 2012-11-01
+
 - Mikhail Lukyanchenko, 2013-12-23
 
 - Patrick Gerken, 2014-01-27
