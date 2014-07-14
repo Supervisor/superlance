@@ -56,7 +56,7 @@ Options:
 -u -- optionally specify the minimum uptime in seconds for the process.
       if the process uptime is longer than this value, no email is sent
       (useful to only be notified if processes are restarted too often/early)
-      
+
       seconds can be specified as plain integer values or a suffix-multiplied integer
       (e.g. 1m). Valid suffixes are m (minute), h (hour) and d (day).
 
@@ -92,7 +92,7 @@ def shell(cmd):
     return os.popen(cmd).read()
 
 class Memmon:
-    def __init__(self, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc):
+    def __init__(self, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc=None):
         self.programs = programs
         self.groups = groups
         self.any = any
@@ -224,7 +224,7 @@ class Memmon:
             self.mail(self.email, subject, msg)
 
     def mail(self, email, subject, msg):
-        body =  'To: %s\n' % self.email
+        body = 'To: %s\n' % self.email
         body += 'Subject: %s\n' % subject
         body += '\n'
         body += msg
@@ -253,8 +253,8 @@ def parse_size(option, value):
 
 seconds_size = SuffixMultiplier({'s': 1,
                                  'm': 60,
-                                 'h': 60*60,
-                                 'd': 60*60*24
+                                 'h': 60 * 60,
+                                 'd': 60 * 60 * 24
                                  })
 
 def parse_seconds(option, value):
@@ -264,11 +264,11 @@ def parse_seconds(option, value):
         print 'Unparseable value for time in %r for %s' % (value, option)
         usage()
     return seconds
- 
-def main():
+
+def memmon_from_args(arguments):
     import getopt
-    short_args="hp:g:a:s:m:n:u:"
-    long_args=[
+    short_args = "hp:g:a:s:m:n:u:"
+    long_args = [
         "help",
         "program=",
         "group=",
@@ -278,27 +278,26 @@ def main():
         "uptime=",
         "name=",
         ]
-    arguments = sys.argv[1:]
+
     if not arguments:
-        usage()
+        return None
     try:
-        opts, args=getopt.getopt(arguments, short_args, long_args)
+        opts, args = getopt.getopt(arguments, short_args, long_args)
     except:
-        print __doc__
-        sys.exit(2)
+        return None
 
     programs = {}
     groups = {}
     any = None
     sendmail = '/usr/sbin/sendmail -t -i'
     email = None
-    uptime = sys.maxint
+    uptime_limit = sys.maxint
     name = None
 
     for option, value in opts:
 
         if option in ('-h', '--help'):
-            usage()
+            return None
 
         if option in ('-p', '--program'):
             name, size = parse_namesize(option, value)
@@ -319,13 +318,26 @@ def main():
             email = value
 
         if option in ('-u', '--uptime'):
-            uptime = parse_seconds(option, value)
-            
+            uptime_limit = parse_seconds(option, value)
+
         if option in ('-n', '--name'):
             name = value
 
-    rpc = childutils.getRPCInterface(os.environ)
-    memmon = Memmon(programs, groups, any, sendmail, email, name, uptime, rpc)
+    memmon = Memmon(programs=programs,
+                    groups=groups,
+                    any=any,
+                    sendmail=sendmail,
+                    email=email,
+                    email_uptime_limit=uptime_limit,
+                    name=name)
+    return memmon
+
+def main():
+    memmon = memmon_from_args(sys.argv[1:])
+    if memmon is None:
+        # something went wrong or -h has been given
+        usage()
+    memmon.rpc = childutils.getRPCInterface(os.environ)
     memmon.runforever()
 
 if __name__ == '__main__':

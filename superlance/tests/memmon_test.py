@@ -2,7 +2,9 @@ import sys
 import unittest
 from StringIO import StringIO
 from superlance.tests.dummy import *
+from superlance.memmon import memmon_from_args
 from superlance.memmon import seconds_size
+from superlance.tests.dummy import *
 
 class MemmonTests(unittest.TestCase):
     def _getTargetClass(self):
@@ -167,7 +169,7 @@ class MemmonTests(unittest.TestCase):
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         from supervisor.process import ProcessStates
-        memmon.rpc.supervisor.all_process_info =  [ {
+        memmon.rpc.supervisor.all_process_info = [ {
             'name':'BAD_NAME',
             'group':'BAD_NAME',
             'pid':11,
@@ -231,12 +233,12 @@ class MemmonTests(unittest.TestCase):
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
         memmon.email_uptime_limit = 101
-        
+
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
         self.assertTrue(memmon.mailed, 'email has been sent')
-        
+
         #in case uptime == limit, we send an email too
         memmon = self._makeOnePopulated(programs, groups, any)
         memmon.email_uptime_limit = 100
@@ -244,9 +246,9 @@ class MemmonTests(unittest.TestCase):
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
         self.assertTrue(memmon.mailed, 'email has been sent')
-        
-             
-        
+
+
+
     def test_uptime_long_no_email(self):
         """in case an email is provided and the restarted process' uptime
         is longer than our uptime_limit we do not send an email
@@ -256,13 +258,53 @@ class MemmonTests(unittest.TestCase):
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
         memmon.email_uptime_limit = 99
-        
+
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         memmon.runforever(test=True)
         self.assertFalse(memmon.mailed, 'no email should be sent because uptime is above limit')
-              
-        
-        
+
+    def test_argparser(self):
+        """test if arguments are parsed correctly
+        """
+        # help
+        arguments = ['-h', ]
+        memmon = memmon_from_args(arguments)
+        self.assertTrue(memmon is None, '-h returns None to make main() script print usage')
+
+
+        #all arguments
+        arguments = ['-p', 'foo=50MB',
+                     '-g', 'bar=10kB',
+                     '--any', '250',
+                     '-s', 'mutt',
+                     '-m', 'me@you.com',
+                     '-u', '1d',
+                     '-n', 'myproject']
+        memmon = memmon_from_args(arguments)
+        self.assertEqual(memmon.programs['foo'], 50 * 1024 * 1024)
+        self.assertEqual(memmon.groups['bar'], 10 * 1024)
+        self.assertEqual(memmon.any, 250)
+        self.assertEqual(memmon.sendmail, 'mutt')
+        self.assertEqual(memmon.email, 'me@you.com')
+        self.assertEqual(memmon.email_uptime_limit, 1 * 24 * 60 * 60)
+        self.assertEqual(memmon.memmonName, 'myproject')
+
+
+        #default arguments
+        arguments = ['-m', 'me@you.com']
+        memmon = memmon_from_args(arguments)
+        self.assertEqual(memmon.programs, {})
+        self.assertEqual(memmon.groups, {})
+        self.assertEqual(memmon.any, None)
+        self.assertTrue('sendmail' in memmon.sendmail, 'not using sendmail as default')
+        self.assertEqual(memmon.email_uptime_limit, sys.maxint)
+        self.assertEqual(memmon.memmonName, None)
+
+        arguments = ['-p', 'foo=50MB']
+        memmon = memmon_from_args(arguments)
+        self.assertEqual(memmon.email, None)
+
 if __name__ == '__main__':
     unittest.main()
+
