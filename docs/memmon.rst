@@ -16,7 +16,9 @@ tested on other operating systems (it relies on :command:`ps` output and
 command-line switches).
 
 :command:`memmon` is incapable of monitoring the process status of processes
-which are not :command:`supervisord` child processes.
+which are not :command:`supervisord` child processes. Without the
+`--cumulative` option, only the RSS of immediate children of the
+:command:`supervisord` process will be considered.
 
 :command:`memmon` is a "console script" installed when you install
 :mod:`superlance`.  Although :command:`memmon` is an executable program, it
@@ -28,7 +30,7 @@ Command-Line Syntax
 
 .. code-block:: sh
 
-   $ memmon [-p processname=byte_size] [-g groupname=byte_size] \
+   $ memmon [-c] [-p processname=byte_size] [-g groupname=byte_size] \
             [-a byte_size] [-s sendmail] [-m email_address] \
             [-u email_uptime_limit] [-n memmon_name]
 
@@ -37,6 +39,12 @@ Command-Line Syntax
 .. cmdoption:: -h, --help
 
    Show program help.
+
+.. cmdoption:: -c, --cumulative
+
+   Check against cumulative RSS. When calculating a process' RSS, also
+   consider its child processes. With this option `memmon` will sum up
+   the RSS of the process to be monitored and all its children.
 
 .. cmdoption:: -p <name/size pair>, --program=<name/size pair>
 
