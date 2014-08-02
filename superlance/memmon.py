@@ -154,16 +154,10 @@ class Memmon:
                     # in standby mode, non-auto-started).
                     continue
 
-                data = shell(self.pscommand % pid)
-                if not data:
-                    # no such pid (deal with race conditions)
-                    continue
-
-                try:
-                    rss = data.lstrip().rstrip()
-                    rss = int(rss) * 1024 # rss is in KB
-                except ValueError:
-                    # line doesn't contain any data, or rss cant be intified
+                rss = self.calc_rss(pid)
+                if rss is None:
+                    # no such pid (deal with race conditions) or
+                    # rss couldn't be calculated for other reasons
                     continue
 
                 for n in name, pname:
@@ -226,6 +220,21 @@ class Memmon:
                 )
             subject = 'memmon%s: process %s restarted' % (memmonId, name)
             self.mail(self.email, subject, msg)
+
+    def calc_rss(self, pid):
+        data = shell(self.pscommand % pid)
+        if not data:
+            # no such pid (deal with race conditions)
+            return None
+
+        try:
+            rss = data.lstrip().rstrip()
+            rss = int(rss) * 1024 # rss is in KB
+        except ValueError:
+            # line doesn't contain any data, or rss cant be intified
+            return None
+
+        return rss
 
     def mail(self, email, subject, msg):
         body = 'To: %s\n' % self.email
