@@ -1,3 +1,14 @@
+1.0.0-dev (Next Release)
+------------------------
+
+- Added support for ``memmon`` to check against cumulative RSS of a process
+  and all its child processes.
+  Patch by Lukas Graf
+
+- Dropped support for Python 2.5.
+
+- Added support for Python 3.2 and 3.3.
+
 0.10 (2014-07-08)
 -----------------
 

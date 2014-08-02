@@ -16,11 +16,12 @@ class MemmonTests(unittest.TestCase):
 
     def _makeOnePopulated(self, programs, groups, any):
         rpc = DummyRPCServer()
+        cumulative = False
         sendmail = 'cat - > /dev/null'
         email = 'chrism@plope.com'
         name = 'test'
         uptime_limit = 2000
-        memmon = self._makeOne(programs, groups, any, sendmail, email, uptime_limit, name, rpc)
+        memmon = self._makeOne(cumulative, programs, groups, any, sendmail, email, uptime_limit, name, rpc)
         memmon.stdin = StringIO()
         memmon.stdout = StringIO()
         memmon.stderr = StringIO()
@@ -264,6 +265,61 @@ class MemmonTests(unittest.TestCase):
         memmon.runforever(test=True)
         self.assertFalse(memmon.mailed, 'no email should be sent because uptime is above limit')
 
+    def test_calc_rss_not_cumulative(self):
+        programs = {}
+        groups = {}
+        any = None
+        memmon = self._makeOnePopulated(programs, groups, any)
+
+        noop = '_=%s; '
+        pid = 1
+
+        memmon.pscommand = noop + 'echo 16'
+        rss = memmon.calc_rss(pid)
+        self.assertEquals(16 * 1024, rss)
+
+        memmon.pscommand = noop + 'echo not_an_int'
+        rss = memmon.calc_rss(pid)
+        self.assertEquals(
+            None, rss, 'Failure to parse an integer RSS value from the ps '
+            'output should result in calc_rss() returning None.')
+
+    def test_calc_rss_cumulative(self):
+        """Let calc_rss() do its work on a fake process tree:
+
+        |-+= 99
+        | \-+= 1
+        |   \-+- 2
+        |     |-+- 3
+        |     \-+- 4
+
+        (Where the process with PID 1 is the one being monitored)
+        """
+        programs = {}
+        groups = {}
+        any = None
+        memmon = self._makeOnePopulated(programs, groups, any)
+        memmon.cumulative = True
+
+        # output of ps ax -o "pid= ppid= rss=" representing the process
+        # tree described above, including extraneous whitespace and
+        # unrelated processes.
+        ps_output = """
+        11111 22222    333
+        1     99       100
+        2     1        200
+        3     2        300
+        4     2        400
+        11111 22222    333
+        """
+
+        memmon.pstreecommand = 'echo "%s"' % ps_output
+        rss = memmon.calc_rss(1)
+        self.assertEquals(
+            1000 * 1024, rss,
+            'Cumulative RSS of the test process and its three children '
+            'should add up to 1000 kb.')
+
     def test_argparser(self):
         """test if arguments are parsed correctly
         """
@@ -274,7 +330,8 @@ class MemmonTests(unittest.TestCase):
 
 
         #all arguments
-        arguments = ['-p', 'foo=50MB',
+        arguments = ['-c',
+                     '-p', 'foo=50MB',
                      '-g', 'bar=10kB',
                      '--any', '250',
                      '-s', 'mutt',
@@ -282,6 +339,7 @@ class MemmonTests(unittest.TestCase):
                      '-u', '1d',
                      '-n', 'myproject']
         memmon = memmon_from_args(arguments)
+        self.assertEqual(memmon.cumulative, True)
         self.assertEqual(memmon.programs['foo'], 50 * 1024 * 1024)
         self.assertEqual(memmon.groups['bar'], 10 * 1024)
         self.assertEqual(memmon.any, 250)
@@ -294,6 +352,7 @@ class MemmonTests(unittest.TestCase):
         #default arguments
         arguments = ['-m', 'me@you.com']
         memmon = memmon_from_args(arguments)
+        self.assertEqual(memmon.cumulative, False)
         self.assertEqual(memmon.programs, {})
         self.assertEqual(memmon.groups, {})
         self.assertEqual(memmon.any, None)

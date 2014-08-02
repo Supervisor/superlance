@@ -27,11 +27,15 @@
 # events=TICK_60
 
 doc = """\
-memmon.py [-p processname=byte_size]  [-g groupname=byte_size]
+memmon.py [-c] [-p processname=byte_size] [-g groupname=byte_size]
           [-a byte_size] [-s sendmail] [-m email_address]
-          [-u uptime][-n memmon_name]
+          [-u uptime] [-n memmon_name]
 
 Options:
+
+-c -- Check against cumulative RSS. When calculating a process' RSS, also
+      consider its child processes. With this option `memmon` will sum up
+      the RSS of the process to be monitored and all its children.
 
 -p -- specify a process_name=byte_size pair.  Restart the supervisor
       process named 'process_name' when it uses more than byte_size
@@ -80,6 +84,7 @@ import os
 import sys
 import time
 import xmlrpclib
+from collections import namedtuple
 
 from supervisor import childutils
 from supervisor.datatypes import byte_size, SuffixMultiplier
@@ -92,7 +97,8 @@ def shell(cmd):
     return os.popen(cmd).read()
 
 class Memmon:
-    def __init__(self, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc=None):
+    def __init__(self, cumulative, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc=None):
+        self.cumulative = cumulative
         self.programs = programs
         self.groups = groups
         self.any = any
@@ -105,6 +111,7 @@ class Memmon:
         self.stdout = sys.stdout
         self.stderr = sys.stderr
         self.pscommand = 'ps -orss= -p %s'
+        self.pstreecommand = 'ps ax -o "pid= ppid= rss="'
         self.mailed = False # for unit tests
 
     def runforever(self, test=False):
@@ -150,16 +157,10 @@ class Memmon:
                     # in standby mode, non-auto-started).
                     continue
 
-                data = shell(self.pscommand % pid)
-                if not data:
-                    # no such pid (deal with race conditions)
-                    continue
-
-                try:
-                    rss = data.lstrip().rstrip()
-                    rss = int(rss) * 1024 # rss is in KB
-                except ValueError:
-                    # line doesn't contain any data, or rss cant be intified
+                rss = self.calc_rss(pid)
+                if rss is None:
+                    # no such pid (deal with race conditions) or
+                    # rss couldn't be calculated for other reasons
                     continue
 
                 for n in name, pname:
@@ -223,6 +224,60 @@ class Memmon:
             subject = 'memmon%s: process %s restarted' % (memmonId, name)
             self.mail(self.email, subject, msg)
 
+    def calc_rss(self, pid):
+
+        ProcInfo = namedtuple('ProcInfo', ['pid', 'ppid', 'rss'])
+
+        def find_children(parent_pid, procs):
+            children = []
+            for proc in procs:
+                pid, ppid, rss = proc
+                if ppid == parent_pid:
+                    children.append(proc)
+                    children.extend(find_children(pid, procs))
+            return children
+
+        def cum_rss(pid, procs):
+            parent_proc = [p for p in procs if p.pid == pid][0]
+            children = find_children(pid, procs)
+            tree = [parent_proc] + children
+            total_rss = sum(map(int, [p.rss for p in tree]))
+            return total_rss
+
+        def get_all_process_infos(data):
+            data = data.strip()
+            procs = []
+            for line in data.splitlines():
+                pid, ppid, rss = map(int, line.split())
+                procs.append(ProcInfo(pid=pid, ppid=ppid, rss=rss))
+            return procs
+
+        if self.cumulative:
+            data = shell(self.pstreecommand)
+            procs = get_all_process_infos(data)
+
+            try:
+                rss = cum_rss(pid, procs)
+            except (ValueError, IndexError):
+                # Could not determine cumulative RSS
+                return None
+
+        else:
+            data = shell(self.pscommand % pid)
+            if not data:
+                # no such pid (deal with race conditions)
+                return None
+
+            try:
+                rss = data.lstrip().rstrip()
+                rss = int(rss)
+            except ValueError:
+                # line doesn't contain any data, or rss cant be intified
+                return None
+
+        rss = rss * 1024  # rss is in KB
+        return rss
+
     def mail(self, email, subject, msg):
         body = 'To: %s\n' % self.email
         body += 'Subject: %s\n' % subject
@@ -267,9 +322,10 @@ def parse_seconds(option, value):
 
 def memmon_from_args(arguments):
     import getopt
-    short_args = "hp:g:a:s:m:n:u:"
+    short_args = "hcp:g:a:s:m:n:u:"
     long_args = [
         "help",
+        "cumulative",
         "program=",
         "group=",
         "any=",
@@ -286,6 +342,7 @@ def memmon_from_args(arguments):
     except:
         return None
 
+    cumulative = False
     programs = {}
     groups = {}
     any = None
@@ -298,6 +355,9 @@ def memmon_from_args(arguments):
 
         if option in ('-h', '--help'):
             return None
+
+        if option in ('-c', '--cumulative'):
+            cumulative = True
 
         if option in ('-p', '--program'):
             name, size = parse_namesize(option, value)
@@ -323,7 +383,8 @@ def memmon_from_args(arguments):
         if option in ('-n', '--name'):
             name = value
 
-    memmon = Memmon(programs=programs,
+    memmon = Memmon(cumulative=cumulative,
+                    programs=programs,
                     groups=groups,
                     any=any,
                     sendmail=sendmail,
