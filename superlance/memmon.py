@@ -199,7 +199,7 @@ class Memmon:
         try:
             self.rpc.supervisor.stopProcess(name)
         except xmlrpclib.Fault as e:
-            msg = ('Failed to stop process %s (RSS %s), exiting: %s' % 
+            msg = ('Failed to stop process %s (RSS %s), exiting: %s' %
                    (name, rss, e))
             self.stderr.write(str(msg))
             if self.email:
