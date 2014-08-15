@@ -32,6 +32,11 @@
 - Fixed bug in cmd line option validator for ProcessStateEmailMonitor
   Bug report by Val Jordan
 
+- Added ``-u`` option to memmon the only send an email in case the restarted
+  process' uptime (in seconds) is below this limit.  This is useful to only
+  get notified if a processes gets restarted too frequently.
+  Patch by Harald Friessnegger.
+
 0.8 (2013-05-26)
 ----------------
 
