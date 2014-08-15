@@ -2,8 +2,10 @@
 ------------------------
 
 - Added support for ``memmon`` to check against cumulative RSS of a process
-  and all its child processes.
-  Patch by Lukas Graf
+  and all its child processes.  Patch by Lukas Graf.
+
+- Fixed a bug introduced in 0.9 where the `-u` and `-n` options in memmon
+  were parsed incorrectly.  Patch by Harald Friessnegger.
 
 - Dropped support for Python 2.5.
 
