@@ -275,11 +275,11 @@ class MemmonTests(unittest.TestCase):
 
         memmon.pscommand = noop + 'echo 16'
         rss = memmon.calc_rss(pid)
-        self.assertEquals(16 * 1024, rss)
+        self.assertEqual(16 * 1024, rss)
 
         memmon.pscommand = noop + 'echo not_an_int'
         rss = memmon.calc_rss(pid)
-        self.assertEquals(
+        self.assertEqual(
             None, rss, 'Failure to parse an integer RSS value from the ps '
             'output should result in calc_rss() returning None.')
 
@@ -314,7 +314,7 @@ class MemmonTests(unittest.TestCase):
 
         memmon.pstreecommand = 'echo "%s"' % ps_output
         rss = memmon.calc_rss(1)
-        self.assertEquals(
+        self.assertEqual(
             1000 * 1024, rss,
             'Cumulative RSS of the test process and its three children '
             'should add up to 1000 kb.')
