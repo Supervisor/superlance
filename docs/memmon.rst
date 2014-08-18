@@ -11,6 +11,17 @@ consuming more than the amount of memory that :command:`memmon` believes it
 should, :command:`memmon` will restart the process. :command:`memmon` can be
 configured to send an email notification when it restarts a process.
 
+:command:`memmon` uses supervisor's XMLRPC interface to get memory usage.
+These are not enabled by defualt.  At minimum you need the following set in
+your supervisor configuration::
+
+  [inet_http_server]
+  port = 127.0.0.1:9001
+
+  [rpcinterface:supervisor]
+  supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+
 :command:`memmon` is known to work on Linux and Mac OS X, but has not been
 tested on other operating systems (it relies on :command:`ps` output and
 command-line switches).
