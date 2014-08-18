@@ -11,17 +11,6 @@ consuming more than the amount of memory that :command:`memmon` believes it
 should, :command:`memmon` will restart the process. :command:`memmon` can be
 configured to send an email notification when it restarts a process.
 
-:command:`memmon` uses supervisor's XMLRPC interface to get memory usage.
-These are not enabled by defualt.  At minimum you need the following set in
-your supervisor configuration::
-
-  [inet_http_server]
-  port = 127.0.0.1:9001
-
-  [rpcinterface:supervisor]
-  supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
-
-
 :command:`memmon` is known to work on Linux and Mac OS X, but has not been
 tested on other operating systems (it relies on :command:`ps` output and
 command-line switches).
@@ -35,6 +24,16 @@ which are not :command:`supervisord` child processes. Without the
 :mod:`superlance`.  Although :command:`memmon` is an executable program, it
 isn't useful as a general-purpose script:  it must be run as a
 :command:`supervisor` event listener to do anything useful.
+
+:command:`memmon` uses Supervisor's XML-RPC interface.  Your ``supervisord.conf``
+file must have a valid `[unix_http_server]
+<http://supervisord.org/configuration.html#unix-http-server-section-settings>`_
+or `[inet_http_server]
+<http://supervisord.org/configuration.html#inet-http-server-section-settings>`_
+section, and must have an `[rpcinterface:supervisor]
+<http://supervisord.org/configuration.html#rpcinterface-x-section-settings>`_
+section.  If you are able to control your ``supervisord`` instance with
+``supervisorctl``, you have already met these requirements.
 
 Command-Line Syntax
 -------------------
@@ -109,10 +108,10 @@ Command-Line Syntax
    Only send an email in case the restarted process' uptime (in seconds)
    is below this limit.
    (Useful to only get notified if a processes gets restarted too frequently)
-   
+
    Uptime is given in seconds (suffix-multiplied using "m" for minutes,
    "h" for hours or "d" for days)
-   
+
 .. cmdoption:: -n <memmon name>, --name=<memmon name>
 
    An optional name that identifies this memmon process. If given, the
@@ -194,4 +193,4 @@ The email will only be sent if the process' uptime is less or equal than
    [eventlistener:memmon]
    command=memmon -p foo=200MB -m bob@example.com -u 2d
    events=TICK_60
-      
+
