@@ -67,9 +67,11 @@ setup(name='superlance',
       zip_safe=False,
       install_requires=[
             'supervisor',
+            'python-pushover'
             ],
       tests_require=[
             'supervisor',
+            'python-pushover',
             'mock',
             ],
       test_suite='superlance.tests',
