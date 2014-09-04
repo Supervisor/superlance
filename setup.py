@@ -67,9 +67,11 @@ setup(name='superlance',
       zip_safe=False,
       install_requires=[
             'supervisor',
+            'python-pushover'
             ],
       tests_require=[
             'supervisor',
+            'python-pushover',
             'mock',
             ],
       test_suite='superlance.tests',
@@ -78,6 +80,7 @@ setup(name='superlance',
       httpok = superlance.httpok:main
       crashsms = superlance.crashsms:main
       crashmail = superlance.crashmail:main
+      crashpushover = superlance.crashpushover:main
       crashmailbatch = superlance.crashmailbatch:main
       fatalmailbatch = superlance.fatalmailbatch:main
       memmon = superlance.memmon:main
