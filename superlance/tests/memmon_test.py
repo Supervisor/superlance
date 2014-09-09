@@ -3,7 +3,7 @@ from superlance.compat import StringIO
 from superlance.compat import maxint
 from superlance.memmon import memmon_from_args
 from superlance.memmon import seconds_size
-from superlance.tests.dummy import *
+from superlance.tests.dummy import DummyRPCServer
 
 class MemmonTests(unittest.TestCase):
     def _getTargetClass(self):

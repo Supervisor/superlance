@@ -3,7 +3,9 @@ import time
 import unittest
 from superlance.compat import StringIO
 from supervisor.process import ProcessStates
-from superlance.tests.dummy import *
+from superlance.tests.dummy import DummyResponse
+from superlance.tests.dummy import DummyRPCServer
+from superlance.tests.dummy import DummySupervisorRPCNamespace
 
 _NOW = time.time()
 
