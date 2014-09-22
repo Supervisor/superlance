@@ -182,7 +182,7 @@ process group "bar" consuming more than 200MB of RSS, and will send mail to
 Example Configuration 4
 #######################
 
-This configuration causes :command:`memmon` to restart any process meetig
+This configuration causes :command:`memmon` to restart any process meeting
 the same requirements as in `Example Configuration 2`_ with one difference:
 
 The email will only be sent if the process' uptime is less or equal than
