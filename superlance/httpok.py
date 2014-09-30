@@ -26,7 +26,7 @@
 
 doc = """\
 httpok.py [-p processname] [-a] [-g] [-t timeout] [-c status_code] [-b inbody]
-          [-m mail_address] [-s sendmail] URL
+          [-m mail_address] [-s sendmail] [-A username:password] URL
 
 Options:
 
@@ -82,6 +82,9 @@ Options:
 -E -- not "eager":  do not check URL / emit mail if no process we are
       monitoring is in the RUNNING state.
 
+-A -- Specify a username:password to use for basic authentication for the
+      GET request to the URL. 
+
 URL -- The URL to which to issue a GET request.
 
 The -p option may be specified more than once, allowing for
@@ -94,10 +97,12 @@ httpok.py -p program1 -p group1:program2 http://localhost:8080/tasty
 
 """
 
+import base64
 import os
 import socket
 import sys
 import time
+
 from superlance.compat import urlparse
 from superlance.compat import xmlrpclib
 
@@ -114,11 +119,12 @@ def usage():
 class HTTPOk:
     connclass = None
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
-                 email, sendmail, coredir, gcore, eager, retry_time):
+                 email, sendmail, coredir, gcore, eager, retry_time, auth):
         self.rpc = rpc
         self.programs = programs
         self.any = any
         self.url = url
+        self.auth = auth
         self.timeout = timeout
         self.retry_time = retry_time
         self.status = status
@@ -180,6 +186,14 @@ class HTTPOk:
                             -1, -1):
                         try:
                             headers = {'User-Agent': 'httpok'}
+                            if self.auth is not None:
+                                auth_base64 = (
+                                    base64.encodestring(self.auth)
+                                        .replace('\n', ''))
+                                headers.update({
+                                    'Authorization': "Basic %s" % auth_base64
+                                })
+ 
                             conn.request('GET', path, headers=headers)
                             break
                         except socket.error as e:
@@ -299,7 +313,7 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:s:m:g:d:eE"
+    short_args="hp:at:c:b:s:m:g:d:eE:A"
     long_args=[
         "help",
         "program=",
@@ -313,6 +327,7 @@ def main(argv=sys.argv):
         "coredir=",
         "eager",
         "not-eager",
+        "authentication=",
         ]
     arguments = argv[1:]
     try:
@@ -336,6 +351,7 @@ def main(argv=sys.argv):
     retry_time = 10
     status = '200'
     inbody = None
+    auth = None
 
     for option, value in opts:
 
@@ -375,6 +391,9 @@ def main(argv=sys.argv):
         if option in ('-E', '--not-eager'):
             eager = False
 
+        if option in ('-A', '--authentication'):
+            auth = value
+
     url = arguments[-1]
 
     try:
@@ -388,7 +407,7 @@ def main(argv=sys.argv):
         return
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
-                  sendmail, coredir, gcore, eager, retry_time)
+                  sendmail, coredir, gcore, eager, retry_time, auth)
     prog.runforever()
 
 if __name__ == '__main__':
