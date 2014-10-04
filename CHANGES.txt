@@ -1,5 +1,60 @@
-superlance Changelog
-====================
+1.0.0-dev (Next Release)
+------------------------
+
+- Dropped support for Python 2.5.
+
+- Added support for Python 3.2 and 3.3.
+
+0.11 (2014-08-15)
+-----------------
+
+- Added support for ``memmon`` to check against cumulative RSS of a process
+  and all its child processes.  Patch by Lukas Graf.
+
+- Fixed a bug introduced in 0.9 where the ``-u`` and ``-n`` options in
+  ``memmon`` were parsed incorrectly.  Patch by Harald Friessnegger.
+
+0.10 (2014-07-08)
+-----------------
+
+- Honor timeout in httok checks even on trying the connection.
+  Without it, processes that take make than 60 seconds to accept connections
+  and http_ok with TICK_60 events cause a permanent restart of the process.
+
+- ``httpok`` now sends a ``User-Agent`` header of ``httpok``.
+
+- Removed ``setuptools`` from the ``requires`` list in ``setup.py`` because
+  it caused installation issues on some systems.
+
+0.9 (2013-09-18)
+----------------
+
+- Added license.
+
+- Fixed bug in cmd line option validator for ProcessStateEmailMonitor
+  Bug report by Val Jordan
+
+- Added ``-u`` option to memmon the only send an email in case the restarted
+  process' uptime (in seconds) is below this limit.  This is useful to only
+  get notified if a processes gets restarted too frequently.
+  Patch by Harald Friessnegger.
+
+0.8 (2013-05-26)
+----------------
+
+- Superlance will now refuse to install on an unsupported version of Python.
+
+- Allow SMTP credentials to be supplied to ProcessStateEmailMonitor
+  Patch by Steven Davidson.
+
+- Added ``-n`` option to memmon that adds this name to the email
+  subject to identify which memmon process restarted a process.
+  Useful in case you run multiple supervisors that control
+  different processes with the same name.
+  Patch by Harald Friessnegger.
+
+- ProcessStateEmailMonitor now adds Date and Message-ID headers to emails.
+  Patch by Andrei Vereha.
 
 0.7 (2012-08-22)
 ----------------

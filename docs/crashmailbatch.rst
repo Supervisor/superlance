@@ -1,5 +1,5 @@
 :command:`crashmailbatch` Documentation
-==================================
+=======================================
 
 :command:`crashmailbatch` is a supervisor "event listener", intended to be
 subscribed to ``PROCESS_STATE`` and ``TICK_60`` events.  It monitors
@@ -48,7 +48,7 @@ Command-Line Syntax
    Override the TICK event name.  Defaults to "TICK_60"
 
 Configuring :command:`crashmailbatch` Into the Supervisor Config
------------------------------------------------------------
+----------------------------------------------------------------
 
 An ``[eventlistener:x]`` section must be placed in :file:`supervisord.conf`
 in order for :command:`crashmailbatch` to do its work. See the "Events" chapter in
@@ -60,5 +60,5 @@ The following example assumes that :command:`crashmailbatch` is on your system
 .. code-block:: ini
 
    [eventlistener:crashmailbatch]
-   crashmailbatch --toEmail="alertme@fubar.com" --fromEmail="supervisord@fubar.com" 
+   command=crashmailbatch --toEmail="alertme@fubar.com" --fromEmail="supervisord@fubar.com" 
    events=PROCESS_STATE,TICK_60

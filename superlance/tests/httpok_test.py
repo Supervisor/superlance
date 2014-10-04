@@ -1,9 +1,11 @@
-import sys
+import socket
 import time
 import unittest
-from StringIO import StringIO
+from superlance.compat import StringIO
 from supervisor.process import ProcessStates
-from superlance.tests.dummy import *
+from superlance.tests.dummy import DummyResponse
+from superlance.tests.dummy import DummyRPCServer
+from superlance.tests.dummy import DummySupervisorRPCNamespace
 
 _NOW = time.time()
 
@@ -37,11 +39,15 @@ def make_connection(response, exc=None):
         def __init__(self, hostport):
             self.hostport = hostport
 
-        def request(self, method, path):
+        def request(self, method, path, headers):
             if exc:
-                raise ValueError('foo')
+                if exc == True:
+                    raise ValueError('foo')
+                else:
+                    raise exc.pop()
             self.method = method
             self.path = path
+            self.headers = headers
 
         def getresponse(self):
             return response
@@ -52,7 +58,7 @@ class HTTPOkTests(unittest.TestCase):
     def _getTargetClass(self):
         from superlance.httpok import HTTPOk
         return HTTPOk
-    
+
     def _makeOne(self, *opts):
         return self._getTargetClass()(*opts)
 
@@ -65,13 +71,15 @@ class HTTPOkTests(unittest.TestCase):
         email = 'chrism@plope.com'
         url = 'http://foo/bar'
         timeout = 10
+        retry_time = 0
         status = '200'
         inbody = None
         gcore = gcore
         coredir = coredir
         delay = delay
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
-                             inbody, email, sendmail, coredir, gcore, eager, delay)
+                             inbody, email, sendmail, coredir, gcore, eager,
+                             delay, retry_time)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -112,7 +120,6 @@ class HTTPOkTests(unittest.TestCase):
 
     def test_runforever_eager_notatick(self):
         programs = {'foo':0, 'bar':0, 'baz_01':0 }
-        groups = {}
         any = None
         prog = self._makeOnePopulated(programs, any)
         prog.stdin.write('eventname:NOTATICK len:0\n')
@@ -247,9 +254,9 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.write('eventname:TICK len:0\n')
         prog.stdin.seek(0)
         prog.runforever(test=True)
-        lines = filter(None, prog.stderr.getvalue().split('\n'))
+        lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(len(lines), 0, lines)
-        self.failIf('mailed' in prog.__dict__)
+        self.assertFalse('mailed' in prog.__dict__)
 
     def test_runforever_not_eager_running(self):
         programs = ['foo', 'bar']
@@ -258,7 +265,42 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.write('eventname:TICK len:0\n')
         prog.stdin.seek(0)
         prog.runforever(test=True)
-        lines = filter(None, prog.stderr.getvalue().split('\n'))
+        lines = [x for x in prog.stderr.getvalue().split('\n') if x]
+        self.assertEqual(lines[0],
+                         ("Restarting selected processes ['foo', 'bar']")
+                         )
+        self.assertEqual(lines[1], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[2], 'foo restarted')
+        self.assertEqual(lines[3], 'bar not in RUNNING state, NOT restarting')
+        mailed = prog.mailed.split('\n')
+        self.assertEqual(len(mailed), 10)
+        self.assertEqual(mailed[0], 'To: chrism@plope.com')
+        self.assertEqual(mailed[1],
+                    'Subject: httpok for http://foo/bar: bad status returned')
+
+    def test_runforever_honor_timeout_on_connrefused(self):
+        programs = ['foo', 'bar']
+        any = None
+        error = socket.error()
+        error.errno = 111
+        prog = self._makeOnePopulated(programs, any, exc=[error], eager=False)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        self.assertEqual(prog.stderr.getvalue(), '')
+        self.assertEqual(prog.stdout.getvalue(), 'READY\nRESULT 2\nOK')
+
+    def test_runforever_connrefused_error(self):
+        programs = ['foo', 'bar']
+        any = None
+        error = socket.error()
+        error.errno = 111
+        prog = self._makeOnePopulated(programs, any,
+            exc=[error for x in range(100)], eager=False)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar']")
                          )

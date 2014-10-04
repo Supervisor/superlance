@@ -29,6 +29,9 @@ fatalmailbatch.py [--interval=<batch interval in minutes>]
         [--toEmail=<email address>]
         [--fromEmail=<email address>]
         [--subject=<email subject>]
+        [--smtpHost=<smtp server>]
+        [--userName=<smtp server username>]
+        [--password=<smtp server password]
 
 Options:
 

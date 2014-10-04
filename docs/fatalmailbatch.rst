@@ -1,5 +1,5 @@
 :command:`fatalmailbatch` Documentation
-==================================
+=======================================
 
 :command:`fatalmailbatch` is a supervisor "event listener", intended to be
 subscribed to ``PROCESS_STATE`` and ``TICK_60`` events.  It monitors
@@ -45,7 +45,7 @@ Command-Line Syntax
    supervisord"
 
 Configuring :command:`fatalmailbatch` Into the Supervisor Config
------------------------------------------------------------
+----------------------------------------------------------------
 
 An ``[eventlistener:x]`` section must be placed in :file:`supervisord.conf`
 in order for :command:`fatalmailbatch` to do its work. See the "Events" chapter in
@@ -57,5 +57,5 @@ The following example assumes that :command:`fatalmailbatch` is on your system
 .. code-block:: ini
 
    [eventlistener:fatalmailbatch]
-   fatalmailbatch --toEmail="alertme@fubar.com" --fromEmail="supervisord@fubar.com" 
+   command=fatalmailbatch --toEmail="alertme@fubar.com" --fromEmail="supervisord@fubar.com" 
    events=PROCESS_STATE,TICK_60

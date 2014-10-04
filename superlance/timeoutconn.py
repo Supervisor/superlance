@@ -1,4 +1,4 @@
-import httplib
+from superlance.compat import httplib
 import socket
 
 class TimeoutHTTPConnection(httplib.HTTPConnection):
@@ -10,7 +10,7 @@ class TimeoutHTTPConnection(httplib.HTTPConnection):
         """Override HTTPConnection.connect to connect to
         host/port specified in __init__."""
 
-        msg = "getaddrinfo returns an empty list"
+        e = "getaddrinfo returns an empty list"
         for res in socket.getaddrinfo(self.host, self.port,
                 0, socket.SOCK_STREAM):
             af, socktype, proto, canonname, sa = res
@@ -19,18 +19,18 @@ class TimeoutHTTPConnection(httplib.HTTPConnection):
                 if self.timeout:   # this is the new bit
                     self.sock.settimeout(self.timeout)
                 self.sock.connect(sa)
-            except socket.error, msg:
+            except socket.error as e:
                 if self.sock:
                     self.sock.close()
                 self.sock = None
                 continue
             break
         if not self.sock:
-            raise socket.error, msg
+            raise socket.error(e)
 
 class TimeoutHTTPSConnection(httplib.HTTPSConnection):
     timeout = None
-    
+
     def connect(self):
         "Connect to a host on a given (SSL) port."
 

@@ -68,7 +68,7 @@ import sys
 from supervisor import childutils
 
 def usage():
-    print doc
+    print(doc)
     sys.exit(255)
 
 class CrashMail:
@@ -132,9 +132,8 @@ class CrashMail:
         body += 'Subject: %s\n' % subject
         body += '\n'
         body += msg
-        m = os.popen(self.sendmail, 'w')
-        m.write(body)
-        m.close()
+        with os.popen(self.sendmail, 'w') as m:
+            m.write(body)
         self.stderr.write('Mailed:\n\n%s' % body)
         self.mailed = body
 
@@ -159,9 +158,6 @@ def main(argv=sys.argv):
     any = False
     sendmail = '/usr/sbin/sendmail -t -i'
     email = None
-    timeout = 10
-    status = '200'
-    inbody = None
     optionalheader = None
 
     for option, value in opts:
