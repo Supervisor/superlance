@@ -21,7 +21,10 @@
 # as a listener is below.
 #
 # [eventlistener:crashmail]
-# command=/usr/bin/crashmail -o hostname -a -m notify-on-crash@domain.com -s '/usr/sbin/sendmail -t -i -f crash-notifier@domain.com'
+# command =
+#     /usr/bin/crashmail
+#         -o hostname -a -m notify-on-crash@domain.com
+#         -s '/usr/sbin/sendmail -t -i -f crash-notifier@domain.com'
 # events=PROCESS_STATE
 #
 # Sendmail is used explicitly here so that we can specify the 'from' address.
@@ -67,9 +70,11 @@ import sys
 
 from supervisor import childutils
 
+
 def usage():
     print(doc)
     sys.exit(255)
+
 
 class CrashMail:
 
@@ -88,7 +93,8 @@ class CrashMail:
         while 1:
             # we explicitly use self.stdin, self.stdout, and self.stderr
             # instead of sys.* so we can unit test this code
-            headers, payload = childutils.listener.wait(self.stdin, self.stdout)
+            headers, payload = childutils.listener.wait(
+                self.stdin, self.stdout)
 
             if not headers['eventname'] == 'PROCESS_STATE_EXITED':
                 # do nothing with non-TICK events
@@ -128,7 +134,7 @@ class CrashMail:
                 break
 
     def mail(self, email, subject, msg):
-        body =  'To: %s\n' % self.email
+        body = 'To: %s\n' % self.email
         body += 'Subject: %s\n' % subject
         body += '\n'
         body += msg
@@ -137,10 +143,11 @@ class CrashMail:
         self.stderr.write('Mailed:\n\n%s' % body)
         self.mailed = body
 
+
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:ao:s:m:"
-    long_args=[
+    short_args = "hp:ao:s:m:"
+    long_args = [
         "help",
         "program=",
         "any",
@@ -189,6 +196,6 @@ def main(argv=sys.argv):
     prog = CrashMail(programs, any, email, sendmail, optionalheader)
     prog.runforever()
 
+
 if __name__ == '__main__':
     main()
-

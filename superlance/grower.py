@@ -23,4 +23,3 @@ M = pow(2, 20)
 while 1:
     L.append('x'*M)
     time.sleep(1)
-    
