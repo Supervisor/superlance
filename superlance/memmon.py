@@ -28,6 +28,7 @@
 
 doc = """\
 memmon.py [-c] [-p processname=byte_size] [-g groupname=byte_size]
+          [-P processname=byte_size] [-G groupname=byte_size]
           [-a byte_size] [-s sendmail] [-m email_address]
           [-u uptime] [-n memmon_name]
 
@@ -42,8 +43,20 @@ Options:
       RSS.  If this process is in a group, it can be specified using
       the 'process_name:group_name' syntax.
 
+-P -- specify a process_name=byte_size pair.  Restart the supervisor
+      process named 'process_name' when it uses more than byte_size
+      RSS.  If this process is in a group, it can be specified using
+      the 'process_name:group_name' syntax. If a process is in this
+      list, the limit is an exception to any group or global limits
+      that may also apply to this process.
+
 -g -- specify a group_name=byte_size pair.  Restart any process in this group
       when it uses more than byte_size RSS.
+
+-G -- specify a group_name=byte_size pair.  Restart any process in this group
+      when it uses more than byte_size RSS. If a process is in this list,
+      the limit is an exception to any global limits that may also apply
+      to this process
 
 -a -- specify a global byte_size.  Restart any child of the supervisord
       under which this runs if it uses more than byte_size RSS.
@@ -99,10 +112,13 @@ def shell(cmd):
         return f.read()
 
 class Memmon:
-    def __init__(self, cumulative, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc=None):
+    def __init__(self, cumulative, programs, groups, any, sendmail, email, email_uptime_limit, name, program_exceptions,
+                 group_exceptions, rpc=None):
         self.cumulative = cumulative
         self.programs = programs
         self.groups = groups
+        self.program_exceptions = program_exceptions
+        self.group_exceptions = group_exceptions
         self.any = any
         self.sendmail = sendmail
         self.email = email
@@ -174,10 +190,27 @@ class Memmon:
                             self.restart(pname, rss)
                             continue
 
+                for n in name, pname:
+                    if n in self.program_exceptions:
+                        self.stderr.write('RSS of %s is %s\n' % (pname, rss))
+                        if  rss > self.program_exceptions[name]:
+                            self.restart(pname, rss)
+                            continue
+                        else:
+                            continue
+
                 if group in self.groups:
                     self.stderr.write('RSS of %s is %s\n' % (pname, rss))
                     if rss > self.groups[group]:
                         self.restart(pname, rss)
+                        continue
+
+                if group in self.group_exceptions:
+                    self.stderr.write('RSS of %s is %s\n' % (pname, rss))
+                    if rss > self.group_exceptions[group]:
+                        self.restart(pname, rss)
+                        continue
+                    else:
                         continue
 
                 if self.any is not None:
@@ -347,7 +380,9 @@ def memmon_from_args(arguments):
 
     cumulative = False
     programs = {}
+    program_exceptions = {}
     groups = {}
+    group_exceptions = {}
     any = None
     sendmail = '/usr/sbin/sendmail -t -i'
     email = None
@@ -370,6 +405,14 @@ def memmon_from_args(arguments):
             name, size = parse_namesize(option, value)
             groups[name] = size
 
+        if option in ('-P', '--program-exception'):
+            name, size = parse_namesize(option, value)
+            program_exceptions[name] = size
+
+        if option in ('-G', '--group-exception'):
+            name, size = parse_namesize(option, value)
+            group_exceptions[name] = size
+
         if option in ('-a', '--any'):
             size = parse_size(option, value)
             any = size
@@ -389,6 +432,8 @@ def memmon_from_args(arguments):
     memmon = Memmon(cumulative=cumulative,
                     programs=programs,
                     groups=groups,
+                    program_exceptions=program_exceptions,
+                    group_exceptions=group_exceptions,
                     any=any,
                     sendmail=sendmail,
                     email=email,
