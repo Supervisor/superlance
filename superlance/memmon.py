@@ -190,9 +190,8 @@ class Memmon:
                             self.restart(pname, rss)
                             continue
 
-                for n in name, pname:
-                    if n in self.program_exceptions:
-                        continue
+                if name in self.program_exceptions or pname in self.program_exceptions:
+                    continue
 
                 if group in self.groups:
                     self.stderr.write('RSS of %s is %s\n' % (pname, rss))
