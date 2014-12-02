@@ -192,12 +192,7 @@ class Memmon:
 
                 for n in name, pname:
                     if n in self.program_exceptions:
-                        self.stderr.write('RSS of %s is %s\n' % (pname, rss))
-                        if  rss > self.program_exceptions[n]:
-                            self.restart(pname, rss)
-                            continue
-                        else:
-                            continue
+                        continue
 
                 if group in self.groups:
                     self.stderr.write('RSS of %s is %s\n' % (pname, rss))
@@ -206,12 +201,7 @@ class Memmon:
                         continue
 
                 if group in self.group_exceptions:
-                    self.stderr.write('RSS of %s is %s\n' % (pname, rss))
-                    if rss > self.group_exceptions[group]:
-                        self.restart(pname, rss)
-                        continue
-                    else:
-                        continue
+                    continue
 
                 if self.any is not None:
                     self.stderr.write('RSS of %s is %s\n' % (pname, rss))
@@ -380,9 +370,9 @@ def memmon_from_args(arguments):
 
     cumulative = False
     programs = {}
-    program_exceptions = {}
+    program_exceptions = []
     groups = {}
-    group_exceptions = {}
+    group_exceptions = []
     any = None
     sendmail = '/usr/sbin/sendmail -t -i'
     email = None
@@ -407,11 +397,13 @@ def memmon_from_args(arguments):
 
         if option in ('-P', '--program-exception'):
             name, size = parse_namesize(option, value)
-            program_exceptions[name] = size
+            programs[name] = size
+            group_exceptions.append(name)
 
         if option in ('-G', '--group-exception'):
             name, size = parse_namesize(option, value)
-            group_exceptions[name] = size
+            groups[name] = size
+            program_exceptions.append(name)
 
         if option in ('-a', '--any'):
             size = parse_size(option, value)
