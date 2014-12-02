@@ -68,11 +68,6 @@ Options:
       be used in the email subject to identify which memmon process
       restarted the process.
 
--o -- override. By default, if you specify -a 100MB then you can only
-      use -g and -p to set a LOWER limit. You can't use -g and -p to
-      set a higher limit. If -o is set, -g and -p set higher limits
-      not lower limits than -a
-
 The -p and -g options may be specified more than once, allowing for
 specification of multiple groups and processes.
 
@@ -104,7 +99,7 @@ def shell(cmd):
         return f.read()
 
 class Memmon:
-    def __init__(self, cumulative, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc=None, override=False):
+    def __init__(self, cumulative, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc=None):
         self.cumulative = cumulative
         self.programs = programs
         self.groups = groups
@@ -120,7 +115,6 @@ class Memmon:
         self.pscommand = 'ps -orss= -p %s'
         self.pstreecommand = 'ps ax -o "pid= ppid= rss="'
         self.mailed = False # for unit tests
-        self.override = override
 
     def runforever(self, test=False):
         while 1:
@@ -179,18 +173,12 @@ class Memmon:
                         if  rss > self.programs[name]:
                             self.restart(pname, rss)
                             continue
-                        else:
-                            if self.override:
-                                continue
 
                 if group in self.groups:
                     self.stderr.write('RSS of %s is %s\n' % (pname, rss))
                     if rss > self.groups[group]:
                         self.restart(pname, rss)
                         continue
-                    else:
-                        if self.override:
-                            continue
 
                 if self.any is not None:
                     self.stderr.write('RSS of %s is %s\n' % (pname, rss))
@@ -358,7 +346,6 @@ def memmon_from_args(arguments):
         return None
 
     cumulative = False
-    override = False
     programs = {}
     groups = {}
     any = None
@@ -374,9 +361,6 @@ def memmon_from_args(arguments):
 
         if option in ('-c', '--cumulative'):
             cumulative = True
-
-        if option in ('-c', '--override'):
-            override = True
 
         if option in ('-p', '--program'):
             name, size = parse_namesize(option, value)
@@ -409,8 +393,7 @@ def memmon_from_args(arguments):
                     sendmail=sendmail,
                     email=email,
                     email_uptime_limit=uptime_limit,
-                    name=name,
-                    override=override)
+                    name=name)
     return memmon
 
 def main():
