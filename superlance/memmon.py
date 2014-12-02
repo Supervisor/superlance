@@ -186,14 +186,14 @@ class Memmon:
                 for n in name, pname:
                     if n in self.programs:
                         self.stderr.write('RSS of %s is %s\n' % (pname, rss))
-                        if  rss > self.programs[name]:
+                        if  rss > self.programs[n]:
                             self.restart(pname, rss)
                             continue
 
                 for n in name, pname:
                     if n in self.program_exceptions:
                         self.stderr.write('RSS of %s is %s\n' % (pname, rss))
-                        if  rss > self.program_exceptions[name]:
+                        if  rss > self.program_exceptions[n]:
                             self.restart(pname, rss)
                             continue
                         else:
