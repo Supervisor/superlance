@@ -347,12 +347,14 @@ def parse_seconds(option, value):
 
 def memmon_from_args(arguments):
     import getopt
-    short_args = "hcp:g:a:s:m:n:u:"
+    short_args = "hcp:g:a:s:m:n:u:P:G:"
     long_args = [
         "help",
         "cumulative",
         "program=",
+        "program-exception=",
         "group=",
+        "group-exception=",
         "any=",
         "sendmail_program=",
         "email=",
