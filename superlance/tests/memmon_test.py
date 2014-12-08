@@ -13,14 +13,15 @@ class MemmonTests(unittest.TestCase):
     def _makeOne(self, *opts):
         return self._getTargetClass()(*opts)
 
-    def _makeOnePopulated(self, programs, groups, any):
+    def _makeOnePopulated(self, programs, groups, any, program_exceptions=[], group_exceptions=[]):
         rpc = DummyRPCServer()
         cumulative = False
         sendmail = 'cat - > /dev/null'
         email = 'chrism@plope.com'
         name = 'test'
         uptime_limit = 2000
-        memmon = self._makeOne(cumulative, programs, groups, any, sendmail, email, uptime_limit, name, rpc)
+        memmon = self._makeOne(cumulative, programs, groups, any, sendmail, email, uptime_limit, name, rpc,
+                               program_exceptions, group_exceptions)
         memmon.stdin = StringIO()
         memmon.stdout = StringIO()
         memmon.stderr = StringIO()
@@ -98,6 +99,27 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(lines[0], 'Checking any=0')
         self.assertEqual(lines[1], 'RSS of foo:foo is 2264064')
         self.assertEqual(lines[2], 'Restarting foo:foo')
+        self.assertEqual(lines[3], 'RSS of bar:bar is 2265088')
+        self.assertEqual(lines[4], 'Restarting bar:bar')
+        self.assertEqual(lines[5], 'RSS of baz:baz_01 is 2265088')
+        self.assertEqual(lines[6], 'Restarting baz:baz_01')
+        self.assertEqual(lines[7], '')
+        mailed = memmon.mailed.split('\n')
+        self.assertEqual(len(mailed), 4)
+
+    def test_runforever_tick_program_exceptions_any(self):
+        programs = {'foo': 2364064}
+        groups = {}
+        any = 0
+        memmon = self._makeOnePopulated(programs, groups, any, program_exceptions=['foo'])
+        memmon.stdin.write('eventname:TICK len:0\n')
+        memmon.stdin.seek(0)
+        memmon.runforever(test=True)
+        lines = memmon.stderr.getvalue().split('\n')
+        self.assertEqual(len(lines), 8)
+        self.assertEqual(lines[0], 'Checking programs foo=2364064')
+        self.assertEqual(lines[1], 'Checking any=0')
+        self.assertEqual(lines[2], 'RSS of foo:foo is 2264064')
         self.assertEqual(lines[3], 'RSS of bar:bar is 2265088')
         self.assertEqual(lines[4], 'Restarting bar:bar')
         self.assertEqual(lines[5], 'RSS of baz:baz_01 is 2265088')

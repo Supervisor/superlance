@@ -112,8 +112,9 @@ def shell(cmd):
         return f.read()
 
 class Memmon:
-    def __init__(self, cumulative, programs, groups, any, sendmail, email, email_uptime_limit, name, program_exceptions,
-                 group_exceptions, rpc=None):
+    def __init__(self, cumulative, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc=None,
+                 program_exceptions=[],
+                 group_exceptions=[]):
         self.cumulative = cumulative
         self.programs = programs
         self.groups = groups
