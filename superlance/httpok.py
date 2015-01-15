@@ -342,6 +342,7 @@ def main(argv=sys.argv):
     email = None
     timeout = 10
     retry_time = 10
+    delay = None
     status = '200'
     inbody = None
 
@@ -384,7 +385,7 @@ def main(argv=sys.argv):
             eager = False
 
         if option in ('-w', '--delay'):
-            delay = value
+            delay = int(value)
 
     url = arguments[-1]
 
