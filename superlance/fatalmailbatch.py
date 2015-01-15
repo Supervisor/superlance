@@ -1,4 +1,4 @@
-#!/usr/bin/env python -u
+#!/usr/bin/env python
 ##############################################################################
 #
 # Copyright (c) 2007 Agendaless Consulting and Contributors.

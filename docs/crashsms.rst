@@ -5,7 +5,7 @@
 subscribed to ``PROCESS_STATE`` events and ``TICK`` events such as ``TICK_60``.  It monitors
 all processes running under a given supervisord instance.
 
-Similar to :command:`crashmailbash`, :command:`crashsms` sends SMS alerts
+Similar to :command:`crashmailbatch`, :command:`crashsms` sends SMS alerts
 through an email gateway.  Messages are formatted to fit in SMS
 
 :command:`crashsms` is a "console script" installed when you install

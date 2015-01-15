@@ -1,4 +1,4 @@
-#!/usr/bin/env python -u
+#!/usr/bin/env python
 ##############################################################################
 #
 # Copyright (c) 2007 Agendaless Consulting and Contributors.
@@ -54,12 +54,14 @@ crashmailbatch.py --toEmail="you@bar.com" --fromEmail="me@bar.com"
 from supervisor import childutils
 from superlance.process_state_email_monitor import ProcessStateEmailMonitor
 
+
 class CrashMailBatch(ProcessStateEmailMonitor):
 
     process_state_events = ['PROCESS_STATE_EXITED']
 
     def __init__(self, **kwargs):
-        kwargs['subject'] = kwargs.get('subject', 'Crash alert from supervisord')
+        kwargs['subject'] = kwargs.get('subject',
+                                       'Crash alert from supervisord')
         ProcessStateEmailMonitor.__init__(self, **kwargs)
         self.now = kwargs.get('now', None)
 
@@ -73,10 +75,11 @@ class CrashMailBatch(ProcessStateEmailMonitor):
 unexpectedly' % pheaders
         return '%s -- %s' % (childutils.get_asctime(self.now), txt)
 
+
 def main():
     crash = CrashMailBatch.create_from_cmd_line()
     crash.run()
 
+
 if __name__ == '__main__':
     main()
-

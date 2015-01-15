@@ -1,4 +1,4 @@
-#!/usr/bin/env python -u
+#!/usr/bin/env python
 ##############################################################################
 #
 # Copyright (c) 2007 Agendaless Consulting and Contributors.
@@ -28,7 +28,9 @@
 # as a listener is below.
 #
 # [eventlistener:crashsms]
-# command=python crashsms -t <mobile phone>@<mobile provider> -f me@bar.com -e TICK_5
+# command =
+#     python crashsms
+#         -t <mobile phone>@<mobile provider> -f me@bar.com -e TICK_5
 # events=PROCESS_STATE,TICK_5
 
 doc = """\
@@ -51,7 +53,8 @@ Options:
 
 -s,--subject   - the email subject line
 
--e, --tickEvent - specify which TICK event to use (e.g. TICK_5, TICK_60, TICK_3600)
+-e, --tickEvent - specify which TICK event to use (e.g. TICK_5, TICK_60,
+                  TICK_3600)
 
 A sample invocation:
 
@@ -62,26 +65,29 @@ crashsms.py -t <mobile phone>@<mobile provider> -f me@bar.com -e TICK_5
 from supervisor import childutils
 from superlance.process_state_email_monitor import ProcessStateEmailMonitor
 
+
 class CrashSMS(ProcessStateEmailMonitor):
-  process_state_events = ['PROCESS_STATE_EXITED']
+    process_state_events = ['PROCESS_STATE_EXITED']
 
-  def __init__(self, **kwargs):
-    ProcessStateEmailMonitor.__init__(self, **kwargs)
-    self.now = kwargs.get('now', None)
+    def __init__(self, **kwargs):
+        ProcessStateEmailMonitor.__init__(self, **kwargs)
+        self.now = kwargs.get('now', None)
 
-  def get_process_state_change_msg(self, headers, payload):
-    pheaders, pdata = childutils.eventdata(payload+'\n')
+    def get_process_state_change_msg(self, headers, payload):
+        pheaders, pdata = childutils.eventdata(payload+'\n')
 
-    if int(pheaders['expected']):
-        return None
+        if int(pheaders['expected']):
+            return None
 
-    txt = '[%(groupname)s:%(processname)s](%(pid)s) exited unexpectedly' \
-      % pheaders
-    return '%s %s' % (txt, childutils.get_asctime(self.now))
+        txt = '[%(groupname)s:%(processname)s](%(pid)s) exited unexpectedly' \
+              % pheaders
+        return '%s %s' % (txt, childutils.get_asctime(self.now))
+
 
 def main():
-  crash = CrashSMS.create_from_cmd_line()
-  crash.run()
+    crash = CrashSMS.create_from_cmd_line()
+    crash.run()
+
 
 if __name__ == '__main__':
-  main()
+    main()

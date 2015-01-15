@@ -1,6 +1,7 @@
 # Configuration for Travis CI
 
 language: python
+sudo: false
 env:
     - TOXENV=py26
     - TOXENV=py27
