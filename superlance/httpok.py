@@ -84,6 +84,8 @@ Options:
 
 URL -- The URL to which to issue a GET request.
 
+The -c option may be specified more than once, allowing for
+specification of multiple status codes.
 The -p option may be specified more than once, allowing for
 specification of multiple processes.  Specifying -a overrides any
 selection of -p.
@@ -199,7 +201,7 @@ class HTTPOk:
                     status = None
                     msg = 'error contacting %s:\n\n %s' % (self.url, why)
 
-                if str(status) != str(self.status):
+                if (str(status) not in self.status):
                     subject = 'httpok for %s: bad status returned' % self.url
                     self.act(subject, msg)
                 elif self.inbody and self.inbody not in body:
@@ -334,7 +336,7 @@ def main(argv=sys.argv):
     email = None
     timeout = 10
     retry_time = 10
-    status = '200'
+    status = []
     inbody = None
 
     for option, value in opts:
@@ -358,7 +360,7 @@ def main(argv=sys.argv):
             timeout = int(value)
 
         if option in ('-c', '--code'):
-            status = value
+            status.append(value)
 
         if option in ('-b', '--body'):
             inbody = value
@@ -374,6 +376,9 @@ def main(argv=sys.argv):
 
         if option in ('-E', '--not-eager'):
             eager = False
+
+    if not status:
+              status = ['200']
 
     url = arguments[-1]
 
