@@ -320,7 +320,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.write('eventname:TICK len:0\n')
         prog.stdin.seek(0)
         prog.runforever(test=True)
-        lines = filter(None, prog.stderr.getvalue().split('\n'))
+        lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar']")
                          )
