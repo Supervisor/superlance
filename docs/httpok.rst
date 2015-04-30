@@ -5,8 +5,8 @@
 a concrete ``TICK_5``, ``TICK_60`` or ``TICK_3600``  event.
 When :command:`httpok` receives a ``TICK_x``
 event (``TICK_60`` is recommended, indicating activity every 60 seconds),
-:command:`httpk` makes an HTTP GET request to a confgured URL. If the request
-fails or times out, :command:`httpok`` will restart the "hung" child
+:command:`httpok` makes an HTTP GET request to a confgured URL. If the request
+fails or times out, :command:`httpok` will restart the "hung" child
 process(es). :command:`httpok` can be configured to send an email notification
 when it restarts a process.
 
