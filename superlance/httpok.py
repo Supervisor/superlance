@@ -261,7 +261,7 @@ class HTTPOk:
 
     def mail(self, email, subject, msg):
         body =  'To: %s\n' % self.email
-        body += 'Subject: %s\n' % subject
+        body += 'Subject: [%s] %s\n' % (socket.gethostname(), subject)
         body += '\n'
         body += msg
         with os.popen(self.sendmail, 'w') as m:
