@@ -1,5 +1,6 @@
 from superlance.compat import httplib
 import socket
+import ssl
 
 class TimeoutHTTPConnection(httplib.HTTPConnection):
     """A customised HTTPConnection allowing a per-connection
@@ -36,7 +37,6 @@ class TimeoutHTTPSConnection(httplib.HTTPSConnection):
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if self.timeout:
-            self.sock.settimeout(self.timeout)
+            sock.settimeout(self.timeout)
         sock.connect((self.host, self.port))
-        ssl = socket.ssl(sock, self.key_file, self.cert_file)
-        self.sock = httplib.FakeSocket(sock, ssl)
+        self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file)
