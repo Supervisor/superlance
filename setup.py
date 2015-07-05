@@ -80,7 +80,7 @@ setup(name='superlance',
       crashmail = superlance.crashmail:main
       crashmailbatch = superlance.crashmailbatch:main
       fatalmailbatch = superlance.fatalmailbatch:main
+      crashmqtt = superlance.crashmqtt:main
       memmon = superlance.memmon:main
       """
       )
-
