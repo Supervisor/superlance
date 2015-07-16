@@ -50,6 +50,8 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
                         help="SMTP server user name (defaults to nothing)")
         parser.add_option("-p", "--password", dest="smtp_password", default="",
                         help="SMTP server password (defaults to nothing)")
+        parser.add_option("-T", "--tls", dest="use_tls", action="store_true",
+                        help="Use TLS for SMTP server connection (defaults to false)")
         return parser
 
     @classmethod
@@ -95,6 +97,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         self.smtp_host = kwargs.get('smtp_host', 'localhost')
         self.smtp_user = kwargs.get('smtp_user')
         self.smtp_password = kwargs.get('smtp_password')
+        self.use_tls = kwargs.get('use_tls', False)
         self.digest_len = 76
 
     def send_batch_notification(self):
@@ -137,6 +140,8 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
 
     def send_smtp(self, mime_msg, to_emails):
         s = smtplib.SMTP(self.smtp_host)
+        if self.use_tls:
+            s.starttls()
         try:
             if self.smtp_user and self.smtp_password:
                 s.login(self.smtp_user,self.smtp_password)
