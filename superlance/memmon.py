@@ -172,13 +172,13 @@ class Memmon:
                         self.stderr.write('RSS of %s is %s\n' % (pname, rss))
                         if  rss > self.programs[name]:
                             self.restart(pname, rss)
-                            continue
+                        continue
 
                 if group in self.groups:
                     self.stderr.write('RSS of %s is %s\n' % (pname, rss))
                     if rss > self.groups[group]:
                         self.restart(pname, rss)
-                        continue
+                    continue
 
                 if self.any is not None:
                     self.stderr.write('RSS of %s is %s\n' % (pname, rss))
