@@ -37,7 +37,7 @@ Options:
 
 -p -- specify a supervisor process_name.  Send mail when this process
       transitions to the EXITED state unexpectedly. If this process is
-      part of a group, it can be specified using the
+      part of a group, it must be specified using the
       'process_name:group_name' syntax.
 
 -a -- Send mail when any child of the supervisord transitions
@@ -66,6 +66,7 @@ crashmail.py -p program1 -p group1:program2 -m dev@example.com
 """
 
 import os
+import re
 import sys
 
 from supervisor import childutils
@@ -124,10 +125,25 @@ class CrashMail:
             if self.optionalheader:
                 subject = self.optionalheader + ':' + subject
 
-            self.stderr.write('unexpected exit, mailing\n')
-            self.stderr.flush()
 
-            self.mail(self.email, subject, msg)
+            ident = pheaders['processname']
+            if pheaders['groupname'] != ident:
+              ident = pheaders['groupname']  + ":" + ident
+
+            if self.any or \
+                    not self.programs or \
+                    any(prog.match(ident) for prog in self.programs):
+
+                self.stderr.write('\nunexpected exit, mailing\n')
+                self.stderr.flush()
+
+                self.mail(self.email, subject, msg)
+
+            else:
+
+                self.stderr.write('\nignoring %s\n' % subject)
+                self.stderr.flush()
+
 
             childutils.listener.ok(self.stdout)
             if test:
@@ -140,7 +156,7 @@ class CrashMail:
         body += msg
         with os.popen(self.sendmail, 'w') as m:
             m.write(body)
-        self.stderr.write('Mailed:\n\n%s' % body)
+        self.stderr.write('Mailed:\n\n%s\n' % body)
         self.mailed = body
 
 
@@ -167,13 +183,19 @@ def main(argv=sys.argv):
     email = None
     optionalheader = None
 
+    progGroupRE = re.compile(r"(\w+):\*")
+
     for option, value in opts:
 
         if option in ('-h', '--help'):
             usage()
 
         if option in ('-p', '--program'):
-            programs.append(value)
+            pg = progGroupRE.match(value)
+            if pg:
+                programs.append(re.compile(pg.group(1)+":.*"))
+            else:
+                programs.append(re.compile(re.escape(value)))
 
         if option in ('-a', '--any'):
             any = True

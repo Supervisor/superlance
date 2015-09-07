@@ -1,0 +1,9 @@
+To test 
+ - copy crashin fakemail to /R/bin
+ - copy crashmail.conf testcrash.conf testcrash2.conf to /etc/supervisor/conf.d
+
+monitor log files in /L/
+ - You'll get an 'Ignoring hostname: testcrash' message every 10s in /L/crashmail.log (testcrash)
+
+ - You'll get 2 'unexpected exit, mailing' message every 30s in /L/crashmail.log (notifycrash:testcrash2, notifycrash:testcrash3)
+   and the message in /L/fakemail.log
