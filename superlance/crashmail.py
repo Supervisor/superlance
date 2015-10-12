@@ -31,7 +31,7 @@
 
 doc = """\
 crashmail.py [-p processname] [-a] [-o string] [-m mail_address]
-             [-s sendmail] URL
+             [-s sendmail] [-l nb_chars] URL
 
 Options:
 
@@ -54,6 +54,9 @@ Options:
 -m -- specify an email address.  The script will send mail to this
       address when crashmail detects a process crash.  If no email
       address is specified, email will not be sent.
+
+-l -- include last n characters from both stdout and stderr streams in the
+      alert email body (default is 5000).
 
 The -p option may be specified more than once, allowing for
 specification of multiple processes.  Specifying -a overrides any
@@ -78,13 +81,14 @@ def usage():
 
 class CrashMail:
 
-    def __init__(self, programs, any, email, sendmail, optionalheader):
+    def __init__(self, programs, any, email, sendmail, optionalheader, logtail):
 
         self.programs = programs
         self.any = any
         self.email = email
         self.sendmail = sendmail
         self.optionalheader = optionalheader
+        self.logtail = logtail
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
@@ -119,6 +123,15 @@ class CrashMail:
                    'unexpectedly (pid %(pid)s) from state %(from_state)s' %
                    pheaders)
 
+            # Supervisor will inject the SUPERVISOR_SERVER_URL into each of the
+            # supervised processes, with the address (tcp, unix socket...) of the
+            # supervisor RPC server URL.
+            if os.environ.get('SUPERVISOR_SERVER_URL'):
+                # Get last lines from both stdout and stderr
+                stdout_tail = self.tail(pheaders['groupname'], pheaders['processname'], 'stdout', self.logtail)
+                stderr_tail = self.tail(pheaders['groupname'], pheaders['processname'], 'stderr', self.logtail)
+                msg = '%s\n\nLast lines from stdout:\n%s\n\nLast lines from stderr:\n%s' % (msg, stdout_tail, stderr_tail)
+
             subject = ' %s crashed at %s' % (pheaders['processname'],
                                              childutils.get_asctime())
             if self.optionalheader:
@@ -132,6 +145,17 @@ class CrashMail:
             childutils.listener.ok(self.stdout)
             if test:
                 break
+
+    def tail(self, group, process, stream, chars):
+        """Return the last lines from the process stream (stderr or stdout)."""
+        rpc = childutils.getRPCInterface(os.environ)
+        processname = '{group}{process}'.format(group=group + ':' if group else '', process=process)
+        if stream == 'stdout':
+            log, _, _ = rpc.supervisor.tailProcessStdoutLog(processname, 0, chars)
+        else:
+            log, _, _ = rpc.supervisor.tailProcessStderrLog(processname, 0, chars)
+        log = '\n'.join(log.split('\n')[1:])
+        return log
 
     def mail(self, email, subject, msg):
         body = 'To: %s\n' % self.email
@@ -154,6 +178,7 @@ def main(argv=sys.argv):
         "optionalheader="
         "sendmail_program=",
         "email=",
+        "logtail=",
         ]
     arguments = argv[1:]
     try:
@@ -166,6 +191,7 @@ def main(argv=sys.argv):
     sendmail = '/usr/sbin/sendmail -t -i'
     email = None
     optionalheader = None
+    logtail = 5000
 
     for option, value in opts:
 
@@ -187,13 +213,16 @@ def main(argv=sys.argv):
         if option in ('-o', '--optionalheader'):
             optionalheader = value
 
+        if option in ('-l', '--logtail'):
+            logtail = value
+
     if not 'SUPERVISOR_SERVER_URL' in os.environ:
         sys.stderr.write('crashmail must be run as a supervisor event '
                          'listener\n')
         sys.stderr.flush()
         return
 
-    prog = CrashMail(programs, any, email, sendmail, optionalheader)
+    prog = CrashMail(programs, any, email, sendmail, optionalheader, logtail)
     prog.runforever()
 
 

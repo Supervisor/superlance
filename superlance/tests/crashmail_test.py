@@ -22,7 +22,7 @@ class CrashMailTests(unittest.TestCase):
         sendmail = 'cat - > %s' % os.path.join(self.tempdir, 'email.log')
         email = 'chrism@plope.com'
         header = '[foo]'
-        prog = self._makeOne(programs, any, email, sendmail, header)
+        prog = self._makeOne(programs, any, email, sendmail, header, 5000)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
