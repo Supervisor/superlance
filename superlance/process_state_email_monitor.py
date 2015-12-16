@@ -62,16 +62,18 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         parser.add_option("-p", "--password", dest="smtp_password", default="",
                         help="SMTP server password (defaults to nothing)")
         return parser
-      
+
     @classmethod
     def parse_cmd_line_options(cls):
         parser = cls._get_opt_parser()
         (options, args) = parser.parse_args()
+
         return options
 
     @classmethod
     def validate_cmd_line_options(cls, options):
         parser = cls._get_opt_parser()
+
         if not options.to_emails:
             parser.print_help()
             sys.exit(1)
@@ -81,6 +83,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
 
         validated = copy.copy(options)
         validated.to_emails = [x.strip() for x in options.to_emails.split(",")]
+
         return validated
 
     @classmethod
@@ -141,7 +144,8 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
 
         return state
 
-    def _read_log_file(self, log_file_name, log_len):
+    def _read_log_file(self, log_file_name):
+        log_len = self.log_len
         # open the file and mmap it
         log_file = open(log_file_name, 'r+')
         mm = mmap(log_file.fileno(), os.path.getsize(log_file.name))
@@ -182,7 +186,12 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
 
                 if log_file_name:
                     log_text += "Log (file %s):\n" % log_file_name
-                    log_text += self._read_log_file(log_file_name, self.log_len)
+
+                    try:
+                        log_text += self._read_log_file(log_file_name)
+                    except Exception, e:
+                        self.write_stderr("Error reading log file: %s\n" % e)
+                        log_text += 'Log file can not be read.'
                 else:
                     log_text += 'Log file name can not be defined.'
             else:
@@ -193,6 +202,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
 
     def send_batch_notification(self):
         email = self.get_batch_email()
+
         if email:
             self.send_email(email)
             self.log_email(email)
@@ -200,6 +210,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
     def log_email(self, email):
         email_for_log = copy.copy(email)
         email_for_log['to'] = self.COMMASPACE.join(email['to'])
+
         if len(email_for_log['body']) > self.digest_len:
             email_for_log['body'] = '%s...' % email_for_log['body'][:self.digest_len]
         self.write_stderr("Sending notification email:\nTo: %(to)s\n\
@@ -234,6 +245,7 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
 
     def send_smtp(self, mime_msg, to_emails):
         s = smtplib.SMTP(self.smtp_host)
+
         try:
             if self.smtp_user and self.smtp_password:
                 s.login(self.smtp_user,self.smtp_password)
