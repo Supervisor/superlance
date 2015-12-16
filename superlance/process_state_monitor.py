@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python -u
 ##############################################################################
 #
 # Copyright (c) 2007 Agendaless Consulting and Contributors.
@@ -16,6 +16,7 @@ doc = """\
 Base class for common functionality when monitoring process state changes
 """
 
+import os
 import sys
 
 from supervisor import childutils
@@ -35,6 +36,9 @@ class ProcessStateMonitor:
         self.eventname = kwargs.get('eventname', 'TICK_60')
         self.tickmins = self._get_tick_mins(self.eventname)
 
+        self.supervisor = childutils.getRPCInterface(os.environ).supervisor
+
+        self.batchproc = None
         self.batchmsgs = []
         self.batchmins = 0.0
 
@@ -44,10 +48,20 @@ class ProcessStateMonitor:
     def _get_tick_secs(self, eventname):
         self._validate_tick_name(eventname)
         return int(eventname.split('_')[1])
-
+        
     def _validate_tick_name(self, eventname):
         if not eventname.startswith('TICK_'):
             raise ValueError("Invalid TICK event name: %s" % eventname)
+
+    def _set_batch_proc(self, payload):
+        (pheaders, pdata) = childutils.eventdata(payload+'\n')
+        pname = "%s:%s" % (pheaders['groupname'], pheaders['processname'])
+
+        self.batchproc = {
+            'headers': pheaders,
+            'data': pdata,
+            'config': self.supervisor.getProcessInfo(pname),
+        }
 
     def run(self):
         while 1:
@@ -63,9 +77,12 @@ class ProcessStateMonitor:
 
     def handle_process_state_change_event(self, headers, payload):
         msg = self.get_process_state_change_msg(headers, payload)
+
         if msg:
             self.write_stderr('%s\n' % msg)
             self.batchmsgs.append(msg)
+
+            self._set_batch_proc(payload)
 
     """
     Override this method in child classes to customize messaging
@@ -75,6 +92,7 @@ class ProcessStateMonitor:
 
     def handle_tick_event(self, headers, payload):
         self.batchmins += self.tickmins
+
         if self.batchmins >= self.interval:
             self.send_batch_notification()
             self.clear_batch()
@@ -91,10 +109,15 @@ class ProcessStateMonitor:
     def get_batch_msgs(self):
         return self.batchmsgs
 
+    def get_batch_proc(self):
+        return self.batchproc
+
     def clear_batch(self):
         self.batchmins = 0.0;
         self.batchmsgs = [];
+        self.batchproc = None;
 
     def write_stderr(self, msg):
         self.stderr.write(msg)
         self.stderr.flush()
+
