@@ -82,7 +82,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
             sys.exit(1)
 
         validated = copy.copy(options)
-        validated.to_emails = [x.strip() for x in options.to_emails.split(",")]
+        validated.to_emails = [x.strip() for x in options.to_emails.split(',')]
 
         return validated
 
@@ -189,7 +189,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
 
                     try:
                         log_text += self._read_log_file(log_file_name)
-                    except Exception, e:
+                    except Exception as e:
                         self.write_stderr("Error reading log file: %s\n" % e)
                         log_text += 'Log file can not be read.'
                 else:
@@ -240,7 +240,7 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
 
         try:
             self.send_smtp(msg, email['to'])
-        except Exception, e:
+        except Exception as e:
             self.write_stderr("Error sending email: %s\n" % e)
 
     def send_smtp(self, mime_msg, to_emails):
