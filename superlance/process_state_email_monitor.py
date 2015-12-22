@@ -1,4 +1,4 @@
-#!/usr/bin/env python -u
+#!/usr/bin/env python
 ##############################################################################
 #
 # Copyright (c) 2007 Agendaless Consulting and Contributors.
@@ -18,12 +18,9 @@ import smtplib
 import copy
 import time
 from mmap import mmap
-# Using old reference for Python 2.4
-from email.MIMEText import MIMEText
-from email.Utils import formatdate, make_msgid
-# from email.mime.text import MIMEText
+from email.mime.text import MIMEText
+from email.utils import formatdate, make_msgid
 from superlance.process_state_monitor import ProcessStateMonitor
-#from supervisor.rpcinterface import SupervisorNamespaceRPCInterface
 
 doc = """\
 Base class for common functionality when monitoring process state changes
@@ -51,7 +48,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
                         help="add text in email body (defaults to empty)")
         parser.add_option("-S", "--addState", dest="state_in_body", default=False,
                         help="add state in email body (defaults to False)")
-        parser.add_option("-l", "--addLog", dest="log_in_body", default="0",
+        parser.add_option("-L", "--addLog", dest="log_in_body", default="0",
                         help="add log in email body (defaults to 0")
         parser.add_option("-H", "--smtpHost", dest="smtp_host", default="localhost",
                         help="SMTP server hostname or address")
