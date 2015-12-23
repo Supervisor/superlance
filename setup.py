@@ -81,6 +81,7 @@ setup(name='superlance',
       crashmailbatch = superlance.crashmailbatch:main
       fatalmailbatch = superlance.fatalmailbatch:main
       memmon = superlance.memmon:main
+      oome_monitor = superlance.oome_monitor:main
       """
       )
 
