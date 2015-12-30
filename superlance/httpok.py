@@ -26,7 +26,7 @@
 
 doc = """\
 httpok.py [-p processname] [-a] [-g] [-t timeout] [-c status_code] [-b inbody]
-          [-m mail_address] [-s sendmail] URL
+          [-m mail_address] [-s sendmail] [-r restart_threshold] URL
 
 Options:
 
@@ -82,6 +82,10 @@ Options:
 -E -- not "eager":  do not check URL / emit mail if no process we are
       monitoring is in the RUNNING state.
 
+-r -- specify the maximum number of times program should be restarted if it 
+      does not return successful result while issuing a GET. 0 - for unlimited
+      number of restarts. Default is 3.
+
 URL -- The URL to which to issue a GET request.
 
 The -p option may be specified more than once, allowing for
@@ -114,7 +118,8 @@ def usage():
 class HTTPOk:
     connclass = None
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
-                 email, sendmail, coredir, gcore, eager, retry_time):
+                 email, sendmail, coredir, gcore, eager, retry_time,
+                 restart_threshold=0):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -131,6 +136,8 @@ class HTTPOk:
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
+        self.counter = {}
+        self.restart_threshold = restart_threshold
 
     def listProcesses(self, state=None):
         return [x for x in self.rpc.supervisor.getAllProcessInfo()
@@ -205,6 +212,10 @@ class HTTPOk:
                 elif self.inbody and self.inbody not in body:
                     subject = 'httpok for %s: bad body returned' % self.url
                     self.act(subject, msg)
+                elif [ spec for spec, value in self.counter.items()
+                      if value['counter'] > 0]:
+                    # Null the counters if everything is back to normal
+                    self.cleanCounters()
 
             childutils.listener.ok(self.stdout)
             if test:
@@ -212,6 +223,7 @@ class HTTPOk:
 
     def act(self, subject, msg):
         messages = [msg]
+        email = True
 
         def write(msg):
             self.stderr.write('%s\n' % msg)
@@ -231,7 +243,10 @@ class HTTPOk:
             for spec in specs:
                 name = spec['name']
                 group = spec['group']
-                self.restart(spec, write)
+                if self.restartCounter(spec, write):
+                    self.restart(spec, write)
+                else:
+                    email = False
                 namespec = make_namespec(group, name)
                 if name in waiting:
                     waiting.remove(name)
@@ -244,7 +259,10 @@ class HTTPOk:
                 group = spec['group']
                 namespec = make_namespec(group, name)
                 if (name in self.programs) or (namespec in self.programs):
-                    self.restart(spec, write)
+                    if self.restartCounter(spec, write):
+                        self.restart(spec, write)
+                    else:
+                        email = False
                     if name in waiting:
                         waiting.remove(name)
                     if namespec in waiting:
@@ -255,7 +273,7 @@ class HTTPOk:
                 'Programs not restarted because they did not exist: %s' %
                 waiting)
 
-        if self.email:
+        if self.email and email:
             message = '\n'.join(messages)
             self.mail(self.email, subject, message)
 
@@ -292,14 +310,68 @@ class HTTPOk:
                     namespec, e))
             else:
                 write('%s restarted' % namespec)
-
+            if spec['name'] in self.counter:
+                new_spec = self.rpc.supervisor.getProcessInfo(spec['name'])
+                self.counter[spec['name']]['last_pid'] = new_spec['pid']
         else:
             write('%s not in RUNNING state, NOT restarting' % namespec)
+            
+    def restartCounter(self, spec, write):
+        """
+        Function to check if number of restarts exceeds the configured
+        restart_threshold.
+        It will stop letting self.act() from restarting the program unless
+        program restarts externally, e.g. manually by a human.
+        
+        :param spec: Spec as returned by RPC
+        :type spec: dict struct
+        :param write: Stderr write handler and a message container
+        :type write: function
+        :returns: Boolean result whether to continue or not
+        """
+        if spec['name'] not in self.counter:
+            # Create a new counter and return True
+            self.counter[spec['name']] = {}
+            self.counter[spec['name']]['counter'] = 1
+            self.counter[spec['name']]['last_pid'] = spec['pid']
+            write('%s restart is approved' % spec['name'])
+            return True
+        elif self.restart_threshold == 0:
+            # Continue if we don't limit the number of restarts
+            self.counter[spec['name']]['counter'] += 1
+            write('%s in restart loop, attempt: %s' % (spec['name'],
+                self.counter[spec['name']]['counter']))
+            return True
+        else:
+            if self.counter[spec['name']]['counter'] < self.restart_threshold:
+                self.counter[spec['name']]['counter'] += 1
+                write('%s restart attempt: %s' % (spec['name'],
+                    self.counter[spec['name']]['counter']))
+                return True
+            # In case if the program was restarted not by httpok
+            elif self.counter[spec['name']]['last_pid'] != spec['pid']:
+                write('Program %s was restarted externally, resuming '
+                      'monitoring and restarting now' % spec['name'])
+                self.counter[spec['name']]['counter'] = 1
+                return True
+            # Do not let httpok restart the program
+            else:
+                write('Not restarting %s anymore. Restarted %s times' % (
+                    spec['name'], self.counter[spec['name']]['counter']))
+                return False
+    
+    def cleanCounters(self):
+        """
+        Function to clean the counter once all monitored programs are
+        running properly and successfully respond to GET requests.
+        """
+        for spec in self.counter.keys():
+            self.counter[spec]['counter'] = 0
 
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:s:m:g:d:eE"
+    short_args="hp:at:c:b:s:m:g:d:eEr:"
     long_args=[
         "help",
         "program=",
@@ -313,6 +385,7 @@ def main(argv=sys.argv):
         "coredir=",
         "eager",
         "not-eager",
+        "restart-threshold=",
         ]
     arguments = argv[1:]
     try:
@@ -336,6 +409,7 @@ def main(argv=sys.argv):
     retry_time = 10
     status = '200'
     inbody = None
+    restart_threshold = 3
 
     for option, value in opts:
 
@@ -374,6 +448,14 @@ def main(argv=sys.argv):
 
         if option in ('-E', '--not-eager'):
             eager = False
+        
+        if option in ('-r', '--restart-threshold'):
+            try:
+                restart_threshold = int(value)
+            except ValueError:
+                sys.stderr.write('Restart threshold should be a number\n')
+                sys.stderr.flush()
+                return
 
     url = arguments[-1]
 
@@ -388,7 +470,8 @@ def main(argv=sys.argv):
         return
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
-                  sendmail, coredir, gcore, eager, retry_time)
+                  sendmail, coredir, gcore, eager, retry_time,
+                  restart_threshold)
     prog.runforever()
 
 if __name__ == '__main__':
