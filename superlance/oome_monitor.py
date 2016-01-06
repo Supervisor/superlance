@@ -39,7 +39,7 @@ class OomeProcess(object):
         :rtype: dict
         """
         if not self._env_vars:
-            with open('/proc/{}/environ'.format(self.process['pid'])) as f:
+            with open('/proc/{0}/environ'.format(self.process['pid'])) as f:
                 self._env_vars = dict(
                     x.split('=')
                     for x in f.read().split('\x00')
@@ -70,7 +70,7 @@ class OomeProcess(object):
                     # Otherwise get the process cwd
                     process = psutil.Process(self.process['pid'])
                     cwd = process.cwd()
-                self.oome_file = '{}/state/{}.oome'.format(cwd,
+                self.oome_file = '{0}/state/{1}.oome'.format(cwd,
                         self.process['name'])
         return self._oome_file
     
@@ -102,9 +102,9 @@ class OomeProcess(object):
         """
         try:
             os.remove(self.oome_file)
-            msg = 'oome file {} was deleted\n'.format(self.oome_file)
+            msg = 'oome file {0} was deleted\n'.format(self.oome_file)
         except OSError as e:
-            msg = 'oome file could not be removed: {}\n'.format(e)
+            msg = 'oome file could not be removed: {0}\n'.format(e)
         self.stderr.write(msg)
         self.stderr.flush()
 
@@ -162,7 +162,7 @@ class OomeMonitor(object):
         :param msg: Message to send
         :type msg: str
         """
-        self.stderr.write('{}\n'.format(msg))
+        self.stderr.write('{0}\n'.format(msg))
         self.stderr.flush()
     
     @property
@@ -193,14 +193,14 @@ class OomeMonitor(object):
             self.rpc.supervisor.stopProcess(namespec)
         except xmlrpclib.Fault as e:
             self.write_stderr(
-                'Failed to stop process {}: {}'.format(namespec, e))
+                'Failed to stop process {0}: {1}'.format(namespec, e))
         try:
             self.rpc.supervisor.startProcess(namespec)
         except xmlrpclib.Fault as e:
             self.write_stderr(
-                'Failed to start process {}: {}'.format(namespec, e))
+                'Failed to start process {0}: {1}'.format(namespec, e))
         else:
-            self.write_stderr('{} restarted'.format(namespec))
+            self.write_stderr('{0} restarted'.format(namespec))
         
     def run(self, test=False):
         """
@@ -218,7 +218,7 @@ class OomeMonitor(object):
                 if oome_process.check_oome_file():
                     if self.dry:
                         self.write_stderr(
-                            'oome file is detected for {}, not restarting due '
+                            'oome file is detected for {0}, not restarting due '
                             'to dry-run'.format(oome_process.process['name']))
                     else:
                         # delete the oome file first

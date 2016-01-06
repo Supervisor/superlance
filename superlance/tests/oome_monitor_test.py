@@ -25,7 +25,7 @@ class TestOomeProcess(unittest.TestCase):
         """
         Tests if OomeProcess could be created
         """
-        self.assertIsInstance(self.process, OomeProcess)
+        self.assertTrue(isinstance(self.process, OomeProcess))
         
     def test_env_vars(self):
         """
@@ -36,10 +36,11 @@ class TestOomeProcess(unittest.TestCase):
             "ESS_NAME=test_server\x00HOMEDIR=homedir\x00SUPERVISOR_ENABLED=1"
             "\x00SUPERVISOR_SERVER_URL=unix:///tmp/supervisor.sock\x00OOME_FIL"
             "E=oome_file")
+        expected = {'OOME_FILE': 'oome_file', 'HOMEDIR': 'homedir'}
         with mock.patch('superlance.oome_monitor.open',
                 mock.mock_open(read_data=dummy_env_var), create=True) as m:
-            self.assertItemsEqual({'OOME_FILE': 'oome_file_env',
-                'HOMEDIR': 'homedir'}, self.process.env_vars)
+            self.assertEqual(sorted(expected.items()),
+                             sorted(self.process.env_vars.items()))
     
     def test_get_oome_file_oome_file_init(self):
         """
@@ -142,8 +143,8 @@ class TestOomeMonitor(unittest.TestCase):
         """
         Tests OomeMonitor object creation
         """
-        self.assertIsInstance(self.oome_monitor_all, OomeMonitor)
-        self.assertIsInstance(self.oome_monitor_single, OomeMonitor)
+        self.assertTrue(isinstance(self.oome_monitor_all, OomeMonitor))
+        self.assertTrue(isinstance(self.oome_monitor_single, OomeMonitor))
         
     def test_generate_processes(self):
         """
@@ -165,10 +166,10 @@ class TestOomeMonitor(unittest.TestCase):
         """
         Tests OomeMonitor.procs property
         """
-        self.assertItemsEqual(self.oome_monitor_all.procs,
+        self.assertEqual(self.oome_monitor_all.procs,
             DummySupervisorRPCNamespace.all_process_info)
         # It should match to "foo" process defined in Dummy
-        self.assertItemsEqual(self.oome_monitor_single.procs,
+        self.assertEqual(self.oome_monitor_single.procs,
             DummySupervisorRPCNamespace.all_process_info[:1])
 
     def test_restart(self):
@@ -253,3 +254,6 @@ class TestOomeMonitor(unittest.TestCase):
             self.oome_monitor_all.run(test=True)
         self.assertEqual("oome file is detected for bar, not restarting due to"
                          " dry-run\n", self.stderr.getvalue())
+        
+if __name__ == '__main__':
+    unittest.main()
