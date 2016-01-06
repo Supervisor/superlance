@@ -14,3 +14,5 @@ Contributors
 - Mikhail Lukyanchenko, 2013-12-23
 
 - Patrick Gerken, 2014-01-27
+
+- Said Babayev, 2015-12-21

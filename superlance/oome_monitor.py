@@ -10,46 +10,7 @@ from superlance.compat import xmlrpclib
 from supervisor import childutils
 from supervisor.options import make_namespec
 
-DESCRIPTION = """An event listener needs to be subscribed to TICK_60 (or TICK_5)
-events, which restarts processes that are children of supervisord based on the
-out-of-memory error conditions. The listener will monitor specified directory
-for a "*.oome" file and restart the processes accordingly.
-
-oome_monitor will try to guess *.oome absolute file path based on
-the following:
-  * If its provided as an argument - use that
-  * $OOME_FILE environment variable of the process
-  * $HOMEDIR environment variable and the process name + .oome
-  * $CWD of the process and the process name + .oome
-  
-oome_monitor could be run to monitor all supervisord processes or specified
-ones inside the configuration file. In case if only one process is monitored
-it is possible to provide absolute path of the oome file, e.g. in case if
-app is started in non standard way.
-
-An example supervisor config snippets that tells supervisor to use oome_monitor
-as a listener is below:
-
-# To configure all supervisord daemons
-[eventlistener:oome_listener]
-command=oome_monitor all
-events=TICK_60
-
-# To configure specific applications to be monitored
-[eventlistener:oome_listener]
-command=oome_monitor single -p webapp1 -p webapp2
-events=TICK_5
-
-# To configure one app with specific oome file
-[eventlistener:oome_listener]
-command=oome_monitor single -p webapp -o /tmp/webapp.oome
-events=TICK_60
-
-# Dry run / test mode
-[eventlistener:oome_listener]
-command=oome_monitor all -d
-events=TICK_5
-"""
+DESCRIPTION = "Check individual help sections for 'single' and/or 'all'"
 
 class OomeProcess(object):
     """

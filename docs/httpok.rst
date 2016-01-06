@@ -118,7 +118,13 @@ Command-Line Syntax
    Disable "eager" monitoring:  do not check the URL or emit mail if no
    monitored process is in the RUNNING state.
 
-.. cmdoption:: <URL>
+.. cmdoption:: -r, --restart-threshold
+
+   Specify the maximum number of times program should be restarted if it 
+   does not return successful result while issuing a GET. 0 - for unlimited
+   number of restarts. Default is 3.
+
+.. cmdoption:: URL
 
    The URL to which to issue a GET request.
 
