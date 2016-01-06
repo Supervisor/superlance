@@ -1,3 +1,14 @@
+1.0.1 (2015-12-24)
+------------------
+
+- New event listener ``oome_monitor``. Listener will check for the "oome" file
+  inside webapp directories and restart the app if there's one.
+
+- Httpok can now be limited by number of restarts. Check the help for more
+  details.
+  
+- Added documentation for ``oome_monitor`` and updated for ``httpok``.
+
 1.0.0-dev (Next Release)
 ------------------------
 
