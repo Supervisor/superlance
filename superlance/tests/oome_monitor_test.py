@@ -64,12 +64,12 @@ class TestOomeProcess(unittest.TestCase):
         self.process._env_vars = {'HOMEDIR': 'homedir'}
         self.assertEqual('homedir/state/foo.oome', self.process.oome_file)
     
-    @mock.patch('superlance.oome_monitor.psutil')
-    def test_get_oome_file_cwd(self, mock_psutil):
+    @mock.patch('superlance.oome_monitor.os.readlink')
+    def test_get_oome_file_cwd(self, mock_readlink):
         """
         Tests getting the oome_file name property if no env variables were set
         """
-        mock_psutil.Process.return_value.cwd.return_value = 'cwd'
+        mock_readlink.return_value = 'cwd'
         self.process._oome_file = None
         self.process._env_vars = {'USELESS_VAR': '3.141599'}
         self.assertEqual('cwd/state/foo.oome', self.process.oome_file)
@@ -197,8 +197,8 @@ class TestOomeMonitor(unittest.TestCase):
             "Failed to start process foo: <Fault start: 'error'>\n",
             self.stderr.getvalue())
     
-    @mock.patch('superlance.oome_monitor.psutil')
-    def test_run(self, mock_psutil):
+    @mock.patch('superlance.oome_monitor.os.readlink')
+    def test_run(self, mock_readlink):
         """
         Functional test for run() all method with one of the processes (bar) having
         an oome file. OomeMonitor will try to delete the mocked oome file
@@ -215,8 +215,8 @@ class TestOomeMonitor(unittest.TestCase):
             self.oome_monitor_all.run(test=True)
         self.assertEqual("bar restarted\n", self.stderr.getvalue())
     
-    @mock.patch('superlance.oome_monitor.psutil')
-    def test_run_sigle(self, mock_psutil):
+    @mock.patch('superlance.oome_monitor.os.readlink')
+    def test_run_sigle(self, mock_readlink):
         """
         Functional test for run() single method with the processes (foo) having
         an oome file. OomeMonitor will try to delete the mocked oome file
@@ -235,8 +235,8 @@ class TestOomeMonitor(unittest.TestCase):
             self.oome_monitor_single.run(test=True)
         self.assertEqual("foo restarted\n", self.stderr.getvalue())
         
-    @mock.patch('superlance.oome_monitor.psutil')
-    def test_dry_run(self, mock_psutil):
+    @mock.patch('superlance.oome_monitor.os.readlink')
+    def test_dry_run(self, mock_readlink):
         """
         Functional test for run() method with one of the processes (bar) having
         an oome file. OomeMonitor will not try to delete the mocked oome file

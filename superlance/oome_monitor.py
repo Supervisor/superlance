@@ -4,8 +4,6 @@ import os
 import os.path
 import sys
 
-import psutil
-
 from superlance.compat import xmlrpclib
 from supervisor import childutils
 from supervisor.options import make_namespec
@@ -68,8 +66,8 @@ class OomeProcess(object):
                     cwd = self.env_vars['HOMEDIR']
                 else:
                     # Otherwise get the process cwd
-                    process = psutil.Process(self.process['pid'])
-                    cwd = process.cwd()
+                    cwd = os.readlink('/proc/{0}/cwd'.format(
+                        self.process['pid']))
                 self.oome_file = '{0}/state/{1}.oome'.format(cwd,
                         self.process['name'])
         return self._oome_file
