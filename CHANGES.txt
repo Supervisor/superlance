@@ -101,7 +101,7 @@
 
 
 0.5 (2009-05-24)
----------------
+----------------
 
 - Added the ``memmon`` plugin, originally bundled with supervisor and
   now moved to superlance.
