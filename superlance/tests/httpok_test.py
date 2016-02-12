@@ -64,7 +64,8 @@ class HTTPOkTests(unittest.TestCase):
         return self._getTargetClass()(*opts)
 
     def _makeOnePopulated(self, programs, any, response=None, exc=None,
-            gcore=None, coredir=None, eager=True, restart_threshold=3):
+            gcore=None, coredir=None, eager=True, restart_threshold=3,
+            restart_timespan=60):
         if response is None:
             response = DummyResponse()
         rpc = DummyRPCServer()
@@ -79,7 +80,7 @@ class HTTPOkTests(unittest.TestCase):
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
                              inbody, email, sendmail, coredir, gcore, eager,
-                             retry_time, restart_threshold)
+                             retry_time, restart_threshold, restart_timespan)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -132,26 +133,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(lines[2], 'bar restart attempt: 3')
         self.assertEqual(lines[3], ('Not restarting bar anymore. Restarted 3 '
                                     'times'))
-        
-    def test_restart_counter_external_restart(self):
-        programs = ['bar']
-        any = None
-        prog = self._makeOnePopulated(programs, any)
-        specs = list(prog.listProcesses())
-        write = lambda x: prog.stderr.write(x + '\n')
-        for i in xrange(3):
-            prog.restartCounter(specs[0], write)
-        specs[0]['pid'] = 49
-        for i in xrange(3):
-            prog.restartCounter(specs[0], write)
-        lines = prog.stderr.getvalue().strip().split('\n')
-        self.assertEqual(lines[0], 'bar restart is approved')
-        self.assertEqual(lines[1], 'bar restart attempt: 2')
-        self.assertEqual(lines[2], 'bar restart attempt: 3')
-        self.assertEqual(lines[3], ('Program bar was restarted externally, '
-                                    'resuming monitoring and restarting now'))
-        self.assertEqual(lines[4], 'bar restart attempt: 2')
-        self.assertEqual(lines[5], 'bar restart attempt: 3')
+
         
     def test_restart_threshold_zero(self):
         programs = ['bar']
@@ -176,6 +158,10 @@ class HTTPOkTests(unittest.TestCase):
         for i in xrange(3):
             prog.restartCounter(specs[0], write)
         self.assertEqual(prog.counter[specs[0]['name']]['counter'], 3)
+        prog.cleanCounters()
+        # Ensure that the counters don't clean up due to restart_time
+        self.assertEqual(prog.counter[specs[0]['name']]['counter'], 3)
+        prog.counter[specs[0]['name']]['restart_time'] = 0
         prog.cleanCounters()
         self.assertEqual(prog.counter[specs[0]['name']]['counter'], 0)
 

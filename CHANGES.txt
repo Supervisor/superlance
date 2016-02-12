@@ -1,3 +1,9 @@
+1.0.2 (2016-01-25)
+------------------
+
+- Httpok restart limiter now has an option to limit by time span too,
+  e.g. make no more than N restarts in the last M minutes.
+
 1.0.1 (2015-12-24)
 ------------------
 
