@@ -86,6 +86,11 @@ Options:
       does not return successful result while issuing a GET. 0 - for unlimited
       number of restarts. Default is 3.
 
+-n -- specify the time span in minutes during which the maximum number of
+      restarts could happen. This prevents loop restarts when the application
+      is running fine for configured TICK seconds then starts to fail again.
+      Default is 60.
+
 URL -- The URL to which to issue a GET request.
 
 The -p option may be specified more than once, allowing for
@@ -117,9 +122,10 @@ def usage():
 
 class HTTPOk:
     connclass = None
+    # For backward compatibility setting restart argument defaults to 0
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
                  email, sendmail, coredir, gcore, eager, retry_time,
-                 restart_threshold=0):
+                 restart_threshold=0, restart_timespan=0):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -138,6 +144,7 @@ class HTTPOk:
         self.stderr = sys.stderr
         self.counter = {}
         self.restart_threshold = restart_threshold
+        self.restart_timespan = restart_timespan * 60
 
     def listProcesses(self, state=None):
         return [x for x in self.rpc.supervisor.getAllProcessInfo()
@@ -212,9 +219,9 @@ class HTTPOk:
                 elif self.inbody and self.inbody not in body:
                     subject = 'httpok for %s: bad body returned' % self.url
                     self.act(subject, msg)
-                elif [ spec for spec, value in self.counter.items()
+                if [ spec for spec, value in self.counter.items()
                       if value['counter'] > 0]:
-                    # Null the counters if everything is back to normal
+                    # Null the counters if timespan is over
                     self.cleanCounters()
 
             childutils.listener.ok(self.stdout)
@@ -319,9 +326,9 @@ class HTTPOk:
     def restartCounter(self, spec, write):
         """
         Function to check if number of restarts exceeds the configured
-        restart_threshold.
-        It will stop letting self.act() from restarting the program unless
-        program restarts externally, e.g. manually by a human.
+        restart_threshold and last restart time does not exceed
+        restart_timespan. It will stop letting self.act() from restarting
+        the program unless it is restarted externally, e.g. manually by a human
         
         :param spec: Spec as returned by RPC
         :type spec: dict struct
@@ -334,11 +341,13 @@ class HTTPOk:
             self.counter[spec['name']] = {}
             self.counter[spec['name']]['counter'] = 1
             self.counter[spec['name']]['last_pid'] = spec['pid']
+            self.counter[spec['name']]['restart_time'] = time.time()
             write('%s restart is approved' % spec['name'])
             return True
         elif self.restart_threshold == 0:
             # Continue if we don't limit the number of restarts
             self.counter[spec['name']]['counter'] += 1
+            self.counter[spec['name']]['restart_time'] = time.time()
             write('%s in restart loop, attempt: %s' % (spec['name'],
                 self.counter[spec['name']]['counter']))
             return True
@@ -347,12 +356,6 @@ class HTTPOk:
                 self.counter[spec['name']]['counter'] += 1
                 write('%s restart attempt: %s' % (spec['name'],
                     self.counter[spec['name']]['counter']))
-                return True
-            # In case if the program was restarted not by httpok
-            elif self.counter[spec['name']]['last_pid'] != spec['pid']:
-                write('Program %s was restarted externally, resuming '
-                      'monitoring and restarting now' % spec['name'])
-                self.counter[spec['name']]['counter'] = 1
                 return True
             # Do not let httpok restart the program
             else:
@@ -363,15 +366,19 @@ class HTTPOk:
     def cleanCounters(self):
         """
         Function to clean the counter once all monitored programs are
-        running properly and successfully respond to GET requests.
+        running properly and successfully respond to GET requests. It won't
+        clean the counter if self.restart_timespan hasn't been passed
         """
         for spec in self.counter.keys():
-            self.counter[spec]['counter'] = 0
+            if ((time.time() - self.counter[spec]['restart_time']) >
+                    self.restart_timespan):
+                self.counter[spec]['restart_time'] = time.time()
+                self.counter[spec]['counter'] = 0
 
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:s:m:g:d:eEr:"
+    short_args="hp:at:c:b:s:m:g:d:eEr:n:"
     long_args=[
         "help",
         "program=",
@@ -386,6 +393,7 @@ def main(argv=sys.argv):
         "eager",
         "not-eager",
         "restart-threshold=",
+        "restart-timespan="
         ]
     arguments = argv[1:]
     try:
@@ -410,6 +418,7 @@ def main(argv=sys.argv):
     status = '200'
     inbody = None
     restart_threshold = 3
+    restart_timespan = 60
 
     for option, value in opts:
 
@@ -456,6 +465,14 @@ def main(argv=sys.argv):
                 sys.stderr.write('Restart threshold should be a number\n')
                 sys.stderr.flush()
                 return
+        
+        if option in ('-n', '--restart-timespan'):
+            try:
+                restart_timespan = int(value)
+            except ValueError:
+                sys.stderr.write('Restart timespan should be a number\n')
+                sys.stderr.flush()
+                return
 
     url = arguments[-1]
 
@@ -471,7 +488,7 @@ def main(argv=sys.argv):
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
                   sendmail, coredir, gcore, eager, retry_time,
-                  restart_threshold)
+                  restart_threshold, restart_timespan)
     prog.runforever()
 
 if __name__ == '__main__':

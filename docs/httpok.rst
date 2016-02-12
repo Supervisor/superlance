@@ -124,6 +124,13 @@ Command-Line Syntax
    does not return successful result while issuing a GET. 0 - for unlimited
    number of restarts. Default is 3.
 
+.. cmdoption:: -n, --restart-timespan
+
+   Specify the time span in minutes during which the maximum number of
+   restarts could happen. This prevents loop restarts when the application
+   is running fine for configured TICK seconds then starts to fail again.
+   Default is 60.
+
 .. cmdoption:: URL
 
    The URL to which to issue a GET request.
@@ -137,11 +144,17 @@ in order for :command:`httpok` to do its work.
 See the "Events" chapter in the
 Supervisor manual for more information about event listeners.
 
-The following example assumes that :command:`httpok` is on your system
+The following examples assume that :command:`httpok` is on your system
 :envvar:`PATH`.
 
 .. code-block:: ini
 
    [eventlistener:httpok]
    command=httpok -p program1 -p group1:program2 http://localhost:8080/tasty
+   events=TICK_60
+
+.. code-block:: ini
+
+   [eventlistener:httpok]
+   command=httpok -p program1 -r 3 -n 60 http://localhost:8080/tasty
    events=TICK_60
