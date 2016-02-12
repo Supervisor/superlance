@@ -17,8 +17,7 @@ creates an ".oome" file when out of memory conditions are met, e.g.:
 the following:
 * If its provided as an argument - use that
 * $OOME_FILE environment variable of the process
-* $HOMEDIR environment variable and the process name + .oome
-* $CWD of the process and the process name + .oome
+* $CWD of the process + /work/oome
   
 :command:`oome_monitor` could be run to monitor all supervisord processes or
 specified ones inside the configuration file. In case if only one process is
