@@ -10,6 +10,7 @@ env:
     - TOXENV=py34
     - TOXENV=pypy
 install:
-    - travis_retry pip install tox==1.6.1
+    # "virtualenv<14.0.0" is needed for Python 3.2 compat
+    - travis_retry pip install "virtualenv<14.0.0" tox
 script:
     - travis_retry tox
