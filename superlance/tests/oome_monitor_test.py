@@ -62,7 +62,7 @@ class TestOomeProcess(unittest.TestCase):
         """
         self.process._oome_file = None
         self.process._env_vars = {'HOMEDIR': 'homedir'}
-        self.assertEqual('homedir/state/foo.oome', self.process.oome_file)
+        self.assertEqual('homedir/work/oome', self.process.oome_file)
     
     @mock.patch('superlance.oome_monitor.os.readlink')
     def test_get_oome_file_cwd(self, mock_readlink):
@@ -72,7 +72,7 @@ class TestOomeProcess(unittest.TestCase):
         mock_readlink.return_value = 'cwd'
         self.process._oome_file = None
         self.process._env_vars = {'USELESS_VAR': '3.141599'}
-        self.assertEqual('cwd/state/foo.oome', self.process.oome_file)
+        self.assertEqual('cwd/work/oome', self.process.oome_file)
         
     def test_set_oome_file(self):
         """

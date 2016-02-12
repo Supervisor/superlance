@@ -68,8 +68,7 @@ class OomeProcess(object):
                     # Otherwise get the process cwd
                     cwd = os.readlink('/proc/{0}/cwd'.format(
                         self.process['pid']))
-                self.oome_file = '{0}/state/{1}.oome'.format(cwd,
-                        self.process['name'])
+                self.oome_file = '{0}/work/oome'.format(cwd)
         return self._oome_file
     
     @oome_file.setter
