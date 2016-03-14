@@ -1,3 +1,13 @@
+1.0.3 (2016-03-14)
+------------------
+
+- New ExternalService class which allows event listeners to interact with
+  processes using external scripts, e.g. restart the program using provided
+  init daemon rather than signal via supervisor.
+  
+- httpok and oome_monitor now have an option to specify an external script
+  for process management.
+
 1.0.2 (2016-01-25)
 ------------------
 

@@ -122,10 +122,11 @@ class TestOomeMonitor(unittest.TestCase):
     """
     Test class to test OomeMonitor methods and properties
     """
+    @mock.patch('superlance.oome_monitor.ExternalService')
     @mock.patch('sys.stdin', new_callable=StringIO)
     @mock.patch('sys.stdout', new_callable=StringIO)
     @mock.patch('sys.stderr', new_callable=StringIO)
-    def setUp(self, mock_stderr, mock_stdout, mock_stdin):
+    def setUp(self, mock_stderr, mock_stdout, mock_stdin, mock_ext_service):
         """
         Setup function to initialise tests
         """
@@ -138,6 +139,9 @@ class TestOomeMonitor(unittest.TestCase):
         self.oome_monitor_single = OomeMonitor(rpc, process_name=process_name)
         dummy_supervisor = DummySupervisorRPCNamespace()
         self.oome_monitor_all.rpc.supervisor = dummy_supervisor
+        ext_service = mock_ext_service('some script')
+        self.oome_monitor_single_ext_svc = OomeMonitor(rpc,
+            process_name=process_name, ext_service=ext_service)
         
     def test_init(self):
         """
@@ -180,7 +184,9 @@ class TestOomeMonitor(unittest.TestCase):
             DummySupervisorRPCNamespace.all_process_info[0])
         self.oome_monitor_single.restart(
             DummySupervisorRPCNamespace.all_process_info[0])
-        self.assertEqual('foo restarted\nfoo restarted\n',
+        self.oome_monitor_single_ext_svc.restart(
+            DummySupervisorRPCNamespace.all_process_info[0])
+        self.assertEqual('foo restarted\nfoo restarted\nfoo restarted\n',
             self.stderr.getvalue())
         
     def test_failed_restart(self):
