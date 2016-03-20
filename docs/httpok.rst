@@ -131,6 +131,11 @@ Command-Line Syntax
    is running fine for configured TICK seconds then starts to fail again.
    Default is 60.
 
+.. cmdoption:: -x --external-service-script
+   
+   Optionally specify an external script to restart the program, e.g.
+   /etc/init.d/myprogramservicescript.
+
 .. cmdoption:: URL
 
    The URL to which to issue a GET request.

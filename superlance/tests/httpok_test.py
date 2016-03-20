@@ -65,7 +65,7 @@ class HTTPOkTests(unittest.TestCase):
 
     def _makeOnePopulated(self, programs, any, response=None, exc=None,
             gcore=None, coredir=None, eager=True, restart_threshold=3,
-            restart_timespan=60):
+            restart_timespan=60, ext_service=None):
         if response is None:
             response = DummyResponse()
         rpc = DummyRPCServer()
@@ -79,8 +79,8 @@ class HTTPOkTests(unittest.TestCase):
         gcore = gcore
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
-                             inbody, email, sendmail, coredir, gcore, eager,
-                             retry_time, restart_threshold, restart_timespan)
+            inbody, email, sendmail, coredir, gcore, eager, retry_time,
+            restart_threshold, restart_timespan, ext_service)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -148,6 +148,22 @@ class HTTPOkTests(unittest.TestCase):
         for i in xrange(1, 20):
             self.assertEqual(lines[i], ('bar in restart loop, attempt: %s'
                                         % (i + 1)))
+
+    def test_restart_external_script(self):
+        programs = ['foo']
+        any = None
+        prog = self._makeOnePopulated(programs, any, exc=True,
+            ext_service=mock.MagicMock())
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertEqual(lines[0],
+                         "Restarting selected processes ['foo']"
+                         )
+        self.assertEqual(lines[1], 'foo restart is approved')
+        self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[3], 'foo restarted')
         
     def test_clean_counters(self):
         programs = ['bar']
@@ -164,6 +180,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.counter[specs[0]['name']]['restart_time'] = 0
         prog.cleanCounters()
         self.assertEqual(prog.counter[specs[0]['name']]['counter'], 0)
+
 
     def test_runforever_eager_notatick(self):
         programs = {'foo':0, 'bar':0, 'baz_01':0 }

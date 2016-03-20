@@ -91,6 +91,9 @@ Options:
       is running fine for configured TICK seconds then starts to fail again.
       Default is 60.
 
+-x -- optionally specify an external script to restart the program, e.g.
+      /etc/init.d/myprogramservicescript.
+
 URL -- The URL to which to issue a GET request.
 
 The -p option may be specified more than once, allowing for
@@ -109,6 +112,7 @@ import sys
 import time
 from superlance.compat import urlparse
 from superlance.compat import xmlrpclib
+from superlance.utils import ExternalService
 
 from supervisor import childutils
 from supervisor.states import ProcessStates
@@ -122,10 +126,11 @@ def usage():
 
 class HTTPOk:
     connclass = None
-    # For backward compatibility setting restart argument defaults to 0
+    # For backward compatibility setting restart argument defaults to 0 and
+    # ext_service to None
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
                  email, sendmail, coredir, gcore, eager, retry_time,
-                 restart_threshold=0, restart_timespan=0):
+                 restart_threshold=0, restart_timespan=0, ext_service=None):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -145,6 +150,7 @@ class HTTPOk:
         self.counter = {}
         self.restart_threshold = restart_threshold
         self.restart_timespan = restart_timespan * 60
+        self.ext_service = ext_service
 
     def listProcesses(self, state=None):
         return [x for x in self.rpc.supervisor.getAllProcessInfo()
@@ -304,19 +310,32 @@ class HTTPOk:
                     write('gcore output for %s:\n\n %s' % (
                         namespec, m.read()))
             write('%s is in RUNNING state, restarting' % namespec)
-            try:
-                self.rpc.supervisor.stopProcess(namespec)
-            except xmlrpclib.Fault as e:
-                write('Failed to stop process %s: %s' % (
-                    namespec, e))
-
-            try:
-                self.rpc.supervisor.startProcess(namespec)
-            except xmlrpclib.Fault as e:
-                write('Failed to start process %s: %s' % (
-                    namespec, e))
+            if self.ext_service:
+                try:
+                    self.ext_service.stopProcess(namespec)
+                except Exception as e:
+                    write('Failed to stop process %s: %s' % (
+                        namespec, e))
+                try:
+                    self.ext_service.startProcess(namespec)
+                except Exception as e:
+                    write('Failed to start process %s: %s' % (
+                        namespec, e))
+                else:
+                    write('%s restarted' % namespec)
             else:
-                write('%s restarted' % namespec)
+                try:
+                    self.rpc.supervisor.stopProcess(namespec)
+                except xmlrpclib.Fault as e:
+                    write('Failed to stop process %s: %s' % (
+                        namespec, e))
+                try:
+                    self.rpc.supervisor.startProcess(namespec)
+                except xmlrpclib.Fault as e:
+                    write('Failed to start process %s: %s' % (
+                        namespec, e))
+                else:
+                    write('%s restarted' % namespec)
             if spec['name'] in self.counter:
                 new_spec = self.rpc.supervisor.getProcessInfo(spec['name'])
                 self.counter[spec['name']]['last_pid'] = new_spec['pid']
@@ -378,7 +397,7 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:s:m:g:d:eEr:n:"
+    short_args="hp:at:c:b:s:m:g:d:eEr:n:x:"
     long_args=[
         "help",
         "program=",
@@ -393,7 +412,8 @@ def main(argv=sys.argv):
         "eager",
         "not-eager",
         "restart-threshold=",
-        "restart-timespan="
+        "restart-timespan=",
+        "external-service-script=",
         ]
     arguments = argv[1:]
     try:
@@ -419,6 +439,7 @@ def main(argv=sys.argv):
     inbody = None
     restart_threshold = 3
     restart_timespan = 60
+    external_service_script = None
 
     for option, value in opts:
 
@@ -473,11 +494,19 @@ def main(argv=sys.argv):
                 sys.stderr.write('Restart timespan should be a number\n')
                 sys.stderr.flush()
                 return
+        
+        if option in ('-x', '--external-service-script'):
+            external_service_script = value
 
     url = arguments[-1]
 
     try:
         rpc = childutils.getRPCInterface(os.environ)
+        if external_service_script:
+            # Instantiate an ExternalService class to call the given script
+            ext_service = ExternalService(external_service_script)
+        else:
+            ext_service = None
     except KeyError as e:
         if e.args[0] != 'SUPERVISOR_SERVER_URL':
             raise
@@ -485,9 +514,13 @@ def main(argv=sys.argv):
                          'listener\n')
         sys.stderr.flush()
         return
+    except OSError as e:
+        sys.stderr.write('os error occurred: %s\n' % e)
+        sys.stderr.flush()
+        return
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
-                  sendmail, coredir, gcore, eager, retry_time,
+                  sendmail, coredir, gcore, eager, retry_time, ext_service,
                   restart_threshold, restart_timespan)
     prog.runforever()
 

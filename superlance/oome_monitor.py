@@ -5,6 +5,7 @@ import os.path
 import sys
 
 from superlance.compat import xmlrpclib
+from superlance.utils import ExternalService
 from supervisor import childutils
 from supervisor.options import make_namespec
 
@@ -112,7 +113,7 @@ class OomeMonitor(object):
     state/ directory.
     """
     def __init__(self, rpc, process_name=[], all=False, dry=False,
-                 oome_file=None):
+                 oome_file=None, ext_service=None, **kwargs):
         """
         We explicitly define self.stdin, self.stdout, and self.stderr
         so this code could be unit tested.
@@ -138,6 +139,7 @@ class OomeMonitor(object):
         self.stdout = sys.stdout
         self.stderr = sys.stderr
         self._generate_processes()
+        self.ext_service = ext_service
         
     def _generate_processes(self):
         """
@@ -186,18 +188,33 @@ class OomeMonitor(object):
         :type process: dict
         """
         namespec = make_namespec(process['group'], process['name'])
-        try:
-            self.rpc.supervisor.stopProcess(namespec)
-        except xmlrpclib.Fault as e:
-            self.write_stderr(
-                'Failed to stop process {0}: {1}'.format(namespec, e))
-        try:
-            self.rpc.supervisor.startProcess(namespec)
-        except xmlrpclib.Fault as e:
-            self.write_stderr(
-                'Failed to start process {0}: {1}'.format(namespec, e))
+        if self.ext_service:
+            try:
+                self.ext_service.stopProcess(namespec)
+            except Exception as e:
+                self.write_stderr('Failed to stop process %s: %s' % (
+                    namespec, e))
+            try:
+                self.ext_service.startProcess(namespec)
+            except Exception as e:
+                self.write_stderr('Failed to start process %s: %s' % (
+                    namespec, e))
+            else:
+                self.write_stderr('%s restarted' % namespec)
         else:
-            self.write_stderr('{0} restarted'.format(namespec))
+            try:
+                self.rpc.supervisor.stopProcess(namespec)
+            except xmlrpclib.Fault as e:
+                self.write_stderr('Failed to stop process %s: %s' % (
+                    namespec, e))
+            try:
+                self.rpc.supervisor.startProcess(namespec)
+            except xmlrpclib.Fault as e:
+                self.write_stderr('Failed to start process %s: %s' % (
+                    namespec, e))
+            else:
+                self.write_stderr('%s restarted' % namespec)
+
         
     def run(self, test=False):
         """
@@ -244,6 +261,12 @@ def main():
         help='for single process optionally provide an oome file name')
     parser_p.add_argument('--dry', '-d', action='store_true',
         help=dry_run_text)
+    parser_p.add_argument('--external-service-script', '-x',
+        help=(
+            'optionally specify the external script to restart the program,'
+            ' e.g. /etc/init.d/myprogramservicescript.'
+        )
+    )
     parser_a = subparsers.add_parser('all')
     parser_a.add_argument('all', action='store_true',
         help='monitor all supervisor processes.')
@@ -261,6 +284,11 @@ def main():
         pass
     try:
         rpc = childutils.getRPCInterface(os.environ)
+        if args.external_service_script:
+            # Instantiate an ExternalService class to call the given script
+            ext_service = ExternalService(args.external_service_script)
+        else:
+            ext_service = None
     except KeyError as e:
         if e.args[0] != 'SUPERVISOR_SERVER_URL':
             raise
@@ -268,7 +296,11 @@ def main():
                          'listener\n')
         sys.stderr.flush()
         return
-    monitor = OomeMonitor(rpc, **vars(args))
+    except OSError as e:
+        sys.stderr.write('os error occurred: %s\n' % e)
+        sys.stderr.flush()
+        return
+    monitor = OomeMonitor(rpc, ext_service, **vars(args))
     monitor.run()
 
 if __name__ == '__main__':

@@ -62,6 +62,11 @@ Command-Line Syntax
 
    Do not actually kill or restart the procesesses, only log the actions.
 
+.. option:: -x --external-service-script
+   
+   Optionally specify an external script to restart the program, e.g.
+   /etc/init.d/myprogramservicescript.
+
 .. option:: -h, --help
 
    Display help information.
