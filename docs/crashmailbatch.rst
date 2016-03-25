@@ -22,7 +22,9 @@ Command-Line Syntax
 
    $ crashmailbatch --toEmail=<email address> --fromEmail=<email address> \
            [--interval=<batch interval in minutes>] [--subject=<email subject>] \
-		   [--tickEvent=<event name>]
+		   [--tickEvent=<event name>] [--smtpHost=<SMTP server>] \
+           [--userName=<SMTP username>] [--password=<STMP password>] \
+           [--tls]
    
 .. program:: crashmailbatch
 
@@ -46,6 +48,22 @@ Command-Line Syntax
 .. cmdoption:: -e <event name>, --tickEvent=<event name>
 
    Override the TICK event name.  Defaults to "TICK_60"
+   
+.. cmdoption:: -H <STMP server> --smtpHost <SMTP server>
+
+   Specify STMP server for sending email
+
+.. cmdoption:: -u <STMP username> --userName <SMTP username>
+
+   Specify STMP username
+
+.. cmdoption:: -p <STMP password> --password <SMTP password>
+
+   Specify STMP password
+
+.. cmdoption:: --tls
+
+   Use Transport Layer Security (TLS)
 
 Configuring :command:`crashmailbatch` Into the Supervisor Config
 ----------------------------------------------------------------
