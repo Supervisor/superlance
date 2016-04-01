@@ -112,7 +112,7 @@ class OomeMonitor(object):
     Class for performing actions when 'oome' file is detected inside webapp
     state/ directory.
     """
-    def __init__(self, rpc, process_name=[], all=False, dry=False,
+    def __init__(self, rpc, process_name=None, all=False, dry=False,
                  oome_file=None, ext_service=None, **kwargs):
         """
         We explicitly define self.stdin, self.stdout, and self.stderr
@@ -133,6 +133,8 @@ class OomeMonitor(object):
         self.all = all
         self.dry = dry
         self.oome_file = oome_file
+        if not process_name:
+            process_name = []
         self.process_names = process_name
         self.rpc = rpc
         self.stdin = sys.stdin
@@ -284,7 +286,7 @@ def main():
         pass
     try:
         rpc = childutils.getRPCInterface(os.environ)
-        if args.external_service_script:
+        if 'external_service_script' in args:
             # Instantiate an ExternalService class to call the given script
             ext_service = ExternalService(args.external_service_script)
         else:
