@@ -520,8 +520,8 @@ def main(argv=sys.argv):
         return
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
-                  sendmail, coredir, gcore, eager, retry_time, ext_service,
-                  restart_threshold, restart_timespan)
+                  sendmail, coredir, gcore, eager, retry_time,
+                  restart_threshold, restart_timespan, ext_service)
     prog.runforever()
 
 if __name__ == '__main__':
