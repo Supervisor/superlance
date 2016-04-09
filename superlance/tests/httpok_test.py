@@ -63,7 +63,7 @@ class HTTPOkTests(unittest.TestCase):
         return self._getTargetClass()(*opts)
 
     def _makeOnePopulated(self, programs, any, response=None, exc=None,
-                          gcore=None, coredir=None, eager=True):
+                          gcore=None, coredir=None, eager=True, allowed_retries=0):
         if response is None:
             response = DummyResponse()
         rpc = DummyRPCServer()
@@ -78,7 +78,7 @@ class HTTPOkTests(unittest.TestCase):
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
                              inbody, email, sendmail, coredir, gcore, eager,
-                             retry_time)
+                             retry_time, allowed_retries)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -311,6 +311,31 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
+
+    def test_runforever_retry_before_restart(self):
+        programs = ['foo', 'bar']
+        any = None
+        prog = self._makeOnePopulated(programs, any, exc=True, eager=False, allowed_retries=2)
+
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertEqual(lines[-2], 'Allowed number of retries not exceeded, '
+                                    'will try again 2 more times.')
+
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertEqual(lines[-2], 'Allowed number of retries not exceeded, '
+                                    'will try again 1 more times.')
+
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        new_lines = prog.stderr.getvalue().split('\n')[len(lines) - 1:]
+        self.assertEqual(new_lines[0], "Restarting selected processes ['foo', 'bar']")
 
 if __name__ == '__main__':
     unittest.main()
