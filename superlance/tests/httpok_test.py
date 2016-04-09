@@ -131,9 +131,7 @@ class HTTPOkTests(unittest.TestCase):
         programs = ['foo', 'bar', 'baz_01', 'notexisting']
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 7)
         self.assertEqual(lines[0],
@@ -157,9 +155,7 @@ class HTTPOkTests(unittest.TestCase):
         programs = []
         any = True
         prog = self._makeOnePopulated(programs, any, exc=True)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 6)
         self.assertEqual(lines[0], 'Restarting all running processes')
@@ -179,9 +175,7 @@ class HTTPOkTests(unittest.TestCase):
         any = False
         prog = self._makeOnePopulated(programs, any, exc=True)
         prog.rpc.supervisor.all_process_info = _FAIL
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 5)
         self.assertEqual(lines[0], "Restarting selected processes ['FAILED']")
@@ -200,9 +194,7 @@ class HTTPOkTests(unittest.TestCase):
         any = False
         prog = self._makeOnePopulated(programs, any, exc=True)
         prog.rpc.supervisor.all_process_info = _FAIL
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 4)
         self.assertEqual(lines[0],
@@ -222,9 +214,7 @@ class HTTPOkTests(unittest.TestCase):
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True, gcore="true",
                                       coredir="/tmp")
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar', "
@@ -251,9 +241,7 @@ class HTTPOkTests(unittest.TestCase):
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True, gcore="true",
                                       coredir="/tmp", eager=False)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(len(lines), 0, lines)
         self.assertFalse('mailed' in prog.__dict__)
@@ -262,9 +250,7 @@ class HTTPOkTests(unittest.TestCase):
         programs = ['foo', 'bar']
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True, eager=False)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar']")
@@ -284,9 +270,7 @@ class HTTPOkTests(unittest.TestCase):
         error = socket.error()
         error.errno = 111
         prog = self._makeOnePopulated(programs, any, exc=[error], eager=False)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         self.assertEqual(prog.stderr.getvalue(), '')
         self.assertEqual(prog.stdout.getvalue(), 'READY\nRESULT 2\nOK')
 
@@ -297,9 +281,7 @@ class HTTPOkTests(unittest.TestCase):
         error.errno = 111
         prog = self._makeOnePopulated(programs, any,
             exc=[error for x in range(100)], eager=False)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar']")
@@ -318,23 +300,17 @@ class HTTPOkTests(unittest.TestCase):
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True, eager=False, allowed_retries=2)
 
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         self.assertEqual(lines[-2], 'Allowed number of retries not exceeded, '
                                     'will try again 2 more times.')
 
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         self.assertEqual(lines[-2], 'Allowed number of retries not exceeded, '
                                     'will try again 1 more times.')
 
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         new_lines = prog.stderr.getvalue().split('\n')[len(lines) - 1:]
         self.assertEqual(new_lines[0], "Restarting selected processes ['foo', 'bar']")
 
@@ -344,28 +320,28 @@ class HTTPOkTests(unittest.TestCase):
         prog = self._makeOnePopulated(programs, any, exc=[True, False, True],
                                       eager=False, allowed_retries=1)
 
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         self.assertEqual(lines[-2], 'Allowed number of retries not exceeded, '
                                     'will try again 1 more times.')
 
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         new_lines = prog.stderr.getvalue().split('\n')
         # nothing new is printed
         self.assertListEqual(lines, new_lines)
 
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         new_lines = prog.stderr.getvalue().split('\n')
         # new retry notice is printed
         self.assertTrue(len(new_lines) > len(lines))
         self.assertEqual(lines[-2], 'Allowed number of retries not exceeded, '
                                     'will try again 1 more times.')
+
+    def tick(self, prog):
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+
 
 if __name__ == '__main__':
     unittest.main()
