@@ -43,10 +43,10 @@ class ExternalService(object):
         """
         try:
             subprocess.check_call([self.service, 'start'], stdout=self.stderr)
-            self.stderr.write('{} started successfully\n'.format(name))
+            self.stderr.write('{0} started successfully\n'.format(name))
         except subprocess.CalledProcessError as e:
-            self.stderr.write('{} was unable to start. Cmd used to start: {},'
-                'Output from the script: {}\n'.format(name, e.cmd, e.output))
+            self.stderr.write('{0} was unable to start. Cmd used to start: {1}'
+                .format(name, e.cmd))
         self.stderr.flush()
         return True
     
@@ -59,9 +59,9 @@ class ExternalService(object):
         """
         try:
             subprocess.check_call([self.service, 'stop'], stdout=self.stderr)
-            self.stderr.write('{} stopped successfully\n'.format(name))
+            self.stderr.write('{0} stopped successfully\n'.format(name))
         except subprocess.CalledProcessError as e:
-            self.stderr.write('{} was unable to stop. Cmd used to stop: {},'
-                'Output from the script: {}\n'.format(name, e.cmd, e.output))
+            self.stderr.write('{0} was unable to stop. Cmd used to stop: {1}'
+                .format(name, e.cmd))
         self.stderr.flush()
         return True

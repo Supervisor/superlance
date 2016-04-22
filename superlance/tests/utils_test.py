@@ -48,14 +48,14 @@ class TestExternalService(unittest.TestCase):
                          self.stderr.getvalue())
         
     @mock.patch('subprocess.check_call',
-                side_effect=subprocess.CalledProcessError('1', 'cmd', 'out'))
+                side_effect=subprocess.CalledProcessError('1', 'cmd'))
     def test_start_process_fail(self, mock_sub):
         """
         Tests startProcess method failure
         """
         self.ext_service.startProcess('process')
-        self.assertEqual('process was unable to start. Cmd used to start: cmd,'
-            'Output from the script: out\n', self.stderr.getvalue())
+        self.assertEqual('process was unable to start. Cmd used to start: cmd',
+                         self.stderr.getvalue())
     
     @mock.patch('subprocess.check_call')
     def test_stop_process(self, mock_sub):
@@ -67,14 +67,14 @@ class TestExternalService(unittest.TestCase):
                          self.stderr.getvalue())
         
     @mock.patch('subprocess.check_call',
-                side_effect=subprocess.CalledProcessError('1', 'cmd', 'out'))
+                side_effect=subprocess.CalledProcessError('1', 'cmd'))
     def test_stop_process_fail(self, mock_sub):
         """
         Tests stopProcess method failure
         """
         self.ext_service.stopProcess('process')
-        self.assertEqual('process was unable to stop. Cmd used to stop: cmd,'
-            'Output from the script: out\n', self.stderr.getvalue())
+        self.assertEqual('process was unable to stop. Cmd used to stop: cmd',
+                         self.stderr.getvalue())
 
 
 if __name__ == '__main__':
