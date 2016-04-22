@@ -1,3 +1,14 @@
+1.0.4 (2016-04-22)
+------------------
+
+- Fixed a bug which was throwing string interpolation exceptions on Python
+  versions prior to 2.7.
+
+- Updated unit tests.
+
+- Fixed an exception checking unit test which passing too many arguments to subprocess.CalledProcessError
+  which wasn't working on Python versions prior to 2.7
+
 1.0.3 (2016-03-14)
 ------------------
 
