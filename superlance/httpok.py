@@ -26,7 +26,8 @@
 
 doc = """\
 httpok.py [-p processname] [-a] [-g] [-t timeout] [-c status_code] [-b inbody]
-          [-m mail_address] [-s sendmail] [-r restart_threshold] URL
+    [-B restart_string] [-m mail_address] [-s sendmail] [-r restart_threshold]
+    [-n restart_timespan] [-x external_script] URL
 
 Options:
 
@@ -66,6 +67,13 @@ Options:
       response, the processes in the RUNNING state specified by -p
       or -a will be restarted.  The default is to ignore the
       body.
+
+-B -- specify a string which should NOT be present in the body resulting
+      from the GET request. If this string is present in the
+      response, the processes in the RUNNING state specified by -p
+      or -a will be restarted.  This option is the opposite of the -b option
+      and can be specified multiple times and it may be specified along with
+      the -b option. The default is to ignore the restart string.
 
 -s -- the sendmail command to use to send email
       (e.g. "/usr/sbin/sendmail -t -i").  Must be a command which accepts
@@ -130,7 +138,8 @@ class HTTPOk:
     # ext_service to None
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
                  email, sendmail, coredir, gcore, eager, retry_time,
-                 restart_threshold=0, restart_timespan=0, ext_service=None):
+                 restart_threshold=0, restart_timespan=0, ext_service=None,
+                 restart_string=None):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -139,6 +148,7 @@ class HTTPOk:
         self.retry_time = retry_time
         self.status = status
         self.inbody = inbody
+        self.restart_string = restart_string
         self.email = email
         self.sendmail = sendmail
         self.coredir = coredir
@@ -225,6 +235,13 @@ class HTTPOk:
                 elif self.inbody and self.inbody not in body:
                     subject = 'httpok for %s: bad body returned' % self.url
                     self.act(subject, msg)
+                elif self.restart_string and isinstance(self.restart_string,
+                                                        list):
+                    if any(restart_string in body for restart_string in
+                           self.restart_string):
+                        subject = 'httpok for %s: restart string in body' % \
+                                  self.url
+                        self.act(subject, msg)
                 if [ spec for spec, value in self.counter.items()
                       if value['counter'] > 0]:
                     # Null the counters if timespan is over
@@ -397,7 +414,7 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:s:m:g:d:eEr:n:x:"
+    short_args="hp:at:c:b:B:s:m:g:d:eEr:n:x:"
     long_args=[
         "help",
         "program=",
@@ -405,6 +422,7 @@ def main(argv=sys.argv):
         "timeout=",
         "code=",
         "body=",
+        "restart-string=",
         "sendmail_program=",
         "email=",
         "gcore=",
@@ -437,6 +455,7 @@ def main(argv=sys.argv):
     retry_time = 10
     status = '200'
     inbody = None
+    restart_string = []
     restart_threshold = 3
     restart_timespan = 60
     external_service_script = None
@@ -466,6 +485,9 @@ def main(argv=sys.argv):
 
         if option in ('-b', '--body'):
             inbody = value
+
+        if option in ('-B', '--restart-string'):
+            restart_string.append(value)
 
         if option in ('-g', '--gcore'):
             gcore = value
@@ -521,7 +543,8 @@ def main(argv=sys.argv):
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
                   sendmail, coredir, gcore, eager, retry_time,
-                  restart_threshold, restart_timespan, ext_service)
+                  restart_threshold, restart_timespan, ext_service,
+                  restart_string)
     prog.runforever()
 
 if __name__ == '__main__':

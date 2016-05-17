@@ -94,6 +94,19 @@ Command-Line Syntax
 
    The default is to ignore the body.
 
+.. cmdoption:: -B <body_restart_string>, --restart-string=<body_restart_string>
+
+   Specify a string which should NOT be present in the body resulting
+   from the GET request.
+
+   If this string is present in the response, :command:`httpok` will
+   attempt to restart child processes which are in the RUNNING state,
+   and specified by ``-p`` or ``-a``. This option is the opposite of the -b 
+   option and can be specified multiple times and it may be specified along 
+   with the -b option.
+
+   The default is to ignore the body.
+
 .. cmdoption:: -s <sendmail_command>, --sendmail_program=<sendmail_command>
 
    Specify the sendmail command to use to send email.

@@ -65,7 +65,7 @@ class HTTPOkTests(unittest.TestCase):
 
     def _makeOnePopulated(self, programs, any, response=None, exc=None,
             gcore=None, coredir=None, eager=True, restart_threshold=3,
-            restart_timespan=60, ext_service=None):
+            restart_timespan=60, ext_service=None, restart_string=None):
         if response is None:
             response = DummyResponse()
         rpc = DummyRPCServer()
@@ -80,7 +80,7 @@ class HTTPOkTests(unittest.TestCase):
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
             inbody, email, sendmail, coredir, gcore, eager, retry_time,
-            restart_threshold, restart_timespan, ext_service)
+            restart_threshold, restart_timespan, ext_service, restart_string)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -164,6 +164,26 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(lines[1], 'foo restart is approved')
         self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
         self.assertEqual(lines[3], 'foo restarted')
+
+    def test_restart_string(self):
+        programs = ['foo']
+        any = None
+        response = DummyResponse()
+        response.body = 'boo'
+        prog = self._makeOnePopulated(programs, any, response=response,
+                                      restart_string=['boo'])
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertEqual(lines[0],
+                         "Restarting selected processes ['foo']"
+                         )
+        self.assertEqual(lines[1], 'foo restart is approved')
+        self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[3], 'foo restarted')
+        self.assertEqual(lines[7], ('Subject: httpok for http://foo/bar: '
+                                    'restart string in body'))
         
     def test_clean_counters(self):
         programs = ['bar']
