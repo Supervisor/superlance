@@ -25,6 +25,10 @@ Currently, it provides these plugins:
     child processes, and restarts them when they exceed a configured
     maximum size.
 
+:command:`timemon`
+    This plugin is meant to be used as a supervisor event listener,
+    subscribed to ``TICK_*`` events.  It restart process every N hours or days
+
 :command:`crashmailbatch`
     Similar to :command:`crashmail`, :command:`crashmailbatch` sends email 
     alerts when processes die unexpectedly.  The difference is that all alerts 
