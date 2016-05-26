@@ -5,9 +5,9 @@ import sys
 from supervisor import childutils
 
 doc = '''
-Usage: timemon -g taskgroup -i hour -n 5
+Usage: timemon -g taskgroup -i hour -n 5 [ -s 3 ]
 
-Restarts daemon every 5 hours
+Restarts daemon every 5 hours. Sleep between restarts - 3 seconds
 '''
 
 
@@ -24,12 +24,13 @@ def write_stderr(s):
 
 def timemon_from_args(arguments):
     import getopt
-    short_args = "hg:i:n:"
+    short_args = "hg:i:n:s"
     long_args = [
         "help",
         "group=",
         "interval=",
         "number=",
+        "sleep="
     ]
 
     if not arguments:
@@ -53,6 +54,9 @@ def timemon_from_args(arguments):
 
         if option in ('-n', '--number'):
             timemon_args['number'] = value
+
+        if option in ('-s', '--sleep'):
+            timemon_args['sleep'] = value
     return timemon_args
 
 
@@ -61,7 +65,7 @@ def usage():
     sys.exit(255)
 
 
-def start_timemon(group, interval, number):
+def start_timemon(group, interval, number, sleep=0):
     rpc = childutils.getRPCInterface(os.environ)
     while True:
         hdrs, payload = childutils.listener.wait(sys.stdin, sys.stdout)
@@ -75,6 +79,7 @@ def start_timemon(group, interval, number):
                         rpc.supervisor.stopProcess(':'.join([process['group'], process['name']]), True)
                     except Exception as e:
                         write_stderr(str(e) + "\n")
+                    time.sleep(sleep)
                     try:
                         rpc.supervisor.startProcess(':'.join([process['group'], process['name']]), True)
                     except Exception as e:
