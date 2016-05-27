@@ -1,6 +1,7 @@
 import datetime
 import os
 import sys
+import time
 
 from supervisor import childutils
 
@@ -70,16 +71,17 @@ def start_timemon(group, interval, number, sleep=0):
     while True:
         hdrs, payload = childutils.listener.wait(sys.stdin, sys.stdout)
         process_info = rpc.supervisor.getAllProcessInfo()
-        should_restart = getattr(datetime.datetime.now(), sys.argv[2]) % sys.argv[3]
+        should_restart = getattr(datetime.datetime.now(), interval) % int(number)
         if should_restart:
             for process in process_info:
-                if process['group'] == sys.argv[1] and \
-                   int(process['name'].split('-')[-1]) % 2 == datetime.datetime.now().hour % 2:
+                if process['group'] == group and \
+                   should_restart:
                     try:
                         rpc.supervisor.stopProcess(':'.join([process['group'], process['name']]), True)
                     except Exception as e:
                         write_stderr(str(e) + "\n")
-                    time.sleep(sleep)
+                    if sleep:
+                        time.sleep(float(sleep))
                     try:
                         rpc.supervisor.startProcess(':'.join([process['group'], process['name']]), True)
                     except Exception as e:
