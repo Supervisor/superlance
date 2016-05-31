@@ -67,9 +67,13 @@ def usage():
 
 
 def start_timemon(group, interval, number, sleep=0):
-    rpc = childutils.getRPCInterface(os.environ)
+    max_serial = 0
     while True:
+        rpc = childutils.getRPCInterface(os.environ)
         hdrs, payload = childutils.listener.wait(sys.stdin, sys.stdout)
+        if int(hdrs['serial']) <= max_serial:
+            continue
+        max_serial = int(hdrs['serial'])
         process_info = rpc.supervisor.getAllProcessInfo()
         should_restart = getattr(datetime.datetime.now(), interval) % int(number)
         if should_restart:
