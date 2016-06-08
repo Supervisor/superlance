@@ -101,8 +101,8 @@ Command-Line Syntax
 
    If this string is present in the response, :command:`httpok` will
    attempt to restart child processes which are in the RUNNING state,
-   and specified by ``-p`` or ``-a``. This option is the opposite of the -b 
-   option and can be specified multiple times and it may be specified along 
+   and specified by ``-p`` or ``-a``. This option is the opposite of the -b
+   option and can be specified multiple times and it may be specified along
    with the -b option.
 
    The default is to ignore the body.
@@ -133,7 +133,7 @@ Command-Line Syntax
 
 .. cmdoption:: -r, --restart-threshold
 
-   Specify the maximum number of times program should be restarted if it 
+   Specify the maximum number of times program should be restarted if it
    does not return successful result while issuing a GET. 0 - for unlimited
    number of restarts. Default is 3.
 
@@ -145,9 +145,15 @@ Command-Line Syntax
    Default is 60.
 
 .. cmdoption:: -x --external-service-script
-   
+
    Optionally specify an external script to restart the program, e.g.
    /etc/init.d/myprogramservicescript.
+
+.. cmdoption:: -G --grace-period
+
+   Specify the grace period before starting to act on programs which are
+   failing their healthchecks. Grace period is counted since the last time
+   program was (re)started.
 
 .. cmdoption:: URL
 

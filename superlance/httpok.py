@@ -90,7 +90,7 @@ Options:
 -E -- not "eager":  do not check URL / emit mail if no process we are
       monitoring is in the RUNNING state.
 
--r -- specify the maximum number of times program should be restarted if it 
+-r -- specify the maximum number of times program should be restarted if it
       does not return successful result while issuing a GET. 0 - for unlimited
       number of restarts. Default is 3.
 
@@ -101,6 +101,10 @@ Options:
 
 -x -- optionally specify an external script to restart the program, e.g.
       /etc/init.d/myprogramservicescript.
+
+-G -- specify the grace period before starting to act on programs which are
+      failing their healthchecks. Grace period is counted since the last time
+      program was (re)started.
 
 URL -- The URL to which to issue a GET request.
 
@@ -139,7 +143,7 @@ class HTTPOk:
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
                  email, sendmail, coredir, gcore, eager, retry_time,
                  restart_threshold=0, restart_timespan=0, ext_service=None,
-                 restart_string=None):
+                 restart_string=None, grace_period=None):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -161,6 +165,7 @@ class HTTPOk:
         self.restart_threshold = restart_threshold
         self.restart_timespan = restart_timespan * 60
         self.ext_service = ext_service
+        self.grace_period = grace_period * 60 if grace_period else 0
 
     def listProcesses(self, state=None):
         return [x for x in self.rpc.supervisor.getAllProcessInfo()
@@ -273,6 +278,12 @@ class HTTPOk:
             for spec in specs:
                 name = spec['name']
                 group = spec['group']
+                now = spec['now']
+                starttime = spec['start']
+                if (now - starttime) < self.grace_period:
+                    write('Grace period has not been elapsed since %s was '
+                          'last restarted' % name)
+                    continue
                 if self.restartCounter(spec, write):
                     self.restart(spec, write)
                 else:
@@ -287,6 +298,12 @@ class HTTPOk:
             for spec in specs:
                 name = spec['name']
                 group = spec['group']
+                now = spec['now']
+                starttime = spec['start']
+                if (now - starttime) < self.grace_period:
+                    write('Grace period has not been elapsed since %s was '
+                          'last restarted' % name)
+                    return
                 namespec = make_namespec(group, name)
                 if (name in self.programs) or (namespec in self.programs):
                     if self.restartCounter(spec, write):
@@ -358,14 +375,14 @@ class HTTPOk:
                 self.counter[spec['name']]['last_pid'] = new_spec['pid']
         else:
             write('%s not in RUNNING state, NOT restarting' % namespec)
-            
+
     def restartCounter(self, spec, write):
         """
         Function to check if number of restarts exceeds the configured
         restart_threshold and last restart time does not exceed
         restart_timespan. It will stop letting self.act() from restarting
         the program unless it is restarted externally, e.g. manually by a human
-        
+
         :param spec: Spec as returned by RPC
         :type spec: dict struct
         :param write: Stderr write handler and a message container
@@ -398,7 +415,7 @@ class HTTPOk:
                 write('Not restarting %s anymore. Restarted %s times' % (
                     spec['name'], self.counter[spec['name']]['counter']))
                 return False
-    
+
     def cleanCounters(self):
         """
         Function to clean the counter once all monitored programs are
@@ -414,7 +431,7 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:B:s:m:g:d:eEr:n:x:"
+    short_args="hp:at:c:b:B:s:m:g:d:eEr:n:x:G:"
     long_args=[
         "help",
         "program=",
@@ -432,6 +449,7 @@ def main(argv=sys.argv):
         "restart-threshold=",
         "restart-timespan=",
         "external-service-script=",
+        "grace-period=",
         ]
     arguments = argv[1:]
     try:
@@ -459,6 +477,7 @@ def main(argv=sys.argv):
     restart_threshold = 3
     restart_timespan = 60
     external_service_script = None
+    grace_period = 0
 
     for option, value in opts:
 
@@ -500,7 +519,7 @@ def main(argv=sys.argv):
 
         if option in ('-E', '--not-eager'):
             eager = False
-        
+
         if option in ('-r', '--restart-threshold'):
             try:
                 restart_threshold = int(value)
@@ -508,7 +527,7 @@ def main(argv=sys.argv):
                 sys.stderr.write('Restart threshold should be a number\n')
                 sys.stderr.flush()
                 return
-        
+
         if option in ('-n', '--restart-timespan'):
             try:
                 restart_timespan = int(value)
@@ -516,9 +535,12 @@ def main(argv=sys.argv):
                 sys.stderr.write('Restart timespan should be a number\n')
                 sys.stderr.flush()
                 return
-        
+
         if option in ('-x', '--external-service-script'):
             external_service_script = value
+
+        if option in ('-G', '--grace-period'):
+            grace_period = int(value)
 
     url = arguments[-1]
 
@@ -544,7 +566,7 @@ def main(argv=sys.argv):
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
                   sendmail, coredir, gcore, eager, retry_time,
                   restart_threshold, restart_timespan, ext_service,
-                  restart_string)
+                  restart_string, grace_period)
     prog.runforever()
 
 if __name__ == '__main__':
