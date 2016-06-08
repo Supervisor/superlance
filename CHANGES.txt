@@ -1,3 +1,10 @@
+1.0.6 (2016-06-10)
+------------------
+
+- New feature Httpok allowing to specify a grace period before starting to
+  act on programs which are failing their healthchecks. Grace period is counted
+  since the last time program was started.
+
 1.0.5 (2016-05-17)
 ------------------
 
