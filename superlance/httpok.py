@@ -102,9 +102,9 @@ Options:
 -x -- optionally specify an external script to restart the program, e.g.
       /etc/init.d/myprogramservicescript.
 
--G -- specify the grace period before starting to act on programs which are
-      failing their healthchecks. Grace period is counted since the last time
-      program was (re)started.
+-G -- specify the grace period in minutes before starting to act on programs
+      which are failing their healthchecks. Grace period is counted since
+      the last time program was (re)started.
 
 URL -- The URL to which to issue a GET request.
 

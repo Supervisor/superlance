@@ -151,9 +151,9 @@ Command-Line Syntax
 
 .. cmdoption:: -G --grace-period
 
-   Specify the grace period before starting to act on programs which are
-   failing their healthchecks. Grace period is counted since the last time
-   program was (re)started.
+   Specify the grace period in minutes before starting to act on programs
+   which are failing their healthchecks. Grace period is counted since
+   the last time program was (re)started.
 
 .. cmdoption:: URL
 
