@@ -27,7 +27,7 @@
 doc = """\
 httpok.py [-p processname] [-a] [-g] [-t timeout] [-c status_code] [-b inbody]
     [-B restart_string] [-m mail_address] [-s sendmail] [-r restart_threshold]
-    [-n restart_timespan] [-x external_script] URL
+    [-n restart_timespan] [-x external_script] [-G grace_period] URL
 
 Options:
 
