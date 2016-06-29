@@ -153,7 +153,7 @@ def main(argv=sys.argv):
         "any",
         "optionalheader=",
         "sendmail_program=",
-        "email="
+        "email=",
         ]
     arguments = argv[1:]
     try:
