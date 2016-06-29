@@ -151,7 +151,7 @@ def main(argv=sys.argv):
         "help",
         "program=",
         "any",
-        "optionalheader="
+        "optionalheader=",
         "sendmail_program=",
         "email=",
         ]
