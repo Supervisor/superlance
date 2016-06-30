@@ -55,6 +55,11 @@ Options:
       attempt to restart processes in the RUNNING state specified by
       -p or -a.  This defaults to 10 seconds.
 
+-r -- The number of retries that httpok should attempt before restarting
+      processes. Only after no successful response after this number
+      of retry then httpok will attempt to take action on processes.
+      The default is 0 to act on first failed response.
+
 -c -- specify an expected HTTP status code from a GET request to the
       URL.  If this status code is not the status code provided by the
       response, httpok will attempt to restart processes in the
@@ -114,12 +119,14 @@ def usage():
 class HTTPOk:
     connclass = None
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
-                 email, sendmail, coredir, gcore, eager, retry_time):
+                 email, sendmail, coredir, gcore, eager, retry_time, allowed_retries=0):
         self.rpc = rpc
         self.programs = programs
         self.any = any
         self.url = url
         self.timeout = timeout
+        self.allowed_retries = allowed_retries
+        self.attempted_retries = 0
         self.retry_time = retry_time
         self.status = status
         self.inbody = inbody
@@ -201,14 +208,28 @@ class HTTPOk:
 
                 if str(status) != str(self.status):
                     subject = 'httpok for %s: bad status returned' % self.url
-                    self.act(subject, msg)
+                    self.retry_or_act(subject, msg)
                 elif self.inbody and self.inbody not in body:
                     subject = 'httpok for %s: bad body returned' % self.url
-                    self.act(subject, msg)
+                    self.retry_or_act(subject, msg)
+                else:
+                    # reset this counter as we have a successful response here
+                    self.attempted_retries = 0
 
             childutils.listener.ok(self.stdout)
             if test:
                 break
+
+    def retry_or_act(self, subject, msg):
+        if self.attempted_retries >= self.allowed_retries:
+            self.act(subject, msg)
+        else:
+            retries_left = self.allowed_retries - self.attempted_retries
+            self.attempted_retries += 1
+            self.stderr.write('Error occurred: %s\n' % msg)
+            self.stderr.write('Allowed number of retries not exceeded, '
+                              'will try again %d more times.\n' % retries_left)
+            self.stderr.flush()
 
     def act(self, subject, msg):
         messages = [msg]
@@ -299,12 +320,13 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:s:m:g:d:eE"
+    short_args="hp:at:r:c:b:s:m:g:d:eE"
     long_args=[
         "help",
         "program=",
         "any",
         "timeout=",
+        "retry=",
         "code=",
         "body=",
         "sendmail_program=",
@@ -333,6 +355,7 @@ def main(argv=sys.argv):
     eager = True
     email = None
     timeout = 10
+    allowed_retries = 1
     retry_time = 10
     status = '200'
     inbody = None
@@ -356,6 +379,9 @@ def main(argv=sys.argv):
 
         if option in ('-t', '--timeout'):
             timeout = int(value)
+
+        if option in ('-r', '--retry'):
+            allowed_retries = int(value)
 
         if option in ('-c', '--code'):
             status = value
@@ -388,7 +414,7 @@ def main(argv=sys.argv):
         return
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
-                  sendmail, coredir, gcore, eager, retry_time)
+                  sendmail, coredir, gcore, eager, retry_time, allowed_retries)
     prog.runforever()
 
 if __name__ == '__main__':

@@ -40,11 +40,12 @@ def make_connection(response, exc=None):
             self.hostport = hostport
 
         def request(self, method, path, headers):
-            if exc:
-                if exc == True:
-                    raise ValueError('foo')
-                else:
-                    raise exc.pop()
+            error = exc.pop() if isinstance(exc, list) and exc else exc
+            if isinstance(error, BaseException):
+                raise error
+            elif error:
+                raise ValueError('foo')
+
             self.method = method
             self.path = path
             self.headers = headers
@@ -63,7 +64,7 @@ class HTTPOkTests(unittest.TestCase):
         return self._getTargetClass()(*opts)
 
     def _makeOnePopulated(self, programs, any, response=None, exc=None,
-                          gcore=None, coredir=None, eager=True):
+                          gcore=None, coredir=None, eager=True, allowed_retries=0):
         if response is None:
             response = DummyResponse()
         rpc = DummyRPCServer()
@@ -78,7 +79,7 @@ class HTTPOkTests(unittest.TestCase):
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
                              inbody, email, sendmail, coredir, gcore, eager,
-                             retry_time)
+                             retry_time, allowed_retries)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -130,9 +131,7 @@ class HTTPOkTests(unittest.TestCase):
         programs = ['foo', 'bar', 'baz_01', 'notexisting']
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 7)
         self.assertEqual(lines[0],
@@ -156,9 +155,7 @@ class HTTPOkTests(unittest.TestCase):
         programs = []
         any = True
         prog = self._makeOnePopulated(programs, any, exc=True)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 6)
         self.assertEqual(lines[0], 'Restarting all running processes')
@@ -178,9 +175,7 @@ class HTTPOkTests(unittest.TestCase):
         any = False
         prog = self._makeOnePopulated(programs, any, exc=True)
         prog.rpc.supervisor.all_process_info = _FAIL
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 5)
         self.assertEqual(lines[0], "Restarting selected processes ['FAILED']")
@@ -199,9 +194,7 @@ class HTTPOkTests(unittest.TestCase):
         any = False
         prog = self._makeOnePopulated(programs, any, exc=True)
         prog.rpc.supervisor.all_process_info = _FAIL
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 4)
         self.assertEqual(lines[0],
@@ -221,9 +214,7 @@ class HTTPOkTests(unittest.TestCase):
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True, gcore="true",
                                       coredir="/tmp")
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = prog.stderr.getvalue().split('\n')
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar', "
@@ -250,9 +241,7 @@ class HTTPOkTests(unittest.TestCase):
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True, gcore="true",
                                       coredir="/tmp", eager=False)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(len(lines), 0, lines)
         self.assertFalse('mailed' in prog.__dict__)
@@ -261,9 +250,7 @@ class HTTPOkTests(unittest.TestCase):
         programs = ['foo', 'bar']
         any = None
         prog = self._makeOnePopulated(programs, any, exc=True, eager=False)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar']")
@@ -283,9 +270,7 @@ class HTTPOkTests(unittest.TestCase):
         error = socket.error()
         error.errno = 111
         prog = self._makeOnePopulated(programs, any, exc=[error], eager=False)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         self.assertEqual(prog.stderr.getvalue(), '')
         self.assertEqual(prog.stdout.getvalue(), 'READY\nRESULT 2\nOK')
 
@@ -296,9 +281,7 @@ class HTTPOkTests(unittest.TestCase):
         error.errno = 111
         prog = self._makeOnePopulated(programs, any,
             exc=[error for x in range(100)], eager=False)
-        prog.stdin.write('eventname:TICK len:0\n')
-        prog.stdin.seek(0)
-        prog.runforever(test=True)
+        self.tick(prog)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar']")
@@ -311,6 +294,54 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
+
+    def test_retry_before_restart(self):
+        programs = ['foo', 'bar']
+        any = None
+        prog = self._makeOnePopulated(programs, any, exc=True, eager=False, allowed_retries=2)
+
+        self.tick(prog)
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertEqual(lines[-2], 'Allowed number of retries not exceeded, '
+                                    'will try again 2 more times.')
+
+        self.tick(prog)
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertEqual(lines[-2], 'Allowed number of retries not exceeded, '
+                                    'will try again 1 more times.')
+
+        self.tick(prog)
+        new_lines = prog.stderr.getvalue().split('\n')[len(lines) - 1:]
+        self.assertEqual(new_lines[0], "Restarting selected processes ['foo', 'bar']")
+
+    def test_retry_success_reset_count(self):
+        programs = ['foo', 'bar']
+        any = None
+        prog = self._makeOnePopulated(programs, any, exc=[True, False, True],
+                                      eager=False, allowed_retries=1)
+
+        self.tick(prog)
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertEqual(lines[-2], 'Allowed number of retries not exceeded, '
+                                    'will try again 1 more times.')
+
+        self.tick(prog)
+        new_lines = prog.stderr.getvalue().split('\n')
+        # nothing new is printed
+        self.assertListEqual(lines, new_lines)
+
+        self.tick(prog)
+        new_lines = prog.stderr.getvalue().split('\n')
+        # new retry notice is printed
+        self.assertTrue(len(new_lines) > len(lines))
+        self.assertEqual(lines[-2], 'Allowed number of retries not exceeded, '
+                                    'will try again 1 more times.')
+
+    def tick(self, prog):
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+
 
 if __name__ == '__main__':
     unittest.main()
