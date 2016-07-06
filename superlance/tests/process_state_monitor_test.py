@@ -3,12 +3,14 @@ import mock
 from superlance.compat import StringIO
 from superlance.process_state_monitor import ProcessStateMonitor
 
+
 class TestProcessStateMonitor(ProcessStateMonitor):
 
     process_state_events = ['PROCESS_STATE_EXITED']
 
     def get_process_state_change_msg(self, headers, payload):
         return repr(payload)
+
 
 class ProcessStateMonitorTests(unittest.TestCase):
 
@@ -24,15 +26,18 @@ class ProcessStateMonitorTests(unittest.TestCase):
         obj.send_batch_notification = mock.Mock()
         return obj
 
-    def get_process_exited_event(self, pname, gname, expected,
-                                eventname='PROCESS_STATE_EXITED'):
+    def get_process_exited_event(
+            self,
+            pname,
+            gname,
+            expected,
+            eventname='PROCESS_STATE_EXITED'):
         headers = {
             'ver': '3.0', 'poolserial': '7', 'len': '71',
             'server': 'supervisor', 'eventname': eventname,
             'serial': '7', 'pool': 'checkmailbatch',
         }
-        payload = 'processname:%s groupname:%s from_state:RUNNING expected:%d \
-pid:58597' % (pname, gname, expected)
+        payload = 'processname:%s groupname:%s from_state:RUNNING expected:%d pid:58597' % (pname, gname, expected)
         return (headers, payload)
 
     def get_tick60_event(self):
@@ -53,7 +58,7 @@ pid:58597' % (pname, gname, expected)
 
     def test__get_tick_mins(self):
         monitor = self._make_one_mocked()
-        self.assertEqual(5.0/60.0, monitor._get_tick_mins('TICK_5'))
+        self.assertEqual(5.0 / 60.0, monitor._get_tick_mins('TICK_5'))
 
     def test_handle_event_exit(self):
         monitor = self._make_one_mocked()
@@ -65,21 +70,24 @@ pid:58597' % (pname, gname, expected)
 
     def test_handle_event_non_exit(self):
         monitor = self._make_one_mocked()
-        hdrs, payload = self.get_process_exited_event('foo', 'bar', 0,
-                                            eventname='PROCESS_STATE_FATAL')
+        hdrs, payload = self.get_process_exited_event(
+            'foo',
+            'bar',
+            0,
+            eventname='PROCESS_STATE_FATAL')
         monitor.handle_event(hdrs, payload)
         self.assertEqual([], monitor.get_batch_msgs())
         self.assertEqual('', monitor.stderr.getvalue())
 
     def test_handle_event_tick_interval_expired(self):
         monitor = self._make_one_mocked()
-        #Put msgs in batch
+        # Put msgs in batch
         hdrs, payload = self.get_process_exited_event('foo', 'bar', 0)
         monitor.handle_event(hdrs, payload)
         hdrs, payload = self.get_process_exited_event('bark', 'dog', 0)
         monitor.handle_event(hdrs, payload)
         self.assertEqual(2, len(monitor.get_batch_msgs()))
-        #Time expired
+        # Time expired
         hdrs, payload = self.get_tick60_event()
         monitor.handle_event(hdrs, payload)
 

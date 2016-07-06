@@ -24,7 +24,11 @@
 # command=python fatalmailbatch
 # events=PROCESS_STATE,TICK_60
 
-doc = """\
+from supervisor import childutils
+from superlance.process_state_email_monitor import ProcessStateEmailMonitor
+
+
+doc = """
 fatalmailbatch.py [--interval=<batch interval in minutes>]
         [--toEmail=<email address>]
         [--fromEmail=<email address>]
@@ -38,7 +42,7 @@ Options:
 --interval  - batch cycle length (in minutes).  The default is 1 minute.
                   This means that all events in each cycle are batched together
                   and sent as a single email
-                  
+
 --toEmail   - the email address to send alerts to
 
 --fromEmail - the email address to send alerts from
@@ -51,24 +55,22 @@ fatalmailbatch.py --toEmail="you@bar.com" --fromEmail="me@bar.com"
 
 """
 
-from supervisor import childutils
-from superlance.process_state_email_monitor import ProcessStateEmailMonitor
 
 class FatalMailBatch(ProcessStateEmailMonitor):
-    
+
     process_state_events = ['PROCESS_STATE_FATAL']
 
     def __init__(self, **kwargs):
         kwargs['subject'] = kwargs.get('subject', 'Fatal start alert from supervisord')
         ProcessStateEmailMonitor.__init__(self, **kwargs)
         self.now = kwargs.get('now', None)
- 
-    def get_process_state_change_msg(self, headers, payload):
-        pheaders, pdata = childutils.eventdata(payload+'\n')
 
-        txt = 'Process %(groupname)s:%(processname)s failed to start too many \
-times' % pheaders
+    def get_process_state_change_msg(self, headers, payload):
+        pheaders, pdata = childutils.eventdata(payload + '\n')
+
+        txt = 'Process %(groupname)s:%(processname)s failed to start too many times' % pheaders
         return '%s -- %s' % (childutils.get_asctime(self.now), txt)
+
 
 def main():
     fatal = FatalMailBatch.create_from_cmd_line()

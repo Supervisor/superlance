@@ -1,23 +1,27 @@
+import time
+from supervisor.process import ProcessStates
+
+
 class DummyRPCServer:
     def __init__(self):
         self.supervisor = DummySupervisorRPCNamespace()
         self.system = DummySystemRPCNamespace()
 
+
 class DummyResponse:
     status = 200
     reason = 'OK'
     body = 'OK'
+
     def read(self):
         return self.body
+
 
 class DummySystemRPCNamespace:
     pass
 
-
-import time
-from supervisor.process import ProcessStates
-
 _NOW = time.time()
+
 
 class DummySupervisorRPCNamespace:
     _restartable = True
@@ -25,52 +29,47 @@ class DummySupervisorRPCNamespace:
     _shutdown = False
     _readlog_error = False
 
-
-    all_process_info = [
-        {
-        'name':'foo',
-        'group':'foo',
-        'pid':11,
-        'state':ProcessStates.RUNNING,
-        'statename':'RUNNING',
-        'start':_NOW - 100,
-        'stop':0,
-        'spawnerr':'',
-        'now':_NOW,
-        'description':'foo description',
-        },
-        {
-        'name':'bar',
-        'group':'bar',
-        'pid':12,
-        'state':ProcessStates.FATAL,
-        'statename':'FATAL',
-        'start':_NOW - 100,
-        'stop':_NOW - 50,
-        'spawnerr':'screwed',
-        'now':_NOW,
-        'description':'bar description',
-        },
-        {
-        'name':'baz_01',
-        'group':'baz',
-        'pid':12,
-        'state':ProcessStates.STOPPED,
-        'statename':'STOPPED',
-        'start':_NOW - 100,
-        'stop':_NOW - 25,
-        'spawnerr':'',
-        'now':_NOW,
-        'description':'baz description',
-        },
-        ]
+    all_process_info = [{
+        'name': 'foo',
+        'group': 'foo',
+        'pid': 11,
+        'state': ProcessStates.RUNNING,
+        'statename': 'RUNNING',
+        'start': _NOW - 100,
+        'stop': 0,
+        'spawnerr': '',
+        'now': _NOW,
+        'description': 'foo description',
+    }, {
+        'name': 'bar',
+        'group': 'bar',
+        'pid': 12,
+        'state': ProcessStates.FATAL,
+        'statename': 'FATAL',
+        'start': _NOW - 100,
+        'stop': _NOW - 50,
+        'spawnerr': 'screwed',
+        'now': _NOW,
+        'description': 'bar description',
+    }, {
+        'name': 'baz_01',
+        'group': 'baz',
+        'pid': 12,
+        'state': ProcessStates.STOPPED,
+        'statename': 'STOPPED',
+        'start': _NOW - 100,
+        'stop': _NOW - 25,
+        'spawnerr': '',
+        'now': _NOW,
+        'description': 'baz description',
+    }, ]
 
     def getAllProcessInfo(self):
         return self.all_process_info
 
     def getProcessInfo(self, name):
         for info in self.all_process_info:
-            if info['name'] == name or name == '%s:%s' %(info['group'], info['name']):
+            if info['name'] == name or name == '%s:%s' % (info['group'], info['name']):
                 return info
         return None
 
@@ -89,4 +88,3 @@ class DummySupervisorRPCNamespace:
         if name.endswith('FAILED'):
             raise xmlrpclib.Fault(xmlrpc.Faults.FAILED, 'FAILED')
         return True
-

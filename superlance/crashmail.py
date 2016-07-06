@@ -29,7 +29,13 @@
 #
 # Sendmail is used explicitly here so that we can specify the 'from' address.
 
-doc = """\
+import os
+import sys
+
+from supervisor import childutils
+
+
+doc = """
 crashmail.py [-p processname] [-a] [-o string] [-m mail_address]
              [-s sendmail] URL
 
@@ -64,11 +70,6 @@ A sample invocation:
 crashmail.py -p program1 -p group1:program2 -m dev@example.com
 
 """
-
-import os
-import sys
-
-from supervisor import childutils
 
 
 def usage():
@@ -105,7 +106,7 @@ class CrashMail:
                     break
                 continue
 
-            pheaders, pdata = childutils.eventdata(payload+'\n')
+            pheaders, pdata = childutils.eventdata(payload + '\n')
 
             if int(pheaders['expected']):
                 childutils.listener.ok(self.stdout)
@@ -154,7 +155,7 @@ def main(argv=sys.argv):
         "optionalheader=",
         "sendmail_program=",
         "email=",
-        ]
+    ]
     arguments = argv[1:]
     try:
         opts, args = getopt.getopt(arguments, short_args, long_args)
@@ -187,7 +188,7 @@ def main(argv=sys.argv):
         if option in ('-o', '--optionalheader'):
             optionalheader = value
 
-    if not 'SUPERVISOR_SERVER_URL' in os.environ:
+    if 'SUPERVISOR_SERVER_URL' not in os.environ:
         sys.stderr.write('crashmail must be run as a supervisor event '
                          'listener\n')
         sys.stderr.flush()

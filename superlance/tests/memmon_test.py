@@ -5,6 +5,7 @@ from superlance.memmon import memmon_from_args
 from superlance.memmon import seconds_size
 from superlance.tests.dummy import DummyRPCServer
 
+
 class MemmonTests(unittest.TestCase):
     def _getTargetClass(self):
         from superlance.memmon import Memmon
@@ -28,7 +29,7 @@ class MemmonTests(unittest.TestCase):
         return memmon
 
     def test_runforever_notatick(self):
-        programs = {'foo':0, 'bar':0, 'baz_01':0 }
+        programs = {'foo': 0, 'bar': 0, 'baz_01': 0}
         groups = {}
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
@@ -38,7 +39,7 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(memmon.stderr.getvalue(), '')
 
     def test_runforever_tick_programs(self):
-        programs = {'foo':0, 'bar':0, 'baz_01':0 }
+        programs = {'foo': 0, 'bar': 0, 'baz_01': 0}
         groups = {}
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
@@ -65,7 +66,7 @@ class MemmonTests(unittest.TestCase):
 
     def test_runforever_tick_groups(self):
         programs = {}
-        groups = {'foo':0}
+        groups = {'foo': 0}
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
         memmon.stdin.write('eventname:TICK len:0\n')
@@ -80,8 +81,9 @@ class MemmonTests(unittest.TestCase):
         mailed = memmon.mailed.split('\n')
         self.assertEqual(len(mailed), 4)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
-        self.assertEqual(mailed[1],
-          'Subject: memmon [test]: process foo:foo restarted')
+        self.assertEqual(
+            mailed[1],
+            'Subject: memmon [test]: process foo:foo restarted')
         self.assertEqual(mailed[2], '')
         self.assertTrue(mailed[3].startswith('memmon.py restarted'))
 
@@ -107,8 +109,8 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(len(mailed), 4)
 
     def test_runforever_tick_programs_and_groups(self):
-        programs = {'baz_01':0}
-        groups = {'foo':0}
+        programs = {'baz_01': 0}
+        groups = {'foo': 0}
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
         memmon.stdin.write('eventname:TICK len:0\n')
@@ -169,18 +171,18 @@ class MemmonTests(unittest.TestCase):
         memmon.stdin.write('eventname:TICK len:0\n')
         memmon.stdin.seek(0)
         from supervisor.process import ProcessStates
-        memmon.rpc.supervisor.all_process_info = [ {
-            'name':'BAD_NAME',
-            'group':'BAD_NAME',
-            'pid':11,
-            'state':ProcessStates.RUNNING,
-            'statename':'RUNNING',
-            'start':0,
-            'stop':0,
-            'spawnerr':'',
-            'now':0,
-            'description':'BAD_NAME description',
-             } ]
+        memmon.rpc.supervisor.all_process_info = [{
+            'name': 'BAD_NAME',
+            'group': 'BAD_NAME',
+            'pid': 11,
+            'state': ProcessStates.RUNNING,
+            'statename': 'RUNNING',
+            'start': 0,
+            'stop': 0,
+            'spawnerr': '',
+            'now': 0,
+            'description': 'BAD_NAME description',
+        }]
         from superlance.compat import xmlrpclib
         self.assertRaises(xmlrpclib.Fault, memmon.runforever, True)
         lines = memmon.stderr.getvalue().split('\n')
@@ -192,8 +194,9 @@ class MemmonTests(unittest.TestCase):
         mailed = memmon.mailed.split('\n')
         self.assertEqual(len(mailed), 4)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
-        self.assertEqual(mailed[1],
-          'Subject: memmon [test]: failed to stop process BAD_NAME:BAD_NAME, exiting')
+        self.assertEqual(
+            mailed[1],
+            'Subject: memmon [test]: failed to stop process BAD_NAME:BAD_NAME, exiting')
         self.assertEqual(mailed[2], '')
         self.assertTrue(mailed[3].startswith('Failed'))
 
@@ -211,8 +214,9 @@ class MemmonTests(unittest.TestCase):
         memmon.runforever(test=True)
 
         mailed = memmon.mailed.split('\n')
-        self.assertEqual(mailed[1],
-          'Subject: memmon: process baz:baz_01 restarted')
+        self.assertEqual(
+            mailed[1],
+            'Subject: memmon: process baz:baz_01 restarted')
 
     def test_parse_uptime(self):
         """test parsing of time parameter for uptime
@@ -228,7 +232,7 @@ class MemmonTests(unittest.TestCase):
         """in case an email is provided and the restarted process' uptime
         is shorter than our uptime_limit we do send an email
         """
-        programs = {'foo':0}
+        programs = {'foo': 0}
         groups = {}
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
@@ -239,7 +243,7 @@ class MemmonTests(unittest.TestCase):
         memmon.runforever(test=True)
         self.assertTrue(memmon.mailed, 'email has been sent')
 
-        #in case uptime == limit, we send an email too
+        # in case uptime == limit, we send an email too
         memmon = self._makeOnePopulated(programs, groups, any)
         memmon.email_uptime_limit = 100
         memmon.stdin.write('eventname:TICK len:0\n')
@@ -247,13 +251,11 @@ class MemmonTests(unittest.TestCase):
         memmon.runforever(test=True)
         self.assertTrue(memmon.mailed, 'email has been sent')
 
-
-
     def test_uptime_long_no_email(self):
         """in case an email is provided and the restarted process' uptime
         is longer than our uptime_limit we do not send an email
         """
-        programs = {'foo':0}
+        programs = {'foo': 0}
         groups = {}
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
@@ -327,8 +329,7 @@ class MemmonTests(unittest.TestCase):
         memmon = memmon_from_args(arguments)
         self.assertTrue(memmon is None, '-h returns None to make main() script print usage')
 
-
-        #all arguments
+        # all arguments
         arguments = ['-c',
                      '-p', 'foo=50MB',
                      '-g', 'bar=10kB',
@@ -347,8 +348,7 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(memmon.email_uptime_limit, 1 * 24 * 60 * 60)
         self.assertEqual(memmon.memmonName, 'myproject')
 
-
-        #default arguments
+        # default arguments
         arguments = ['-m', 'me@you.com']
         memmon = memmon_from_args(arguments)
         self.assertEqual(memmon.cumulative, False)
@@ -365,4 +365,3 @@ class MemmonTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

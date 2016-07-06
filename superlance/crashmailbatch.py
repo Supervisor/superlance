@@ -24,7 +24,11 @@
 # command=python crashmailbatch --toEmail=you@bar.com --fromEmail=me@bar.com
 # events=PROCESS_STATE,TICK_60
 
-doc = """\
+from supervisor import childutils
+from superlance.process_state_email_monitor import ProcessStateEmailMonitor
+
+
+doc = """
 crashmailbatch.py [--interval=<batch interval in minutes>]
         [--toEmail=<email address>]
         [--fromEmail=<email address>]
@@ -51,9 +55,6 @@ crashmailbatch.py --toEmail="you@bar.com" --fromEmail="me@bar.com"
 
 """
 
-from supervisor import childutils
-from superlance.process_state_email_monitor import ProcessStateEmailMonitor
-
 
 class CrashMailBatch(ProcessStateEmailMonitor):
 
@@ -66,13 +67,12 @@ class CrashMailBatch(ProcessStateEmailMonitor):
         self.now = kwargs.get('now', None)
 
     def get_process_state_change_msg(self, headers, payload):
-        pheaders, pdata = childutils.eventdata(payload+'\n')
+        pheaders, pdata = childutils.eventdata(payload + '\n')
 
         if int(pheaders['expected']):
             return None
 
-        txt = 'Process %(groupname)s:%(processname)s (pid %(pid)s) died \
-unexpectedly' % pheaders
+        txt = 'Process %(groupname)s:%(processname)s (pid %(pid)s) died unexpectedly' % pheaders
         return '%s -- %s' % (childutils.get_asctime(self.now), txt)
 
 

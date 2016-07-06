@@ -2,8 +2,10 @@ import unittest
 import mock
 from superlance.compat import StringIO
 
+
 class ProcessStateEmailMonitorTestException(Exception):
     pass
+
 
 class ProcessStateEmailMonitorTests(unittest.TestCase):
     from_email = 'testFrom@blah.com'
@@ -12,8 +14,9 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
     subject = 'Test Alert'
 
     def _get_target_class(self):
-        from superlance.process_state_email_monitor \
-        import ProcessStateEmailMonitor
+        from superlance.process_state_email_monitor import (
+            ProcessStateEmailMonitor
+        )
         return ProcessStateEmailMonitor
 
     def _make_one(self, **kwargs):
