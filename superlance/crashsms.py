@@ -33,7 +33,11 @@
 #         -t <mobile phone>@<mobile provider> -f me@bar.com -e TICK_5
 # events=PROCESS_STATE,TICK_5
 
-doc = """\
+from supervisor import childutils
+from superlance.process_state_email_monitor import ProcessStateEmailMonitor
+
+
+doc = """
 crashsms.py [--interval=<batch interval in minutes>]
         [--toEmail=<email address>]
         [--fromEmail=<email address>]
@@ -62,9 +66,6 @@ crashsms.py -t <mobile phone>@<mobile provider> -f me@bar.com -e TICK_5
 
 """
 
-from supervisor import childutils
-from superlance.process_state_email_monitor import ProcessStateEmailMonitor
-
 
 class CrashSMS(ProcessStateEmailMonitor):
     process_state_events = ['PROCESS_STATE_EXITED']
@@ -74,13 +75,12 @@ class CrashSMS(ProcessStateEmailMonitor):
         self.now = kwargs.get('now', None)
 
     def get_process_state_change_msg(self, headers, payload):
-        pheaders, pdata = childutils.eventdata(payload+'\n')
+        pheaders, pdata = childutils.eventdata(payload + '\n')
 
         if int(pheaders['expected']):
             return None
 
-        txt = '[%(groupname)s:%(processname)s](%(pid)s) exited unexpectedly' \
-              % pheaders
+        txt = '[%(groupname)s:%(processname)s](%(pid)s) exited unexpectedly' % pheaders
         return '%s %s' % (txt, childutils.get_asctime(self.now))
 
 

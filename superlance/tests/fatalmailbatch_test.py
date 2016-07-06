@@ -2,6 +2,7 @@ import unittest
 import mock
 from superlance.compat import StringIO
 
+
 class FatalMailBatchTests(unittest.TestCase):
     from_email = 'testFrom@blah.com'
     to_emails = ('testTo@blah.com')
@@ -30,8 +31,7 @@ class FatalMailBatchTests(unittest.TestCase):
             'server': 'supervisor', 'eventname': 'PROCESS_STATE_FATAL',
             'serial': '7', 'pool': 'checkmailbatch',
         }
-        payload = 'processname:%s groupname:%s from_state:BACKOFF' \
-                % (pname, gname)
+        payload = 'processname:%s groupname:%s from_state:BACKOFF' % (pname, gname)
         return (headers, payload)
 
     def test_get_process_state_change_msg(self):

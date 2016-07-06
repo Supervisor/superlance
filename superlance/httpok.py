@@ -24,7 +24,21 @@
 # command=python -u /bin/httpok http://localhost:8080/tasty/service
 # events=TICK_60
 
-doc = """\
+import os
+import socket
+import sys
+import time
+from superlance.compat import urlparse
+from superlance.compat import xmlrpclib
+
+from supervisor import childutils
+from supervisor.states import ProcessStates
+from supervisor.options import make_namespec
+
+from superlance import timeoutconn
+
+
+doc = """
 httpok.py [-p processname] [-a] [-g] [-t timeout] [-c status_code] [-b inbody]
           [-m mail_address] [-s sendmail] URL
 
@@ -94,25 +108,15 @@ httpok.py -p program1 -p group1:program2 http://localhost:8080/tasty
 
 """
 
-import os
-import socket
-import sys
-import time
-from superlance.compat import urlparse
-from superlance.compat import xmlrpclib
-
-from supervisor import childutils
-from supervisor.states import ProcessStates
-from supervisor.options import make_namespec
-
-from superlance import timeoutconn
 
 def usage():
     print(doc)
     sys.exit(255)
 
+
 class HTTPOk:
     connclass = None
+
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
                  email, sendmail, coredir, gcore, eager, retry_time):
         self.rpc = rpc
@@ -133,9 +137,7 @@ class HTTPOk:
         self.stderr = sys.stderr
 
     def listProcesses(self, state=None):
-        return [x for x in self.rpc.supervisor.getAllProcessInfo()
-                   if x['name'] in self.programs and
-                      (state is None or x['state'] == state)]
+        return [x for x in self.rpc.supervisor.getAllProcessInfo() if x['name'] in self.programs and (state is None or x['state'] == state)]
 
     def runforever(self, test=False):
         parsed = urlparse.urlsplit(self.url)
@@ -176,7 +178,7 @@ class HTTPOk:
 
                 try:
                     for will_retry in range(
-                            self.timeout // (self.retry_time or 1) - 1 ,
+                            self.timeout // (self.retry_time or 1) - 1,
                             -1, -1):
                         try:
                             headers = {'User-Agent': 'httpok'}
@@ -260,7 +262,7 @@ class HTTPOk:
             self.mail(self.email, subject, message)
 
     def mail(self, email, subject, msg):
-        body =  'To: %s\n' % self.email
+        body = 'To: %s\n' % self.email
         body += 'Subject: %s\n' % subject
         body += '\n'
         body += msg
@@ -299,8 +301,8 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:s:m:g:d:eE"
-    long_args=[
+    short_args = "hp:at:c:b:s:m:g:d:eE"
+    long_args = [
         "help",
         "program=",
         "any",
@@ -313,7 +315,7 @@ def main(argv=sys.argv):
         "coredir=",
         "eager",
         "not-eager",
-        ]
+    ]
     arguments = argv[1:]
     try:
         opts, args = getopt.getopt(arguments, short_args, long_args)

@@ -21,10 +21,11 @@ from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 from superlance.process_state_monitor import ProcessStateMonitor
 
-doc = """\
+doc = """
 Base class for common functionality when monitoring process state changes
 and sending email notification
 """
+
 
 class ProcessStateEmailMonitor(ProcessStateMonitor):
     COMMASPACE = ', '
@@ -34,22 +35,52 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         from optparse import OptionParser
 
         parser = OptionParser()
-        parser.add_option("-i", "--interval", dest="interval", type="float", default=1.0,
-                        help="batch interval in minutes (defaults to 1 minute)")
-        parser.add_option("-t", "--toEmail", dest="to_emails",
-                        help="destination email address(es) - comma separated")
-        parser.add_option("-f", "--fromEmail", dest="from_email",
-                        help="source email address")
-        parser.add_option("-s", "--subject", dest="subject",
-                        help="email subject")
-        parser.add_option("-H", "--smtpHost", dest="smtp_host", default="localhost",
-                        help="SMTP server hostname or address")
-        parser.add_option("-e", "--tickEvent", dest="eventname", default="TICK_60",
-                        help="TICK event name (defaults to TICK_60)")
-        parser.add_option("-u", "--userName", dest="smtp_user", default="",
-                        help="SMTP server user name (defaults to nothing)")
-        parser.add_option("-p", "--password", dest="smtp_password", default="",
-                        help="SMTP server password (defaults to nothing)")
+        parser.add_option(
+            "-i",
+            "--interval",
+            dest="interval",
+            type="float",
+            default=1.0,
+            help="batch interval in minutes (defaults to 1 minute)")
+        parser.add_option(
+            "-t",
+            "--toEmail",
+            dest="to_emails",
+            help="destination email address(es) - comma separated")
+        parser.add_option(
+            "-f",
+            "--fromEmail",
+            dest="from_email",
+            help="source email address")
+        parser.add_option(
+            "-s",
+            "--subject",
+            dest="subject",
+            help="email subject")
+        parser.add_option(
+            "-H",
+            "--smtpHost",
+            dest="smtp_host",
+            default="localhost",
+            help="SMTP server hostname or address")
+        parser.add_option(
+            "-e",
+            "--tickEvent",
+            dest="eventname",
+            default="TICK_60",
+            help="TICK event name (defaults to TICK_60)")
+        parser.add_option(
+            "-u",
+            "--userName",
+            dest="smtp_user",
+            default="",
+            help="SMTP server user name (defaults to nothing)")
+        parser.add_option(
+            "-p",
+            "--password",
+            dest="smtp_password",
+            default="",
+            help="SMTP server password (defaults to nothing)")
         return parser
 
     @classmethod
@@ -80,7 +111,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
     def create_from_cmd_line(cls):
         options = cls.get_cmd_line_options()
 
-        if not 'SUPERVISOR_SERVER_URL' in os.environ:
+        if 'SUPERVISOR_SERVER_URL' not in os.environ:
             sys.stderr.write('Must run as a supervisor event listener\n')
             sys.exit(1)
 
@@ -108,8 +139,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         email_for_log['to'] = self.COMMASPACE.join(email['to'])
         if len(email_for_log['body']) > self.digest_len:
             email_for_log['body'] = '%s...' % email_for_log['body'][:self.digest_len]
-        self.write_stderr("Sending notification email:\nTo: %(to)s\n\
-From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
+        self.write_stderr("Sending notification email:\nTo: %(to)s\nFrom: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
 
     def get_batch_email(self):
         if len(self.batchmsgs):
@@ -124,7 +154,7 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
     def send_email(self, email):
         msg = MIMEText(email['body'])
         if self.subject:
-          msg['Subject'] = email['subject']
+            msg['Subject'] = email['subject']
         msg['From'] = email['from']
         msg['To'] = self.COMMASPACE.join(email['to'])
         msg['Date'] = formatdate()
@@ -139,10 +169,9 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
         s = smtplib.SMTP(self.smtp_host)
         try:
             if self.smtp_user and self.smtp_password:
-                s.login(self.smtp_user,self.smtp_password)
+                s.login(self.smtp_user, self.smtp_password)
             s.sendmail(mime_msg['From'], to_emails, mime_msg.as_string())
         except:
             s.quit()
             raise
         s.quit()
-

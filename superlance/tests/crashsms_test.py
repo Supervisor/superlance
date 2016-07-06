@@ -2,6 +2,7 @@ import unittest
 
 from .crashmailbatch_test import CrashMailBatchTests
 
+
 class CrashSMSTests(CrashMailBatchTests):
     subject = 'None'
     unexpected_err_msg = '[bar:foo](58597) exited unexpectedly'

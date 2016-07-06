@@ -1,6 +1,7 @@
 import unittest
 from superlance.compat import StringIO
 
+
 class CrashMailTests(unittest.TestCase):
     def _getTargetClass(self):
         from superlance.crashmail import CrashMail
@@ -29,7 +30,7 @@ class CrashMailTests(unittest.TestCase):
         return prog
 
     def test_runforever_not_process_state_exited(self):
-        programs = {'foo':0, 'bar':0, 'baz_01':0 }
+        programs = {'foo': 0, 'bar': 0, 'baz_01': 0}
         any = None
         prog = self._makeOnePopulated(programs, any)
         prog.stdin.write('eventname:PROCESS_STATE len:0\n')
@@ -41,8 +42,7 @@ class CrashMailTests(unittest.TestCase):
         programs = ['foo']
         any = None
         prog = self._makeOnePopulated(programs, any)
-        payload=('expected:1 processname:foo groupname:bar '
-                 'from_state:RUNNING pid:1')
+        payload = ('expected:1 processname:foo groupname:bar from_state:RUNNING pid:1')
         prog.stdin.write(
             'eventname:PROCESS_STATE_EXITED len:%s\n' % len(payload))
         prog.stdin.write(payload)
@@ -54,8 +54,7 @@ class CrashMailTests(unittest.TestCase):
         programs = ['foo']
         any = None
         prog = self._makeOnePopulated(programs, any)
-        payload=('expected:0 processname:foo groupname:bar '
-                 'from_state:RUNNING pid:1')
+        payload = ('expected:0 processname:foo groupname:bar from_state:RUNNING pid:1')
         prog.stdin.write(
             'eventname:PROCESS_STATE_EXITED len:%s\n' % len(payload))
         prog.stdin.write(payload)

@@ -26,7 +26,18 @@
 # command=python memmon.py [options]
 # events=TICK_60
 
-doc = """\
+import os
+import sys
+import time
+from collections import namedtuple
+from superlance.compat import maxint
+from superlance.compat import xmlrpclib
+
+from supervisor import childutils
+from supervisor.datatypes import byte_size, SuffixMultiplier
+
+
+doc = """
 memmon.py [-c] [-p processname=byte_size] [-g groupname=byte_size]
           [-a byte_size] [-s sendmail] [-m email_address]
           [-u uptime] [-n memmon_name]
@@ -80,23 +91,16 @@ A sample invocation:
 memmon.py -p program1=200MB -p theprog:thegroup=100MB -g thegroup=100MB -a 1GB -s "/usr/sbin/sendmail -t -i" -m chrism@plope.com -n "Project 1"
 """
 
-import os
-import sys
-import time
-from collections import namedtuple
-from superlance.compat import maxint
-from superlance.compat import xmlrpclib
-
-from supervisor import childutils
-from supervisor.datatypes import byte_size, SuffixMultiplier
 
 def usage():
     print(doc)
     sys.exit(255)
 
+
 def shell(cmd):
     with os.popen(cmd) as f:
         return f.read()
+
 
 class Memmon:
     def __init__(self, cumulative, programs, groups, any, sendmail, email, email_uptime_limit, name, rpc=None):
@@ -114,7 +118,7 @@ class Memmon:
         self.stderr = sys.stderr
         self.pscommand = 'ps -orss= -p %s'
         self.pstreecommand = 'ps ax -o "pid= ppid= rss="'
-        self.mailed = False # for unit tests
+        self.mailed = False  # for unit tests
 
     def runforever(self, test=False):
         while 1:
@@ -133,16 +137,16 @@ class Memmon:
             if self.programs:
                 keys = sorted(self.programs.keys())
                 status.append(
-                    'Checking programs %s' % ', '.join(
-                    [ '%s=%s' % (k, self.programs[k]) for k in keys ])
-                    )
+                    'Checking programs %s' % ', '.join([
+                        '%s=%s' % (k, self.programs[k]) for k in keys])
+                )
 
             if self.groups:
                 keys = sorted(self.groups.keys())
                 status.append(
-                    'Checking groups %s' % ', '.join(
-                    [ '%s=%s' % (k, self.groups[k]) for k in keys ])
-                    )
+                    'Checking groups %s' % ', '.join([
+                        '%s=%s' % (k, self.groups[k]) for k in keys])
+                )
             if self.any is not None:
                 status.append('Checking any=%s' % self.any)
 
@@ -170,7 +174,7 @@ class Memmon:
                 for n in name, pname:
                     if n in self.programs:
                         self.stderr.write('RSS of %s is %s\n' % (pname, rss))
-                        if  rss > self.programs[name]:
+                        if rss > self.programs[name]:
                             self.restart(pname, rss)
                             continue
 
@@ -193,7 +197,7 @@ class Memmon:
 
     def restart(self, name, rss):
         info = self.rpc.supervisor.getProcessInfo(name)
-        uptime = info['now'] - info['start'] #uptime in seconds
+        uptime = info['now'] - info['start']  # uptime in seconds
         self.stderr.write('Restarting %s\n' % name)
         memmonId = self.memmonName and " [%s]" % self.memmonName or ""
         try:
@@ -223,8 +227,10 @@ class Memmon:
             msg = (
                 'memmon.py restarted the process named %s at %s because '
                 'it was consuming too much memory (%s bytes RSS)' % (
-                name, now, rss)
-                )
+                    name,
+                    now,
+                    rss)
+            )
             subject = 'memmon%s: process %s restarted' % (memmonId, name)
             self.mail(self.email, subject, msg)
 
@@ -291,6 +297,7 @@ class Memmon:
             m.write(body)
         self.mailed = body
 
+
 def parse_namesize(option, value):
     try:
         name, size = value.split('=')
@@ -299,6 +306,7 @@ def parse_namesize(option, value):
         usage()
     size = parse_size(option, size)
     return name, size
+
 
 def parse_size(option, value):
     try:
@@ -315,6 +323,7 @@ seconds_size = SuffixMultiplier({'s': 1,
                                  'd': 60 * 60 * 24
                                  })
 
+
 def parse_seconds(option, value):
     try:
         seconds = seconds_size(value)
@@ -322,6 +331,7 @@ def parse_seconds(option, value):
         print('Unparseable value for time in %r for %s' % (value, option))
         usage()
     return seconds
+
 
 def memmon_from_args(arguments):
     import getopt
@@ -336,7 +346,7 @@ def memmon_from_args(arguments):
         "email=",
         "uptime=",
         "name=",
-        ]
+    ]
 
     if not arguments:
         return None
@@ -395,6 +405,7 @@ def memmon_from_args(arguments):
                     email_uptime_limit=uptime_limit,
                     name=name)
     return memmon
+
 
 def main():
     memmon = memmon_from_args(sys.argv[1:])

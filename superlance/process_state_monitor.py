@@ -12,13 +12,15 @@
 # FITNESS FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-doc = """\
-Base class for common functionality when monitoring process state changes
-"""
 
 import sys
 
 from supervisor import childutils
+
+doc = """
+Base class for common functionality when monitoring process state changes
+"""
+
 
 class ProcessStateMonitor:
 
@@ -39,7 +41,7 @@ class ProcessStateMonitor:
         self.batchmins = 0.0
 
     def _get_tick_mins(self, eventname):
-        return float(self._get_tick_secs(eventname))/60.0
+        return float(self._get_tick_secs(eventname)) / 60.0
 
     def _get_tick_secs(self, eventname):
         self._validate_tick_name(eventname)
@@ -92,8 +94,8 @@ class ProcessStateMonitor:
         return self.batchmsgs
 
     def clear_batch(self):
-        self.batchmins = 0.0;
-        self.batchmsgs = [];
+        self.batchmins = 0.0
+        self.batchmsgs = []
 
     def write_stderr(self, msg):
         self.stderr.write(msg)

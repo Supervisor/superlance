@@ -2,6 +2,7 @@ import unittest
 import mock
 from superlance.compat import StringIO
 
+
 class CrashMailBatchTests(unittest.TestCase):
     from_email = 'testFrom@blah.com'
     to_emails = ('testTo@blah.com')
@@ -30,8 +31,7 @@ class CrashMailBatchTests(unittest.TestCase):
             'server': 'supervisor', 'eventname': 'PROCESS_STATE_EXITED',
             'serial': '7', 'pool': 'checkmailbatch',
         }
-        payload = 'processname:%s groupname:%s from_state:RUNNING expected:%d \
-pid:58597' % (pname, gname, expected)
+        payload = 'processname:%s groupname:%s from_state:RUNNING expected:%d pid:58597' % (pname, gname, expected)
         return (headers, payload)
 
     def test_get_process_state_change_msg_expected(self):
