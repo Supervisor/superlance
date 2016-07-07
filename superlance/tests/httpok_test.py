@@ -41,7 +41,7 @@ def make_connection(response, exc=None):
 
         def request(self, method, path, headers):
             if exc:
-                if exc == True:
+                if exc is True:
                     raise ValueError('foo')
                 else:
                     raise exc.pop()
