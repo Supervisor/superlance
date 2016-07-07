@@ -92,8 +92,8 @@ class ProcessStateMonitor:
         return self.batchmsgs
 
     def clear_batch(self):
-        self.batchmins = 0.0;
-        self.batchmsgs = [];
+        self.batchmins = 0.0
+        self.batchmsgs = []
 
     def write_stderr(self, msg):
         self.stderr.write(msg)
