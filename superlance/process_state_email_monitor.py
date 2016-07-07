@@ -124,7 +124,7 @@ From: %(from)s\nSubject: %(subject)s\nBody:\n%(body)s\n" % email_for_log)
     def send_email(self, email):
         msg = MIMEText(email['body'])
         if self.subject:
-          msg['Subject'] = email['subject']
+            msg['Subject'] = email['subject']
         msg['From'] = email['from']
         msg['To'] = self.COMMASPACE.join(email['to'])
         msg['Date'] = formatdate()
