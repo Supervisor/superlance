@@ -122,6 +122,8 @@ import os
 import socket
 import sys
 import time
+import urllib
+
 from superlance.compat import urlparse
 from superlance.compat import xmlrpclib
 from superlance.utils import ExternalService
@@ -166,6 +168,14 @@ class HTTPOk:
         self.restart_timespan = restart_timespan * 60
         self.ext_service = ext_service
         self.grace_period = grace_period * 60 if grace_period else 0
+        self.params = {
+            'source': 'httpok',
+            'restart_string': self.restart_string,
+            'restart_threshold': self.restart_threshold,
+            'restart_timespan': self.restart_timespan,
+            'grace_period': self.grace_period,
+            'in_body': self.body,
+        }
 
     def listProcesses(self, state=None):
         return [x for x in self.rpc.supervisor.getAllProcessInfo()
@@ -214,8 +224,11 @@ class HTTPOk:
                             self.timeout // (self.retry_time or 1) - 1 ,
                             -1, -1):
                         try:
+                            params = urllib.urlencode(self.params)
+                            prefix = '&' if query else '?'
                             headers = {'User-Agent': 'httpok'}
-                            conn.request('GET', path, headers=headers)
+                            conn.request('GET', path + prefix + params,
+                                headers=headers)
                             break
                         except socket.error as e:
                             if e.errno == 111 and will_retry:
