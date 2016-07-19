@@ -174,7 +174,7 @@ class HTTPOk:
             'restart_threshold': self.restart_threshold,
             'restart_timespan': self.restart_timespan,
             'grace_period': self.grace_period,
-            'in_body': self.body,
+            'in_body': self.inbody,
         }
 
     def listProcesses(self, state=None):
