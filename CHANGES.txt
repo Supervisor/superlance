@@ -1,3 +1,9 @@
+1.0.7 (2016-07-19)
+------------------
+
+- Httpok now sends GET parameters to the monitored application so it could
+  log httpok activity on the healthcheck operations
+
 1.0.6 (2016-06-10)
 ------------------
 
@@ -28,7 +34,7 @@
 - New ExternalService class which allows event listeners to interact with
   processes using external scripts, e.g. restart the program using provided
   init daemon rather than signal via supervisor.
-  
+
 - httpok and oome_monitor now have an option to specify an external script
   for process management.
 
@@ -46,7 +52,7 @@
 
 - Httpok can now be limited by number of restarts. Check the help for more
   details.
-  
+
 - Added documentation for ``oome_monitor`` and updated for ``httpok``.
 
 1.0.0-dev (Next Release)
