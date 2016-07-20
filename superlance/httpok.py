@@ -118,6 +118,7 @@ httpok.py -p program1 -p group1:program2 http://localhost:8080/tasty
 
 """
 
+import copy
 import os
 import socket
 import sys
@@ -228,7 +229,7 @@ class HTTPOk:
                             self.timeout // (self.retry_time or 1) - 1 ,
                             -1, -1):
                         try:
-                            params = urllib.urlencode(self.params)
+                            params = urllib.urlencode(self.params, True)
                             headers = {'User-Agent': 'httpok'}
                             self.conn.request('GET', self.path + self.prefix + \
                                 params, headers=headers)
@@ -362,15 +363,19 @@ class HTTPOk:
             write('%s is in RUNNING state, restarting' % namespec)
             # Try to make another GET to send response code message to app
             try:
-                params = urllib.urlencode(self.params)
-                params.update({'response_status': self.res_status})
+                # We are working on a copy of params in order to update
+                # the response status for this restart instance only
+                params_copy = copy.copy(self.params)
+                params_copy.update({'response_status': self.res_status})
+                params = urllib.urlencode(params_copy, True)
                 headers = {'User-Agent': 'httpok'}
                 self.conn.request('GET', self.path + self.prefix + params,
                     headers=headers)
-            except:
+            except Exception as e:
                 # We don't care whether the GET call succeeds here as we are
                 # restarting the application anyway
-                pass
+                write('Exception during GET before restarting %s: %s' % (
+                    namespec, e))
             if self.ext_service:
                 try:
                     self.ext_service.stopProcess(namespec)
