@@ -118,10 +118,13 @@ httpok.py -p program1 -p group1:program2 http://localhost:8080/tasty
 
 """
 
+import copy
 import os
 import socket
 import sys
 import time
+import urllib
+
 from superlance.compat import urlparse
 from superlance.compat import xmlrpclib
 from superlance.utils import ExternalService
@@ -166,6 +169,15 @@ class HTTPOk:
         self.restart_timespan = restart_timespan * 60
         self.ext_service = ext_service
         self.grace_period = grace_period * 60 if grace_period else 0
+        self.params = {
+            'source': 'httpok',
+            'response_status': self.status,
+            'restart_string': self.restart_string,
+            'restart_threshold': self.restart_threshold,
+            'restart_timespan': self.restart_timespan,
+            'grace_period': self.grace_period,
+            'in_body': self.inbody,
+        }
 
     def listProcesses(self, state=None):
         return [x for x in self.rpc.supervisor.getAllProcessInfo()
@@ -176,11 +188,14 @@ class HTTPOk:
         parsed = urlparse.urlsplit(self.url)
         scheme = parsed[0].lower()
         hostport = parsed[1]
-        path = parsed[2]
+        self.path = parsed[2]
         query = parsed[3]
 
         if query:
-            path += '?' + query
+            self.path += '?' + query
+            self.prefix = '&'
+        else:
+            self.prefix = '?'
 
         if self.connclass:
             ConnClass = self.connclass
@@ -203,8 +218,8 @@ class HTTPOk:
                     break
                 continue
 
-            conn = ConnClass(hostport)
-            conn.timeout = self.timeout
+            self.conn = ConnClass(hostport)
+            self.conn.timeout = self.timeout
 
             specs = self.listProcesses(ProcessStates.RUNNING)
             if self.eager or len(specs) > 0:
@@ -214,8 +229,10 @@ class HTTPOk:
                             self.timeout // (self.retry_time or 1) - 1 ,
                             -1, -1):
                         try:
+                            params = urllib.urlencode(self.params, True)
                             headers = {'User-Agent': 'httpok'}
-                            conn.request('GET', path, headers=headers)
+                            self.conn.request('GET', self.path + self.prefix + \
+                                params, headers=headers)
                             break
                         except socket.error as e:
                             if e.errno == 111 and will_retry:
@@ -223,18 +240,18 @@ class HTTPOk:
                             else:
                                 raise
 
-                    res = conn.getresponse()
+                    res = self.conn.getresponse()
                     body = res.read()
-                    status = res.status
+                    self.res_status = res.status
                     msg = 'status contacting %s: %s %s' % (self.url,
                                                            res.status,
                                                            res.reason)
                 except Exception as e:
                     body = ''
-                    status = None
+                    self.res_status = None
                     msg = 'error contacting %s:\n\n %s' % (self.url, e)
 
-                if str(status) != str(self.status):
+                if str(self.res_status) != str(self.status):
                     subject = 'httpok for %s: bad status returned' % self.url
                     self.act(subject, msg)
                 elif self.inbody and self.inbody not in body:
@@ -344,6 +361,21 @@ class HTTPOk:
                     write('gcore output for %s:\n\n %s' % (
                         namespec, m.read()))
             write('%s is in RUNNING state, restarting' % namespec)
+            # Try to make another GET to send response code message to app
+            try:
+                # We are working on a copy of params in order to update
+                # the response status for this restart instance only
+                params_copy = copy.copy(self.params)
+                params_copy.update({'response_status': self.res_status})
+                params = urllib.urlencode(params_copy, True)
+                headers = {'User-Agent': 'httpok'}
+                self.conn.request('GET', self.path + self.prefix + params,
+                    headers=headers)
+            except Exception as e:
+                # We don't care whether the GET call succeeds here as we are
+                # restarting the application anyway
+                write('Exception during GET before restarting %s: %s' % (
+                    namespec, e))
             if self.ext_service:
                 try:
                     self.ext_service.stopProcess(namespec)
