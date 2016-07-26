@@ -62,6 +62,10 @@ Options:
       RUNNING state specified by -p or -a.  This defaults to the
       string, "200".
 
+-C -- specify 'stdout' or 'stderr' for generating PROCESS_COMMUNICATION
+      events from httpok. This needs that the provided stream is placed
+      in the 'capture mode' by setting std{err, out}_capture_maxbytes.
+
 -b -- specify a string which should be present in the body resulting
       from the GET request.  If this string is not present in the
       response, the processes in the RUNNING state specified by -p
@@ -146,7 +150,7 @@ class HTTPOk:
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
                  email, sendmail, coredir, gcore, eager, retry_time,
                  restart_threshold=0, restart_timespan=0, ext_service=None,
-                 restart_string=None, grace_period=None):
+                 restart_string=None, grace_period=None, capture_mode_stream=None):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -178,6 +182,15 @@ class HTTPOk:
             'grace_period': self.grace_period,
             'in_body': self.inbody,
         }
+        if capture_mode_stream:
+            if capture_mode_stream == "stderr":
+                self.capture_mode_stream = self.stderr
+            elif capture_mode_stream == "stdout":
+                self.capture_mode_stream = self.stdout
+            else:
+                self.capture_mode_stream = None
+        else:
+            self.capture_mode_stream = None
 
     def listProcesses(self, state=None):
         return [x for x in self.rpc.supervisor.getAllProcessInfo()
@@ -402,6 +415,15 @@ class HTTPOk:
                         namespec, e))
                 else:
                     write('%s restarted' % namespec)
+
+            if self.capture_mode_stream:
+                childutils.pcomm.send(str({
+                    'processname': spec.get('name'),
+                    'groupname': spec.get('groupname'),
+                    'state': 'restart',
+                    'pid': spec.get('pid'),
+                }), self.capture_mode_stream)
+
             if spec['name'] in self.counter:
                 new_spec = self.rpc.supervisor.getProcessInfo(spec['name'])
                 self.counter[spec['name']]['last_pid'] = new_spec['pid']
@@ -463,7 +485,7 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:B:s:m:g:d:eEr:n:x:G:"
+    short_args="hp:at:c:b:B:s:m:g:d:eEr:n:x:G:C:"
     long_args=[
         "help",
         "program=",
@@ -482,6 +504,7 @@ def main(argv=sys.argv):
         "restart-timespan=",
         "external-service-script=",
         "grace-period=",
+        "capture-mode="
         ]
     arguments = argv[1:]
     try:
@@ -510,6 +533,7 @@ def main(argv=sys.argv):
     restart_timespan = 60
     external_service_script = None
     grace_period = 0
+    capture_mode_stream = None
 
     for option, value in opts:
 
@@ -574,6 +598,15 @@ def main(argv=sys.argv):
         if option in ('-G', '--grace-period'):
             grace_period = int(value)
 
+        if option in ('-C', '--capture-mode'):
+            if value in ['stdout', 'stderr']:
+                capture_mode_stream = value.strip()
+            else:
+                capture_mode_stream = None
+                sys.stderr.write('Unable to parse a valid argument.\n')
+                sys.stderr.flush()
+                return
+
     url = arguments[-1]
 
     try:
@@ -598,7 +631,7 @@ def main(argv=sys.argv):
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
                   sendmail, coredir, gcore, eager, retry_time,
                   restart_threshold, restart_timespan, ext_service,
-                  restart_string, grace_period)
+                  restart_string, grace_period, capture_mode_stream)
     prog.runforever()
 
 if __name__ == '__main__':
