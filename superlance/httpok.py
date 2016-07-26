@@ -139,10 +139,10 @@ class HTTPOk:
 
     def runforever(self, test=False):
         parsed = urlparse.urlsplit(self.url)
-        scheme = parsed[0].lower()
-        hostport = parsed[1]
-        path = parsed[2]
-        query = parsed[3]
+        scheme = parsed.scheme.lower()
+        hostport = parsed.netloc
+        path = parsed.path
+        query = parsed.query
 
         if query:
             path += '?' + query
