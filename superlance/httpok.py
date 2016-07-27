@@ -420,7 +420,6 @@ class HTTPOk:
                 childutils.pcomm.send(str({
                     'processname': spec.get('name'),
                     'groupname': spec.get('groupname'),
-                    'state': 'restart',
                     'pid': spec.get('pid'),
                 }), self.capture_mode_stream)
 
