@@ -1,3 +1,12 @@
+1.0.8 (2016-08-02)
+------------------
+
+- Httpok can now emit a PROCESS_COMMINUCATION message to supervisor to allow
+  another eventlistner to process and act upon restarts done by httpok.
+- Fixed a bug where Httpok would incorrectly log and/or avoid restarting
+  the application if grace_period was specified.
+- Updated httpok unit tests to reflect recent GET changes.
+
 1.0.7 (2016-07-19)
 ------------------
 

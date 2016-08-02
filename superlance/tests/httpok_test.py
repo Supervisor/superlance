@@ -134,7 +134,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(lines[3], ('Not restarting bar anymore. Restarted 3 '
                                     'times'))
 
-        
+
     def test_restart_threshold_zero(self):
         programs = ['bar']
         any = None
@@ -163,7 +163,8 @@ class HTTPOkTests(unittest.TestCase):
                          )
         self.assertEqual(lines[1], 'foo restart is approved')
         self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[3], 'foo restarted')
+        self.assertEqual(lines[3], 'Exception during GET before restarting foo: foo')
+        self.assertEqual(lines[4], 'foo restarted')
 
     def test_restart_string(self):
         programs = ['foo']
@@ -184,7 +185,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(lines[3], 'foo restarted')
         self.assertEqual(lines[7], ('Subject: httpok for http://foo/bar: '
                                     'restart string in body'))
-        
+
     def test_clean_counters(self):
         programs = ['bar']
         any = None
@@ -226,16 +227,17 @@ class HTTPOkTests(unittest.TestCase):
                          )
         self.assertEqual(lines[1], 'foo restart is approved')
         self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[3], 'foo restarted')
-        self.assertEqual(lines[4], 'bar restart is approved')
-        self.assertEqual(lines[5], 'bar not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[6], 'baz_01 restart is approved')
-        self.assertEqual(lines[7],
-                         'baz:baz_01 not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[3], 'Exception during GET before restarting foo: foo')
+        self.assertEqual(lines[4], 'foo restarted')
+        self.assertEqual(lines[5], 'bar restart is approved')
+        self.assertEqual(lines[6], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[7], 'baz_01 restart is approved')
         self.assertEqual(lines[8],
+                         'baz:baz_01 not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[9],
           "Programs not restarted because they did not exist: ['notexisting']")
         mailed = prog.mailed.split('\n')
-        self.assertEqual(len(mailed), 15)
+        self.assertEqual(len(mailed), 16)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
@@ -252,14 +254,15 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(lines[0], 'Restarting all running processes')
         self.assertEqual(lines[1], 'foo restart is approved')
         self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[3], 'foo restarted')
-        self.assertEqual(lines[4], 'bar restart is approved')
-        self.assertEqual(lines[5], 'bar not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[6], 'baz_01 restart is approved')
-        self.assertEqual(lines[7],
+        self.assertEqual(lines[3], 'Exception during GET before restarting foo: foo')
+        self.assertEqual(lines[4], 'foo restarted')
+        self.assertEqual(lines[5], 'bar restart is approved')
+        self.assertEqual(lines[6], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[7], 'baz_01 restart is approved')
+        self.assertEqual(lines[8],
                          'baz:baz_01 not in RUNNING state, NOT restarting')
         mailed = prog.mailed.split('\n')
-        self.assertEqual(len(mailed), 14)
+        self.assertEqual(len(mailed), 15)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
@@ -278,10 +281,12 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(lines[1], "FAILED restart is approved")
         self.assertEqual(lines[2], 'foo:FAILED is in RUNNING state, restarting')
         self.assertEqual(lines[3],
+                    "Exception during GET before restarting foo:FAILED: foo")
+        self.assertEqual(lines[4],
                     "Failed to stop process foo:FAILED: <Fault 30: 'FAILED'>")
-        self.assertEqual(lines[4], 'foo:FAILED restarted')
+        self.assertEqual(lines[5], 'foo:FAILED restarted')
         mailed = prog.mailed.split('\n')
-        self.assertEqual(len(mailed), 11)
+        self.assertEqual(len(mailed), 12)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
@@ -303,9 +308,11 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(lines[2],
                          'foo:SPAWN_ERROR is in RUNNING state, restarting')
         self.assertEqual(lines[3],
+           "Exception during GET before restarting foo:SPAWN_ERROR: foo")
+        self.assertEqual(lines[4],
            "Failed to start process foo:SPAWN_ERROR: <Fault 50: 'SPAWN_ERROR'>")
         mailed = prog.mailed.split('\n')
-        self.assertEqual(len(mailed), 10)
+        self.assertEqual(len(mailed), 11)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
@@ -328,16 +335,17 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(lines[3], '')
         self.assertEqual(lines[4], ' ')
         self.assertEqual(lines[5], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[6], 'foo restarted')
-        self.assertEqual(lines[7], 'bar restart is approved')
-        self.assertEqual(lines[8], 'bar not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[9], 'baz_01 restart is approved')
-        self.assertEqual(lines[10],
-                         'baz:baz_01 not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[6], 'Exception during GET before restarting foo: foo')
+        self.assertEqual(lines[7], 'foo restarted')
+        self.assertEqual(lines[8], 'bar restart is approved')
+        self.assertEqual(lines[9], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[10], 'baz_01 restart is approved')
         self.assertEqual(lines[11],
+                         'baz:baz_01 not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[12],
           "Programs not restarted because they did not exist: ['notexisting']")
         mailed = prog.mailed.split('\n')
-        self.assertEqual(len(mailed), 18)
+        self.assertEqual(len(mailed), 19)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
@@ -367,11 +375,12 @@ class HTTPOkTests(unittest.TestCase):
                          )
         self.assertEqual(lines[1], 'foo restart is approved')
         self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[3], 'foo restarted')
-        self.assertEqual(lines[4], 'bar restart is approved')
-        self.assertEqual(lines[5], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[3], 'Exception during GET before restarting foo: foo')
+        self.assertEqual(lines[4], 'foo restarted')
+        self.assertEqual(lines[5], 'bar restart is approved')
+        self.assertEqual(lines[6], 'bar not in RUNNING state, NOT restarting')
         mailed = prog.mailed.split('\n')
-        self.assertEqual(len(mailed), 12)
+        self.assertEqual(len(mailed), 13)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')
@@ -404,11 +413,12 @@ class HTTPOkTests(unittest.TestCase):
                          )
         self.assertEqual(lines[1], 'foo restart is approved')
         self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[3], 'foo restarted')
-        self.assertEqual(lines[4], 'bar restart is approved')
-        self.assertEqual(lines[5], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[3], 'Exception during GET before restarting foo: ')
+        self.assertEqual(lines[4], 'foo restarted')
+        self.assertEqual(lines[5], 'bar restart is approved')
+        self.assertEqual(lines[6], 'bar not in RUNNING state, NOT restarting')
         mailed = prog.mailed.split('\n')
-        self.assertEqual(len(mailed), 12)
+        self.assertEqual(len(mailed), 13)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')

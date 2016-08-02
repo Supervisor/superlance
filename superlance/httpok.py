@@ -330,12 +330,12 @@ class HTTPOk:
                 group = spec['group']
                 now = spec['now']
                 starttime = spec['start']
-                if (now - starttime) < self.grace_period:
-                    write('Grace period has not been elapsed since %s was '
-                          'last restarted' % name)
-                    return
                 namespec = make_namespec(group, name)
                 if (name in self.programs) or (namespec in self.programs):
+                    if (now - starttime) < self.grace_period:
+                        write('Grace period has not been elapsed since %s was '
+                              'last restarted' % name)
+                        continue
                     if self.restartCounter(spec, write):
                         self.restart(spec, write)
                     else:

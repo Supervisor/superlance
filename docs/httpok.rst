@@ -83,6 +83,12 @@ Command-Line Syntax
 
    Defaults to the string "200".
 
+.. cmdoption:: -C <standard_stream>
+
+   Specify 'stdout' or 'stderr' for generating PROCESS_COMMUNICATION
+   events from httpok. This needs that the provided stream is placed
+   in the 'capture mode' by setting std{err, out}_capture_maxbytes.
+
 .. cmdoption:: -b <body_string>, --body=<body_string>
 
    Specify a string which should be present in the body resulting
