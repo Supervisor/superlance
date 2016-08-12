@@ -1,3 +1,8 @@
+1.0.9 (2016-08-12)
+------------------
+
+- Added Log cass to utils module which handles and provides better logging
+
 1.0.8 (2016-08-02)
 ------------------
 

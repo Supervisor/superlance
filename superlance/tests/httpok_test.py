@@ -1,3 +1,4 @@
+import logging
 import socket
 import time
 import unittest
@@ -85,6 +86,10 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdout = StringIO()
         prog.stderr = StringIO()
         prog.connclass = make_connection(response, exc=exc)
+        handler = logging.StreamHandler()
+        handler.stream = StringIO()
+        prog.log.logger.handlers = []
+        prog.log.logger.addHandler(handler)
         return prog
 
     def test_listProcesses_no_programs(self):
@@ -157,7 +162,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.write('eventname:TICK len:0\n')
         prog.stdin.seek(0)
         prog.runforever(test=True)
-        lines = prog.stderr.getvalue().split('\n')
+        lines = prog.stderr.getvalue().split('\n')[8:]
         self.assertEqual(lines[0],
                          "Restarting selected processes ['foo']"
                          )
@@ -177,13 +182,13 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        self.assertEqual(lines[0],
+        self.assertEqual(lines[6],
                          "Restarting selected processes ['foo']"
                          )
-        self.assertEqual(lines[1], 'foo restart is approved')
-        self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[3], 'foo restarted')
-        self.assertEqual(lines[7], ('Subject: httpok for http://foo/bar: '
+        self.assertEqual(lines[7], 'foo restart is approved')
+        self.assertEqual(lines[8], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[9], 'foo restarted')
+        self.assertEqual(lines[3], ('Subject: httpok for http://foo/bar: '
                                     'restart string in body'))
 
     def test_clean_counters(self):
@@ -221,20 +226,20 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 7)
-        self.assertEqual(lines[0],
+        self.assertEqual(lines[8],
                          ("Restarting selected processes ['foo', 'bar', "
                           "'baz_01', 'notexisting']")
                          )
-        self.assertEqual(lines[1], 'foo restart is approved')
-        self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[3], 'Exception during GET before restarting foo: foo')
-        self.assertEqual(lines[4], 'foo restarted')
-        self.assertEqual(lines[5], 'bar restart is approved')
-        self.assertEqual(lines[6], 'bar not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[7], 'baz_01 restart is approved')
-        self.assertEqual(lines[8],
+        self.assertEqual(lines[9], 'foo restart is approved')
+        self.assertEqual(lines[10], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[11], 'Exception during GET before restarting foo: foo')
+        self.assertEqual(lines[12], 'foo restarted')
+        self.assertEqual(lines[13], 'bar restart is approved')
+        self.assertEqual(lines[14], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[15], 'baz_01 restart is approved')
+        self.assertEqual(lines[16],
                          'baz:baz_01 not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[9],
+        self.assertEqual(lines[17],
           "Programs not restarted because they did not exist: ['notexisting']")
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 16)
@@ -251,15 +256,15 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 6)
-        self.assertEqual(lines[0], 'Restarting all running processes')
-        self.assertEqual(lines[1], 'foo restart is approved')
-        self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[3], 'Exception during GET before restarting foo: foo')
-        self.assertEqual(lines[4], 'foo restarted')
-        self.assertEqual(lines[5], 'bar restart is approved')
-        self.assertEqual(lines[6], 'bar not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[7], 'baz_01 restart is approved')
-        self.assertEqual(lines[8],
+        self.assertEqual(lines[8], 'Restarting all running processes')
+        self.assertEqual(lines[9], 'foo restart is approved')
+        self.assertEqual(lines[10], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[11], 'Exception during GET before restarting foo: foo')
+        self.assertEqual(lines[12], 'foo restarted')
+        self.assertEqual(lines[13], 'bar restart is approved')
+        self.assertEqual(lines[14], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[15], 'baz_01 restart is approved')
+        self.assertEqual(lines[16],
                          'baz:baz_01 not in RUNNING state, NOT restarting')
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 15)
@@ -277,14 +282,14 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 5)
-        self.assertEqual(lines[0], "Restarting selected processes ['FAILED']")
-        self.assertEqual(lines[1], "FAILED restart is approved")
-        self.assertEqual(lines[2], 'foo:FAILED is in RUNNING state, restarting')
-        self.assertEqual(lines[3],
+        self.assertEqual(lines[8], "Restarting selected processes ['FAILED']")
+        self.assertEqual(lines[9], "FAILED restart is approved")
+        self.assertEqual(lines[10], 'foo:FAILED is in RUNNING state, restarting')
+        self.assertEqual(lines[11],
                     "Exception during GET before restarting foo:FAILED: foo")
-        self.assertEqual(lines[4],
+        self.assertEqual(lines[12],
                     "Failed to stop process foo:FAILED: <Fault 30: 'FAILED'>")
-        self.assertEqual(lines[5], 'foo:FAILED restarted')
+        self.assertEqual(lines[13], 'foo:FAILED restarted')
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 12)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
@@ -301,15 +306,15 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 4)
-        self.assertEqual(lines[0],
+        self.assertEqual(lines[8],
                          "Restarting selected processes ['SPAWN_ERROR']")
-        self.assertEqual(lines[1],
+        self.assertEqual(lines[9],
                          'SPAWN_ERROR restart is approved')
-        self.assertEqual(lines[2],
+        self.assertEqual(lines[10],
                          'foo:SPAWN_ERROR is in RUNNING state, restarting')
-        self.assertEqual(lines[3],
+        self.assertEqual(lines[11],
            "Exception during GET before restarting foo:SPAWN_ERROR: foo")
-        self.assertEqual(lines[4],
+        self.assertEqual(lines[12],
            "Failed to start process foo:SPAWN_ERROR: <Fault 50: 'SPAWN_ERROR'>")
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 11)
@@ -326,23 +331,23 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        self.assertEqual(lines[0],
+        self.assertEqual(lines[8],
                          ("Restarting selected processes ['foo', 'bar', "
                           "'baz_01', 'notexisting']")
                          )
-        self.assertEqual(lines[1], 'foo restart is approved')
-        self.assertEqual(lines[2], 'gcore output for foo:')
-        self.assertEqual(lines[3], '')
-        self.assertEqual(lines[4], ' ')
-        self.assertEqual(lines[5], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[6], 'Exception during GET before restarting foo: foo')
-        self.assertEqual(lines[7], 'foo restarted')
-        self.assertEqual(lines[8], 'bar restart is approved')
-        self.assertEqual(lines[9], 'bar not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[10], 'baz_01 restart is approved')
-        self.assertEqual(lines[11],
+        self.assertEqual(lines[9], 'foo restart is approved')
+        self.assertEqual(lines[10], 'gcore output for foo:')
+        self.assertEqual(lines[11], '')
+        self.assertEqual(lines[12], ' ')
+        self.assertEqual(lines[13], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[14], 'Exception during GET before restarting foo: foo')
+        self.assertEqual(lines[15], 'foo restarted')
+        self.assertEqual(lines[16], 'bar restart is approved')
+        self.assertEqual(lines[17], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[18], 'baz_01 restart is approved')
+        self.assertEqual(lines[19],
                          'baz:baz_01 not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[12],
+        self.assertEqual(lines[20],
           "Programs not restarted because they did not exist: ['notexisting']")
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 19)
@@ -370,15 +375,15 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
-        self.assertEqual(lines[0],
+        self.assertEqual(lines[5],
                          ("Restarting selected processes ['foo', 'bar']")
                          )
-        self.assertEqual(lines[1], 'foo restart is approved')
-        self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[3], 'Exception during GET before restarting foo: foo')
-        self.assertEqual(lines[4], 'foo restarted')
-        self.assertEqual(lines[5], 'bar restart is approved')
-        self.assertEqual(lines[6], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[6], 'foo restart is approved')
+        self.assertEqual(lines[7], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[8], 'Exception during GET before restarting foo: foo')
+        self.assertEqual(lines[9], 'foo restarted')
+        self.assertEqual(lines[10], 'bar restart is approved')
+        self.assertEqual(lines[11], 'bar not in RUNNING state, NOT restarting')
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 13)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
@@ -408,15 +413,15 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
-        self.assertEqual(lines[0],
+        self.assertEqual(lines[5],
                          ("Restarting selected processes ['foo', 'bar']")
                          )
-        self.assertEqual(lines[1], 'foo restart is approved')
-        self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[3], 'Exception during GET before restarting foo: ')
-        self.assertEqual(lines[4], 'foo restarted')
-        self.assertEqual(lines[5], 'bar restart is approved')
-        self.assertEqual(lines[6], 'bar not in RUNNING state, NOT restarting')
+        self.assertEqual(lines[6], 'foo restart is approved')
+        self.assertEqual(lines[7], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[8], 'Exception during GET before restarting foo: ')
+        self.assertEqual(lines[9], 'foo restarted')
+        self.assertEqual(lines[10], 'bar restart is approved')
+        self.assertEqual(lines[11], 'bar not in RUNNING state, NOT restarting')
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 13)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')

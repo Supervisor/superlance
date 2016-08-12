@@ -131,7 +131,7 @@ import urllib
 
 from superlance.compat import urlparse
 from superlance.compat import xmlrpclib
-from superlance.utils import ExternalService
+from superlance.utils import ExternalService, Log
 
 from supervisor import childutils
 from supervisor.states import ProcessStates
@@ -191,6 +191,7 @@ class HTTPOk:
                 self.capture_mode_stream = None
         else:
             self.capture_mode_stream = None
+        self.log = Log(__name__)
 
     def listProcesses(self, state=None):
         return [x for x in self.rpc.supervisor.getAllProcessInfo()
@@ -291,8 +292,7 @@ class HTTPOk:
         email = True
 
         def write(msg):
-            self.stderr.write('%s\n' % msg)
-            self.stderr.flush()
+            self.log.logger.warn(msg)
             messages.append(msg)
 
         try:

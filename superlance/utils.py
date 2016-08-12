@@ -2,6 +2,8 @@
 #
 # Module contains common utility classes used throughout the superlance
 #
+
+import logging
 import os.path
 import subprocess
 import sys
@@ -12,16 +14,16 @@ class ExternalService(object):
     """ This class provides start and stop functions which call external scripts
     and are intended to be compatible with the same RPC functions in
     SupervisorNamespaceRPCInterface class.
-    
+
     In order to use this, consumers need to instantiate this and call the
     functions of this class instead of ones in RPC interface to supervisord.
-    
+
     External service script needs to accept "start" and "stop" arguments and
     obviously perform the same.
     """
     def __init__(self, external_service):
         """ Initialise and setup an external service script
-        
+
         @param string external_service External service script path
         """
         if os.path.isfile(external_service):
@@ -31,7 +33,7 @@ class ExternalService(object):
                 'service script does not exist or permission was denied',
                 external_service)
         self.stderr = sys.stderr
-        
+
 
     def startProcess(self, name, wait=True):
         """ Start a process
@@ -49,7 +51,7 @@ class ExternalService(object):
                 .format(name, e.cmd))
         self.stderr.flush()
         return True
-    
+
     def stopProcess(self, name, wait=True):
         """ Stop a process named by name
 
@@ -65,3 +67,17 @@ class ExternalService(object):
                 .format(name, e.cmd))
         self.stderr.flush()
         return True
+
+
+class Log(object):
+    """
+    Utility class which handles logging for superlance modules
+    """
+    def __init__(self, name):
+        formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - '
+            '%(module)s - %(message)s')
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        self.logger = logging.getLogger(name)
+        self.logger.setLevel(logging.DEBUG)
+        self.logger.addHandler(handler)
