@@ -1,5 +1,8 @@
 import unittest
-import mock
+try: # pragma: no cover
+    from unittest.mock import Mock
+except ImportError: # pragma: no cover
+    from mock import Mock
 from superlance.compat import StringIO
 from superlance.process_state_monitor import ProcessStateMonitor
 
@@ -21,7 +24,7 @@ class ProcessStateMonitorTests(unittest.TestCase):
         kwargs['stderr'] = StringIO()
 
         obj = self._get_target_class()(**kwargs)
-        obj.send_batch_notification = mock.Mock()
+        obj.send_batch_notification = Mock()
         return obj
 
     def get_process_exited_event(self, pname, gname, expected,
