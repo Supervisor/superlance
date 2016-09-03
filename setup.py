@@ -34,6 +34,10 @@ try:
 except (IOError, OSError):
     CHANGES = ''
 
+tests_require = ['supervisor']
+if py_version < (3, 3):
+    tests_require.append('mock')
+
 setup(name='superlance',
       version='1.0.0-dev',
       license='BSD-derived (http://www.repoze.org/LICENSE.txt)',
@@ -52,6 +56,7 @@ setup(name='superlance',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Topic :: System :: Boot',
         'Topic :: System :: Monitoring',
         'Topic :: System :: Systems Administration',
@@ -66,10 +71,7 @@ setup(name='superlance',
       install_requires=[
             'supervisor',
             ],
-      tests_require=[
-            'supervisor',
-            'mock',
-            ],
+      tests_require=tests_require,
       test_suite='superlance.tests',
       entry_points = """\
       [console_scripts]
