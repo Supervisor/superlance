@@ -5,10 +5,6 @@
 
 - Added support for Python 3.2 and 3.3.
 
-- Changed shebang lines in all files from using "python -u" to "python".
-  All of the eventlisteners in this package use supervisor.childutils, which
-  does an explicit flush after every write to stdout.
-
 0.11 (2014-08-15)
 -----------------
 
