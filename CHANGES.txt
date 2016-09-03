@@ -5,6 +5,8 @@
 
 - Added support for Python 3.2 and 3.3.
 
+- Fixed ``crashmail`` parsing of ``--optionalheader``.  Patch by Matt Dziuban.
+
 0.11 (2014-08-15)
 -----------------
 
