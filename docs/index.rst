@@ -2,10 +2,8 @@ superlance plugins for supervisor
 =================================
 
 Superlance is a package of plugin utilities for monitoring and
-controlling processes that run under `supervisor
-<http://supervisord.org>`_.
-
-Currently, it provides these plugins:
+controlling processes that run under `Supervisor
+<http://supervisord.org>`_.  It provides these plugins:
 
 :command:`httpok`
     This plugin is meant to be used as a supervisor event listener,
@@ -26,21 +24,20 @@ Currently, it provides these plugins:
     maximum size.
 
 :command:`crashmailbatch`
-    Similar to :command:`crashmail`, :command:`crashmailbatch` sends email 
-    alerts when processes die unexpectedly.  The difference is that all alerts 
-    generated within the configured time interval are batched together to avoid 
+    Similar to :command:`crashmail`, :command:`crashmailbatch` sends email
+    alerts when processes die unexpectedly.  The difference is that all alerts
+    generated within the configured time interval are batched together to avoid
     sending too many emails.
 
 :command:`fatalmailbatch`
-    This plugin sends email alerts when processes fail to start 
+    This plugin sends email alerts when processes fail to start
     too many times such that supervisord gives up retrying.  All of the fatal
-    start events generated within the configured time interval are batched 
+    start events generated within the configured time interval are batched
     together to avoid sending too many emails.
 
 :command:`crashsms`
     Similar to :command:`crashmailbatch` except it sends SMS alerts
     through an email gateway.  Messages are formatted to fit in SMS.
-
 
 Contents:
 
@@ -53,6 +50,7 @@ Contents:
    crashmailbatch
    fatalmailbatch
    crashsms
+   development
 
 Indices and tables
 ==================
