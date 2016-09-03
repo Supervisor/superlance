@@ -1,5 +1,5 @@
-1.0.0-dev (Next Release)
-------------------------
+1.0.0.dev0 (Next Release)
+-------------------------
 
 - Dropped support for Python 2.5.
 
