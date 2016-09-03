@@ -1,9 +1,11 @@
 1.0.0.dev0 (Next Release)
 -------------------------
 
-- Dropped support for Python 2.5.
+- Support for Python 2.5 has been dropped.  On Python 2, Superlance
+  now requires Python 2.6 or later.
 
-- Added support for Python 3.2 and 3.3.
+- Support for Python 3 has been added.  On Python 3, Superlance
+  now requires Python 3.2 or later.
 
 0.12 (2016-09-03)
 -----------------
