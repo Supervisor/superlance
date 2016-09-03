@@ -1,5 +1,8 @@
 import unittest
-import mock
+try: # pragma: no cover
+    from unittest.mock import Mock
+except ImportError: # pragma: no cover
+    from mock import Mock
 from superlance.compat import StringIO
 
 class ProcessStateEmailMonitorTestException(Exception):
@@ -29,18 +32,18 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
 
     def _make_one_mock_send_email(self, **kwargs):
         obj = self._make_one(**kwargs)
-        obj.send_email = mock.Mock()
+        obj.send_email = Mock()
         return obj
 
     def _make_one_mock_send_smtp(self, **kwargs):
         obj = self._make_one(**kwargs)
-        obj.send_smtp = mock.Mock()
+        obj.send_smtp = Mock()
         return obj
 
     def test_validate_cmd_line_options_single_to_email_ok(self):
         klass = self._get_target_class()
 
-        options = mock.Mock()
+        options = Mock()
         options.from_email = 'blah'
         options.to_emails = 'frog'
 
@@ -50,7 +53,7 @@ class ProcessStateEmailMonitorTests(unittest.TestCase):
     def test_validate_cmd_line_options_multi_to_emails_ok(self):
         klass = self._get_target_class()
 
-        options = mock.Mock()
+        options = Mock()
         options.from_email = 'blah'
         options.to_emails = 'frog, log,dog'
 

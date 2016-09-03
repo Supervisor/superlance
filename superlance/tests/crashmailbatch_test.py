@@ -1,5 +1,8 @@
 import unittest
-import mock
+try: # pragma: no cover
+    from unittest.mock import Mock
+except ImportError: # pragma: no cover
+    from mock import Mock
 from superlance.compat import StringIO
 
 class CrashMailBatchTests(unittest.TestCase):
@@ -21,7 +24,7 @@ class CrashMailBatchTests(unittest.TestCase):
         kwargs['subject'] = kwargs.get('subject', self.subject)
 
         obj = self._get_target_class()(**kwargs)
-        obj.send_email = mock.Mock()
+        obj.send_email = Mock()
         return obj
 
     def get_process_exited_event(self, pname, gname, expected):
