@@ -5,7 +5,7 @@
 a concrete ``TICK_x`` event. When :command:`httpok` receives a ``TICK_x``
 event (``TICK_60`` is recommended, indicating activity every 60 seconds),
 :command:`httpk` makes an HTTP GET request to a confgured URL. If the request
-fails or times out, :command:`httpok`` will restart the "hung" child
+fails or times out, :command:`httpok` will restart the "hung" child
 process(es). :command:`httpok` can be configured to send an email notification
 when it restarts a process.
 
@@ -80,7 +80,7 @@ Command-Line Syntax
    :command:`httpok` will attempt to restart child processes which are
    in the ``RUNNING`` state, and specified by ``-p`` or ``-a``.
 
-   Defaults to the string, "200".
+   Defaults to 200.
 
 .. cmdoption:: -b <body_string>, --body=<body_string>
 
