@@ -63,7 +63,7 @@ class HTTPOkTests(unittest.TestCase):
         return self._getTargetClass()(*opts)
 
     def _makeOnePopulated(self, programs, any, response=None, exc=None,
-                          gcore=None, coredir=None, eager=True):
+                          gcore=None, coredir=None, eager=True, delay=None):
         if response is None:
             response = DummyResponse()
         rpc = DummyRPCServer()
@@ -76,9 +76,10 @@ class HTTPOkTests(unittest.TestCase):
         inbody = None
         gcore = gcore
         coredir = coredir
+        delay = delay
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
                              inbody, email, sendmail, coredir, gcore, eager,
-                             retry_time)
+                             delay, retry_time)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -308,6 +309,25 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(lines[3], 'bar not in RUNNING state, NOT restarting')
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 10)
+        self.assertEqual(mailed[0], 'To: chrism@plope.com')
+        self.assertEqual(mailed[1],
+                    'Subject: httpok for http://foo/bar: bad status returned')
+
+    def test_runforever_not_eager_running_delay150(self):
+        programs = ['foo', 'bar']
+        any = None
+        prog = self._makeOnePopulated(programs, any, exc=True, eager=False, delay=150)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = [x for x in prog.stderr.getvalue().split('\n') if x]
+        self.assertEqual(lines[0],
+                         ("Restarting selected processes ['foo', 'bar']")
+                         )
+        self.assertEqual(lines[1], 'foo is in RUNNING state 100 seconds (<150), delay restarting')
+        self.assertEqual(lines[2], 'bar not in RUNNING state, NOT restarting')
+        mailed = prog.mailed.split('\n')
+        self.assertEqual(len(mailed), 9)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok for http://foo/bar: bad status returned')

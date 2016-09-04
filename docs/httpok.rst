@@ -118,6 +118,10 @@ Command-Line Syntax
    Disable "eager" monitoring:  do not check the URL or emit mail if no
    monitored process is in the RUNNING state.
 
+.. cmdoption:: -w <seconds>, --delay=<seconds>
+   
+   Number of seconds delay before really make a restart.
+
 .. cmdoption:: <URL>
 
    The URL to which to issue a GET request.

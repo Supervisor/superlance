@@ -26,7 +26,7 @@
 
 doc = """\
 httpok.py [-p processname] [-a] [-g] [-t timeout] [-c status_code] [-b inbody]
-          [-m mail_address] [-s sendmail] URL
+          [-m mail_address] [-s sendmail] [-w delay_seconds] URL
 
 Options:
 
@@ -81,6 +81,8 @@ Options:
 
 -E -- not "eager":  do not check URL / emit mail if no process we are
       monitoring is in the RUNNING state.
+      
+-w -- specify number of seconds delay before really make a restart.
 
 URL -- The URL to which to issue a GET request.
 
@@ -114,7 +116,7 @@ def usage():
 class HTTPOk:
     connclass = None
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
-                 email, sendmail, coredir, gcore, eager, retry_time):
+                 email, sendmail, coredir, gcore, eager, delay, retry_time):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -128,6 +130,7 @@ class HTTPOk:
         self.coredir = coredir
         self.gcore = gcore
         self.eager = eager
+        self.delay = delay
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
@@ -272,6 +275,10 @@ class HTTPOk:
     def restart(self, spec, write):
         namespec = make_namespec(spec['group'], spec['name'])
         if spec['state'] is ProcessStates.RUNNING:
+            if self.delay and (spec['now']-spec['start'])<self.delay:
+                write('%s is in RUNNING state %d seconds (<%d), delay restarting' % \
+                    (namespec, spec['now']-spec['start'], self.delay))
+                return
             if self.coredir and self.gcore:
                 corename = os.path.join(self.coredir, namespec)
                 cmd = self.gcore + ' "%s" %s' % (corename, spec['pid'])
@@ -299,7 +306,7 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:s:m:g:d:eE"
+    short_args="hp:at:c:b:s:m:g:d:eEw:"
     long_args=[
         "help",
         "program=",
@@ -313,6 +320,7 @@ def main(argv=sys.argv):
         "coredir=",
         "eager",
         "not-eager",
+        "delay=",
         ]
     arguments = argv[1:]
     try:
@@ -334,6 +342,7 @@ def main(argv=sys.argv):
     email = None
     timeout = 10
     retry_time = 10
+    delay = None
     status = '200'
     inbody = None
 
@@ -375,6 +384,9 @@ def main(argv=sys.argv):
         if option in ('-E', '--not-eager'):
             eager = False
 
+        if option in ('-w', '--delay'):
+            delay = int(value)
+
     url = arguments[-1]
 
     try:
@@ -388,7 +400,7 @@ def main(argv=sys.argv):
         return
 
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
-                  sendmail, coredir, gcore, eager, retry_time)
+                  sendmail, coredir, gcore, eager, delay, retry_time)
     prog.runforever()
 
 if __name__ == '__main__':
