@@ -220,7 +220,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 12)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: [%s] httpok for http://foo/bar: bad status returned' % socket.gethostname())
 
     def test_runforever_eager_error_on_request_any(self):
         programs = []
@@ -240,7 +240,8 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 11)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: [%s] httpok for http://foo/bar: bad status returned' % socket.gethostname())
+
 
     def test_runforever_eager_error_on_process_stop(self):
         programs = ['FAILED']
@@ -260,7 +261,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 10)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: [%s] httpok for http://foo/bar: bad status returned' % socket.gethostname())
 
     def test_runforever_eager_error_on_process_start(self):
         programs = ['SPAWN_ERROR']
@@ -281,7 +282,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 9)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: [%s] httpok for http://foo/bar: bad status returned' % socket.gethostname())
 
     def test_runforever_eager_gcore(self):
         programs = ['foo', 'bar', 'baz_01', 'notexisting']
@@ -310,7 +311,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 15)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: [%s] httpok for http://foo/bar: bad status returned' % socket.gethostname())
 
     def test_runforever_not_eager_none_running(self):
         programs = ['bar', 'baz_01']
@@ -342,7 +343,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 10)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: [%s] httpok for http://foo/bar: bad status returned' % socket.gethostname())
 
     def test_runforever_honor_timeout_on_connrefused(self):
         programs = ['foo', 'bar']
@@ -377,7 +378,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 10)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                         'Subject: [%s] httpok for http://foo/bar: bad status returned' % socket.gethostname())
 
 if __name__ == '__main__':
     unittest.main()
