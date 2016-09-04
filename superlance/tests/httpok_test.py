@@ -59,26 +59,31 @@ class HTTPOkTests(unittest.TestCase):
         from superlance.httpok import HTTPOk
         return HTTPOk
 
-    def _makeOne(self, *opts):
-        return self._getTargetClass()(*opts)
+    def _makeOne(self, *args, **kwargs):
+        return self._getTargetClass()(*args, **kwargs)
 
-    def _makeOnePopulated(self, programs, any, response=None, exc=None,
-                          gcore=None, coredir=None, eager=True):
+    def _makeOnePopulated(self, programs, any=None, statuses=None, inbody=None,
+                          eager=True, gcore=None, coredir=None,
+                          response=None, exc=None):
+        if statuses is None:
+            statuses = [200]
         if response is None:
             response = DummyResponse()
-        rpc = DummyRPCServer()
-        sendmail = 'cat - > /dev/null'
-        email = 'chrism@plope.com'
-        url = 'http://foo/bar'
-        timeout = 10
-        retry_time = 0
-        status = '200'
-        inbody = None
-        gcore = gcore
-        coredir = coredir
-        prog = self._makeOne(rpc, programs, any, url, timeout, status,
-                             inbody, email, sendmail, coredir, gcore, eager,
-                             retry_time)
+        prog = self._makeOne(
+            rpc=DummyRPCServer(),
+            url='http://foo/bar',
+            timeout=10,
+            email='chrism@plope.com',
+            sendmail='cat - > /dev/null',
+            retry_time=0,
+            programs=programs,
+            any=any,
+            statuses=statuses,
+            inbody=inbody,
+            eager=eager,
+            coredir=coredir,
+            gcore=gcore,
+            )
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -126,6 +131,72 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         self.assertEqual(prog.stderr.getvalue(), '')
 
+    def test_runforever_doesnt_act_if_status_is_expected(self):
+        statuses = [200, 201]
+        for status in statuses:
+            response = DummyResponse()
+            response.status = status # expected
+            prog = self._makeOnePopulated(
+                programs=['foo'],
+                statuses=statuses,
+                response=response,
+                )
+            prog.stdin.write('eventname:TICK len:0\n')
+            prog.stdin.seek(0)
+            prog.runforever(test=True)
+            # status is expected so there should be no output
+            self.assertEqual('', prog.stderr.getvalue())
+
+    def test_runforever_acts_if_status_is_unexpected(self):
+        statuses = [200, 201]
+        response = DummyResponse()
+        response.status = 500 # unexpected
+        response.reason = 'Internal Server Error'
+        prog = self._makeOnePopulated(
+            programs=['foo'],
+            statuses=[statuses],
+            response=response,
+            )
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertTrue('Subject: httpok for http://foo/bar: '
+                        'bad status returned' in lines)
+        self.assertTrue('status contacting http://foo/bar: '
+                        '500 Internal Server Error' in lines)
+
+    def test_runforever_doesnt_act_if_inbody_is_present(self):
+        response = DummyResponse()
+        response.body = 'It works'
+        prog = self._makeOnePopulated(
+            programs=['foo'],
+            statuses=[response.status],
+            response=response,
+            inbody='works',
+            )
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        # body is expected so there should be no output
+        self.assertEqual('', prog.stderr.getvalue())
+
+    def test_runforever_acts_if_inbody_isnt_present(self):
+        response = DummyResponse()
+        response.body = 'Some kind of error'
+        prog = self._makeOnePopulated(
+            programs=['foo'],
+            statuses=[response.status],
+            response=response,
+            inbody="works",
+            )
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertTrue('Subject: httpok for http://foo/bar: '
+                        'bad body returned' in lines)
+
     def test_runforever_eager_error_on_request_some(self):
         programs = ['foo', 'bar', 'baz_01', 'notexisting']
         any = None
@@ -134,7 +205,6 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        #self.assertEqual(len(lines), 7)
         self.assertEqual(lines[0],
                          ("Restarting selected processes ['foo', 'bar', "
                           "'baz_01', 'notexisting']")
@@ -160,7 +230,6 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        #self.assertEqual(len(lines), 6)
         self.assertEqual(lines[0], 'Restarting all running processes')
         self.assertEqual(lines[1], 'foo is in RUNNING state, restarting')
         self.assertEqual(lines[2], 'foo restarted')
@@ -182,7 +251,6 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        #self.assertEqual(len(lines), 5)
         self.assertEqual(lines[0], "Restarting selected processes ['FAILED']")
         self.assertEqual(lines[1], 'foo:FAILED is in RUNNING state, restarting')
         self.assertEqual(lines[2],
@@ -203,7 +271,6 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        #self.assertEqual(len(lines), 4)
         self.assertEqual(lines[0],
                          "Restarting selected processes ['SPAWN_ERROR']")
         self.assertEqual(lines[1],

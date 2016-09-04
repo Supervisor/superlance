@@ -81,7 +81,7 @@ Command-Line Syntax
    :command:`httpok` will attempt to restart child processes which are
    in the ``RUNNING`` state, and specified by ``-p`` or ``-a``.
 
-   Defaults to the string "200".
+   Defaults to 200.
 
 .. cmdoption:: -b <body_string>, --body=<body_string>
 
