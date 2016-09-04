@@ -1,0 +1,7 @@
+#!/bin/bash
+# test program: non 0 exit code after timeout
+timeout="$1"
+echo $(date) "Crashing in $timeout seconds"
+sleep "$timeout"
+echo $(date) "CRASHING NOW"
+exit 123

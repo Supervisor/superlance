@@ -1,0 +1,6 @@
+#!/bin/bash
+# don't send any mail: only write the args and stdin to the logfile
+logfile=/L/fakemail.log
+echo $(date) "$*" >> "$logfile"
+cat >> "$logfile"
+echo >> "$logfile"
