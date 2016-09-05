@@ -40,7 +40,7 @@ Options:
 -p -- specify a process_name=byte_size pair.  Restart the supervisor
       process named 'process_name' when it uses more than byte_size
       RSS.  If this process is in a group, it can be specified using
-      the 'process_name:group_name' syntax.
+      the 'group_name:process_name' syntax.
 
 -g -- specify a group_name=byte_size pair.  Restart any process in this group
       when it uses more than byte_size RSS.
