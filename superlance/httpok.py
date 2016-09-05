@@ -81,6 +81,10 @@ Options:
 -E -- not "eager":  do not check URL / emit mail if no process we are
       monitoring is in the RUNNING state.
 
+-n -- optionally specify the name of the httpok process.  This name will
+      be used in the email subject to identify which httpok process
+      restarted the process.
+
 URL -- The URL to which to issue a GET request.
 
 The -c option may be specified more than once, allowing for
@@ -116,7 +120,7 @@ def usage():
 class HTTPOk:
     connclass = None
     def __init__(self, rpc, programs, any, url, timeout, statuses, inbody,
-                 email, sendmail, coredir, gcore, eager, retry_time):
+                 email, sendmail, coredir, gcore, eager, retry_time, name):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -133,6 +137,7 @@ class HTTPOk:
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
+        self.name = name
 
     def listProcesses(self, state=None):
         return [x for x in self.rpc.supervisor.getAllProcessInfo()
@@ -202,15 +207,25 @@ class HTTPOk:
                     msg = 'error contacting %s:\n\n %s' % (self.url, why)
 
                 if status not in self.statuses:
-                    subject = 'httpok for %s: bad status returned' % self.url
+                    subject = self.format_subject(
+                        '%s: bad status returned' % self.url
+                        )
                     self.act(subject, msg)
                 elif self.inbody and self.inbody not in body:
-                    subject = 'httpok for %s: bad body returned' % self.url
+                    subject = self.format_subject(
+                        '%s: bad body returned' % self.url
+                    )
                     self.act(subject, msg)
 
             childutils.listener.ok(self.stdout)
             if test:
                 break
+
+    def format_subject(self, subject):
+        if self.name is None:
+            return 'httpok: %s' % subject
+        else:
+            return 'httpok [%s]: %s' % (self.name, subject)
 
     def act(self, subject, msg):
         messages = [msg]
@@ -338,6 +353,7 @@ def main(argv=sys.argv):
     retry_time = 10
     statuses = []
     inbody = None
+    name = None
 
     for option, value in opts:
 
@@ -377,6 +393,9 @@ def main(argv=sys.argv):
         if option in ('-E', '--not-eager'):
             eager = False
 
+        if option in ('-n', '--name'):
+            name = value
+
     if not statuses:
         statuses = [200]
 
@@ -393,7 +412,7 @@ def main(argv=sys.argv):
         return
 
     prog = HTTPOk(rpc, programs, any, url, timeout, statuses, inbody, email,
-                  sendmail, coredir, gcore, eager, retry_time)
+                  sendmail, coredir, gcore, eager, retry_time, name)
     prog.runforever()
 
 if __name__ == '__main__':

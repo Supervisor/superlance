@@ -121,6 +121,16 @@ Command-Line Syntax
 
    The URL to which to issue a GET request.
 
+.. cmdoption:: -n <httpok name>, --name=<httpok name>
+
+    An optional name that identifies this httpok process. If given, the
+    email subject will start with ``httpok [<httpok name>]:`` instead
+    of ``httpok:``
+    In case you run multiple supervisors on a single host that control
+    different processes with the same name (eg `zopeinstance1`) you can
+    use this option to indicate which project the restarted instance
+    belongs to.
+
 
 Configuring :command:`httpok` Into the Supervisor Config
 -----------------------------------------------------------

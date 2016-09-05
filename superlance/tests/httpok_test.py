@@ -62,18 +62,12 @@ class HTTPOkTests(unittest.TestCase):
 
     def _makeOnePopulated(self, programs, any=None, statuses=None, inbody=None,
                           eager=True, gcore=None, coredir=None,
-                          response=None, exc=None):
+                          response=None, exc=None, name=None):
         if statuses is None:
             statuses = [200]
         if response is None:
             response = DummyResponse()
-        prog = self._makeOne(
-            rpc=DummyRPCServer(),
-            url='http://foo/bar',
-            timeout=10,
-            email='chrism@plope.com',
-            sendmail='cat - > /dev/null',
-            retry_time=0,
+        httpok = self._makeOne(
             programs=programs,
             any=any,
             statuses=statuses,
@@ -81,12 +75,19 @@ class HTTPOkTests(unittest.TestCase):
             eager=eager,
             coredir=coredir,
             gcore=gcore,
+            name=name,
+            rpc=DummyRPCServer(),
+            url='http://foo/bar',
+            timeout=10,
+            email='chrism@plope.com',
+            sendmail='cat - > /dev/null',
+            retry_time=0,
             )
-        prog.stdin = StringIO()
-        prog.stdout = StringIO()
-        prog.stderr = StringIO()
-        prog.connclass = make_connection(response, exc=exc)
-        return prog
+        httpok.stdin = StringIO()
+        httpok.stdout = StringIO()
+        httpok.stderr = StringIO()
+        httpok.connclass = make_connection(response, exc=exc)
+        return httpok
 
     def test_listProcesses_no_programs(self):
         programs = []
@@ -159,7 +160,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        self.assertTrue('Subject: httpok for http://foo/bar: '
+        self.assertTrue('Subject: httpok: http://foo/bar: '
                         'bad status returned' in lines)
         self.assertTrue('status contacting http://foo/bar: '
                         '500 Internal Server Error' in lines)
@@ -192,7 +193,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        self.assertTrue('Subject: httpok for http://foo/bar: '
+        self.assertTrue('Subject: httpok: http://foo/bar: '
                         'bad body returned' in lines)
 
     def test_runforever_eager_error_on_request_some(self):
@@ -218,7 +219,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 12)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: httpok: http://foo/bar: bad status returned')
 
     def test_runforever_eager_error_on_request_any(self):
         programs = []
@@ -238,7 +239,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 11)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: httpok: http://foo/bar: bad status returned')
 
     def test_runforever_eager_error_on_process_stop(self):
         programs = ['FAILED']
@@ -258,7 +259,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 10)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: httpok: http://foo/bar: bad status returned')
 
     def test_runforever_eager_error_on_process_start(self):
         programs = ['SPAWN_ERROR']
@@ -279,7 +280,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 9)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: httpok: http://foo/bar: bad status returned')
 
     def test_runforever_eager_gcore(self):
         programs = ['foo', 'bar', 'baz_01', 'notexisting']
@@ -308,7 +309,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 15)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: httpok: http://foo/bar: bad status returned')
 
     def test_runforever_not_eager_none_running(self):
         programs = ['bar', 'baz_01']
@@ -340,7 +341,7 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 10)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: httpok: http://foo/bar: bad status returned')
 
     def test_runforever_honor_timeout_on_connrefused(self):
         programs = ['foo', 'bar']
@@ -375,7 +376,43 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(len(mailed), 10)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
-                    'Subject: httpok for http://foo/bar: bad status returned')
+                    'Subject: httpok: http://foo/bar: bad status returned')
+
+    def test_subject_no_name(self):
+        """set the name to None to check if subject formats to:
+        httpok: %(subject)s
+        """
+        prog = self._makeOnePopulated(
+            programs=['foo', 'bar'],
+            any=None,
+            eager=False,
+            exc=[ValueError('this causes status to be None')],
+            name=None,
+            )
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        mailed = prog.mailed.split('\n')
+        self.assertEqual(mailed[1],
+          'Subject: httpok: http://foo/bar: bad status returned')
+
+    def test_subject_with_name(self):
+        """set the name to a string to check if subject formats to:
+        httpok [%(name)s]: %(subject)s
+        """
+        prog = self._makeOnePopulated(
+            programs=['foo', 'bar'],
+            any=None,
+            eager=False,
+            exc=[ValueError('this causes status to be None')],
+            name='thinko',
+            )
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        mailed = prog.mailed.split('\n')
+        self.assertEqual(mailed[1],
+          'Subject: httpok [thinko]: http://foo/bar: bad status returned')
 
 if __name__ == '__main__':
     unittest.main()
