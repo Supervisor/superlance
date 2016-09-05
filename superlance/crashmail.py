@@ -38,7 +38,7 @@ Options:
 -p -- specify a supervisor process_name.  Send mail when this process
       transitions to the EXITED state unexpectedly. If this process is
       part of a group, it can be specified using the
-      'process_name:group_name' syntax.
+      'group_name:process_name' syntax.
 
 -a -- Send mail when any child of the supervisord transitions
       unexpectedly to the EXITED state unexpectedly.  Overrides any -p
