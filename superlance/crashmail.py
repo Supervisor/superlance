@@ -65,15 +65,16 @@ crashmail.py -p program1 -p group1:program2 -m dev@example.com
 
 """
 
+import getopt
 import os
 import sys
 
 from supervisor import childutils
 
 
-def usage():
+def usage(exitstatus=255):
     print(doc)
-    sys.exit(255)
+    sys.exit(exitstatus)
 
 
 class CrashMail:
@@ -145,7 +146,6 @@ class CrashMail:
 
 
 def main(argv=sys.argv):
-    import getopt
     short_args = "hp:ao:s:m:"
     long_args = [
         "help",
@@ -170,7 +170,7 @@ def main(argv=sys.argv):
     for option, value in opts:
 
         if option in ('-h', '--help'):
-            usage()
+            usage(exitstatus=0)
 
         if option in ('-p', '--program'):
             programs.append(value)

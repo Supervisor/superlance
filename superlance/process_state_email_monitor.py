@@ -12,10 +12,11 @@
 # FITNESS FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-import os
-import sys
-import smtplib
 import copy
+import optparse
+import os
+import smtplib
+import sys
 
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
@@ -31,9 +32,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
 
     @classmethod
     def _get_opt_parser(cls):
-        from optparse import OptionParser
-
-        parser = OptionParser()
+        parser = optparse.OptionParser()
         parser.add_option("-i", "--interval", dest="interval", type="float", default=1.0,
                         help="batch interval in minutes (defaults to 1 minute)")
         parser.add_option("-t", "--toEmail", dest="to_emails",

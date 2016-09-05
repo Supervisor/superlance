@@ -100,6 +100,7 @@ httpok.py -p program1 -p group1:program2 http://localhost:8080/tasty
 
 """
 
+import getopt
 import os
 import socket
 import sys
@@ -113,9 +114,9 @@ from supervisor.options import make_namespec
 
 from superlance import timeoutconn
 
-def usage():
+def usage(exitstatus=255):
     print(doc)
-    sys.exit(255)
+    sys.exit(exitstatus)
 
 class HTTPOk:
     connclass = None
@@ -315,7 +316,6 @@ class HTTPOk:
 
 
 def main(argv=sys.argv):
-    import getopt
     short_args="hp:at:c:b:s:m:g:d:eE"
     long_args=[
         "help",
@@ -337,6 +337,11 @@ def main(argv=sys.argv):
     except:
         usage()
 
+    # check for -h must be done before positional args check
+    for option, value in opts:
+        if option in ('-h', '--help'):
+            usage(exitstatus=0)
+
     if not args:
         usage()
     if len(args) > 1:
@@ -356,9 +361,6 @@ def main(argv=sys.argv):
     name = None
 
     for option, value in opts:
-
-        if option in ('-h', '--help'):
-            usage()
 
         if option in ('-p', '--program'):
             programs.append(value)
