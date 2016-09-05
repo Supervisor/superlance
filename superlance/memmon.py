@@ -61,10 +61,10 @@ Options:
       if the process uptime is longer than this value, no email is sent
       (useful to only be notified if processes are restarted too often/early)
 
-      seconds can be specified as plain integer values or a suffix-multiplied integer
-      (e.g. 1m). Valid suffixes are m (minute), h (hour) and d (day).
+      seconds can be specified as plain integer values or a suffix-multiplied
+      integer (e.g. 1m). Valid suffixes are m (minute), h (hour) and d (day).
 
--n -- optionally specify the name of the memmon process. This name will
+-n -- optionally specify the name of the memmon process.  This name will
       be used in the email subject to identify which memmon process
       restarted the process.
 
@@ -107,7 +107,7 @@ class Memmon:
         self.sendmail = sendmail
         self.email = email
         self.email_uptime_limit = email_uptime_limit
-        self.memmonName = name
+        self.name = name
         self.rpc = rpc
         self.stdin = sys.stdin
         self.stdout = sys.stdout
@@ -195,7 +195,6 @@ class Memmon:
         info = self.rpc.supervisor.getProcessInfo(name)
         uptime = info['now'] - info['start'] #uptime in seconds
         self.stderr.write('Restarting %s\n' % name)
-        memmonId = self.memmonName and " [%s]" % self.memmonName or ""
         try:
             self.rpc.supervisor.stopProcess(name)
         except xmlrpclib.Fault as e:
@@ -203,7 +202,9 @@ class Memmon:
                    (name, rss, e))
             self.stderr.write(str(msg))
             if self.email:
-                subject = 'memmon%s: failed to stop process %s, exiting' % (memmonId, name)
+                subject = self.format_subject(
+                    'failed to stop process %s, exiting' % name
+                    )
                 self.mail(self.email, subject, msg)
             raise
 
@@ -214,7 +215,9 @@ class Memmon:
                    'exiting: %s' % (name, e))
             self.stderr.write(str(msg))
             if self.email:
-                subject = 'memmon%s: failed to start process %s, exiting' % (memmonId, name)
+                subject = self.format_subject(
+                    'failed to start process %s, exiting' % name
+                )
                 self.mail(self.email, subject, msg)
             raise
 
@@ -225,11 +228,18 @@ class Memmon:
                 'it was consuming too much memory (%s bytes RSS)' % (
                 name, now, rss)
                 )
-            subject = 'memmon%s: process %s restarted' % (memmonId, name)
+            subject = self.format_subject(
+                'process %s restarted' % name
+                )
             self.mail(self.email, subject, msg)
 
-    def calc_rss(self, pid):
+    def format_subject(self, subject):
+        if self.name is None:
+            return 'memmon: %s' % subject
+        else:
+            return 'memmon [%s]: %s' % (self.name, subject)
 
+    def calc_rss(self, pid):
         ProcInfo = namedtuple('ProcInfo', ['pid', 'ppid', 'rss'])
 
         def find_children(parent_pid, procs):
