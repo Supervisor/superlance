@@ -10,6 +10,8 @@
 
 - ``httpok`` now has a ``--name`` option like ``memmon``.
 
+- All commands now return exit status 0 from ``--help``.
+
 0.12 (2016-09-03)
 -----------------
 

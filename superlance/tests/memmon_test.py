@@ -1,8 +1,11 @@
 import sys
 import unittest
 from StringIO import StringIO
-from superlance.memmon import memmon_from_args
-from superlance.memmon import seconds_size
+from superlance.memmon import (
+    help_request,
+    memmon_from_args,
+    seconds_size
+    )
 from superlance.tests.dummy import DummyRPCServer
 
 class MemmonTests(unittest.TestCase):
@@ -348,8 +351,9 @@ class MemmonTests(unittest.TestCase):
         # help
         arguments = ['-h', ]
         memmon = memmon_from_args(arguments)
-        self.assertTrue(memmon is None, '-h returns None to make main() script print usage')
-
+        self.assertTrue(memmon is help_request,
+            '-h returns help_request to make main() script print usage'
+            )
 
         #all arguments
         arguments = ['-c',

@@ -12,14 +12,14 @@
 # FITNESS FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-import os
-import sys
-import smtplib
 import copy
+import optparse
+import os
+import smtplib
+import sys
 # Using old reference for Python 2.4
 from email.MIMEText import MIMEText
 from email.Utils import formatdate, make_msgid
-# from email.mime.text import MIMEText
 from superlance.process_state_monitor import ProcessStateMonitor
 
 doc = """\
@@ -32,9 +32,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
 
     @classmethod
     def _get_opt_parser(cls):
-        from optparse import OptionParser
-
-        parser = OptionParser()
+        parser = optparse.OptionParser()
         parser.add_option("-i", "--interval", dest="interval", type="float", default=1.0,
                         help="batch interval in minutes (defaults to 1 minute)")
         parser.add_option("-t", "--toEmail", dest="to_emails",
@@ -52,7 +50,7 @@ class ProcessStateEmailMonitor(ProcessStateMonitor):
         parser.add_option("-p", "--password", dest="smtp_password", default="",
                         help="SMTP server password (defaults to nothing)")
         return parser
-      
+
     @classmethod
     def parse_cmd_line_options(cls):
         parser = cls._get_opt_parser()

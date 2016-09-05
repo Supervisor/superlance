@@ -80,6 +80,7 @@ A sample invocation:
 memmon.py -p program1=200MB -p theprog:thegroup=100MB -g thegroup=100MB -a 1GB -s "/usr/sbin/sendmail -t -i" -m chrism@plope.com -n "Project 1"
 """
 
+import getopt
 import os
 import sys
 import time
@@ -89,9 +90,9 @@ from collections import namedtuple
 from supervisor import childutils
 from supervisor.datatypes import byte_size, SuffixMultiplier
 
-def usage():
-    print doc
-    sys.exit(255)
+def usage(exitstatus=255):
+    print(doc)
+    sys.exit(exitstatus)
 
 def shell(cmd):
     return os.popen(cmd).read()
@@ -330,8 +331,9 @@ def parse_seconds(option, value):
         usage()
     return seconds
 
+help_request = object()  # returned from memmon_from_args to indicate --help
+
 def memmon_from_args(arguments):
-    import getopt
     short_args = "hcp:g:a:s:m:n:u:"
     long_args = [
         "help",
@@ -364,7 +366,7 @@ def memmon_from_args(arguments):
     for option, value in opts:
 
         if option in ('-h', '--help'):
-            return None
+            return help_request
 
         if option in ('-c', '--cumulative'):
             cumulative = True
@@ -405,8 +407,9 @@ def memmon_from_args(arguments):
 
 def main():
     memmon = memmon_from_args(sys.argv[1:])
-    if memmon is None:
-        # something went wrong or -h has been given
+    if memmon is help_request:  # --help
+        usage(exitstatus=0)
+    elif memmon is None:  # something went wrong
         usage()
     memmon.rpc = childutils.getRPCInterface(os.environ)
     memmon.runforever()
