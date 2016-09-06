@@ -1,9 +1,5 @@
-1.0.0-dev (Next Release)
-------------------------
-
-- Dropped support for Python 2.5.
-
-- Added support for Python 3.2 and 3.3.
+0.13 (2016-09-05)
+-----------------
 
 - ``httpok`` now allows multiple expected status codes to be specified.  Patch
   by valmiRe.
