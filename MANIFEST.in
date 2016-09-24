@@ -1,0 +1,8 @@
+include CHANGES.txt
+include COPYRIGHT.txt
+include LICENSE.txt
+include README.rst
+include docs/Makefile
+recursive-include docs *.py *.rst
+recursive-exclude docs/_build *
+
