@@ -5,7 +5,12 @@
   now requires Python 2.6 or later.
 
 - Support for Python 3 has been added.  On Python 3, Superlance
-  now requires Python 3.2 or later.
+  requires Python 3.2 or later.
+
+0.14 (2016-09-24)
+-----------------
+
+- Fixed docs build.
 
 0.13 (2016-09-05)
 -----------------
