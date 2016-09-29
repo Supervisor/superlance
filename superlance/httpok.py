@@ -291,6 +291,8 @@ class HTTPOk:
         messages = [msg]
         email = True
 
+logstopper = 'false'
+
         def write(msg):
             self.log.logger.warn(msg)
             messages.append(msg)
@@ -345,10 +347,12 @@ class HTTPOk:
                     if namespec in waiting:
                         waiting.remove(namespec)
 
-        if waiting:
-            write(
-                'Programs not restarted because they did not exist: %s' %
+logstopper = 'true'
+        if logstopper = ‘false’:
+            write ('Programs not restarted because they did not exist: %s' %
                 waiting)
+#         elif logstopper = 'true':
+#            write ('something')
 
         if self.email and email:
             message = '\n'.join(messages)
