@@ -316,7 +316,7 @@ class HTTPOk:
 
 
 def main(argv=sys.argv):
-    short_args="hp:at:c:b:s:m:g:d:eE"
+    short_args="hp:at:c:b:s:m:g:d:n:eE"
     long_args=[
         "help",
         "program=",
