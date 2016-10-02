@@ -1,5 +1,5 @@
-1.0.0.dev0 (Next Release)
--------------------------
+1.0.0 (2016-10-02)
+------------------
 
 - Support for Python 2.5 has been dropped.  On Python 2, Superlance
   now requires Python 2.6 or later.
@@ -7,7 +7,7 @@
 - Support for Python 3 has been added.  On Python 3, Superlance
   requires Python 3.2 or later.
 
-- Fix parsing of ``-n`` and ``--name`` options in ``httpok``.  Patch
+- Fixed parsing of ``-n`` and ``--name`` options in ``httpok``.  Patch
   by DenisBY.
 
 0.14 (2016-09-24)
