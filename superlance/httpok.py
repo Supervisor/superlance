@@ -316,7 +316,7 @@ class HTTPOk:
 
 
 def main(argv=sys.argv):
-    short_args="hp:at:c:b:s:m:g:d:eE"
+    short_args="hp:at:c:b:s:m:g:d:eEn:"
     long_args=[
         "help",
         "program=",
@@ -330,6 +330,7 @@ def main(argv=sys.argv):
         "coredir=",
         "eager",
         "not-eager",
+        "name=",
         ]
     arguments = argv[1:]
     try:

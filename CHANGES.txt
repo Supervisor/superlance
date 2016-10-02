@@ -7,6 +7,9 @@
 - Support for Python 3 has been added.  On Python 3, Superlance
   requires Python 3.2 or later.
 
+- Fix parsing of ``-n`` and ``--name`` options in ``httpok``.  Patch
+  by DenisBY.
+
 0.14 (2016-09-24)
 -----------------
 
