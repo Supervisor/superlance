@@ -235,7 +235,12 @@ class HTTPOk:
             self.conn = ConnClass(hostport)
             self.conn.timeout = self.timeout
 
-            specs = self.listProcesses(ProcessStates.RUNNING)
+            try:
+                specs = self.listProcesses(ProcessStates.RUNNING)
+            except Exception as e:
+                self.log.logger.warning('Exception occurred while trying to get '
+                    'the list of processes: ', e)
+                continue
             if self.eager or len(specs) > 0:
 
                 try:
@@ -292,7 +297,7 @@ class HTTPOk:
         email = True
 
         def write(msg):
-            self.log.logger.warn(msg)
+            self.log.logger.warning(msg)
             messages.append(msg)
 
         try:
