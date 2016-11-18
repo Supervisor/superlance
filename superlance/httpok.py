@@ -27,7 +27,8 @@
 doc = """\
 httpok.py [-p processname] [-a] [-g] [-t timeout] [-c status_code] [-b inbody]
     [-B restart_string] [-m mail_address] [-s sendmail] [-r restart_threshold]
-    [-n restart_timespan] [-x external_script] [-G grace_period] URL
+    [-n restart_timespan] [-x external_script] [-G grace_period]
+    [-o grace_count] URL
 
 Options:
 
@@ -108,7 +109,12 @@ Options:
 
 -G -- specify the grace period in minutes before starting to act on programs
       which are failing their healthchecks. Grace period is counted since
-      the last time program was (re)started.
+      the last time program was (re)started. Default is 0.
+
+-o -- specify the grace count to ignore a number of errors before restarting
+      programs which are failing their healthchecks. Grace count is counted
+      since the last time program was (re)started and is checked before
+      program restart counter (-n option). Default is 0.
 
 URL -- The URL to which to issue a GET request.
 
@@ -150,7 +156,8 @@ class HTTPOk:
     def __init__(self, rpc, programs, any, url, timeout, status, inbody,
                  email, sendmail, coredir, gcore, eager, retry_time,
                  restart_threshold=0, restart_timespan=0, ext_service=None,
-                 restart_string=None, grace_period=None, capture_mode_stream=None):
+                 restart_string=None, grace_period=None, grace_count=0,
+                 capture_mode_stream=None):
         self.rpc = rpc
         self.programs = programs
         self.any = any
@@ -169,10 +176,12 @@ class HTTPOk:
         self.stdout = sys.stdout
         self.stderr = sys.stderr
         self.counter = {}
+        self.error_counter = {}
         self.restart_threshold = restart_threshold
         self.restart_timespan = restart_timespan * 60
         self.ext_service = ext_service
         self.grace_period = grace_period * 60 if grace_period else 0
+        self.grace_count = grace_count
         self.params = {
             'source': 'httpok',
             'response_status': self.status,
@@ -180,6 +189,7 @@ class HTTPOk:
             'restart_threshold': self.restart_threshold,
             'restart_timespan': self.restart_timespan,
             'grace_period': self.grace_period,
+            'grace_count': self.grace_count,
             'in_body': self.inbody,
         }
         if capture_mode_stream:
@@ -304,7 +314,7 @@ class HTTPOk:
         waiting = list(self.programs)
 
         if self.any:
-            write('Restarting all running processes')
+            write('Trying to restart all affected processes')
             for spec in specs:
                 name = spec['name']
                 group = spec['group']
@@ -313,6 +323,11 @@ class HTTPOk:
                 if (now - starttime) < self.grace_period:
                     write('Grace period has not been elapsed since %s was '
                           'last restarted' % name)
+                    continue
+                if not self.errorCounter(spec, write):
+                    write('Restart counter for %s is lower than %s, '
+                          'not restarting at this time' % (name,
+                          self.grace_count))
                     continue
                 if self.restartCounter(spec, write):
                     self.restart(spec, write)
@@ -324,7 +339,7 @@ class HTTPOk:
                 if namespec in waiting:
                     waiting.remove(namespec)
         else:
-            write('Restarting selected processes %s' % self.programs)
+            write('Trying to restart affected processes %s' % self.programs)
             for spec in specs:
                 name = spec['name']
                 group = spec['group']
@@ -335,6 +350,11 @@ class HTTPOk:
                     if (now - starttime) < self.grace_period:
                         write('Grace period has not been elapsed since %s was '
                               'last restarted' % name)
+                        continue
+                    if not self.errorCounter(spec, write):
+                        write('Restart counter for %s is lower than %s, '
+                              'not restarting at this time' % (name,
+                              self.grace_count))
                         continue
                     if self.restartCounter(spec, write):
                         self.restart(spec, write)
@@ -469,6 +489,39 @@ class HTTPOk:
                     spec['name'], self.counter[spec['name']]['counter']))
                 return False
 
+    def errorCounter(self, spec, write):
+        """
+        Function checks the number of errors for the given spec.
+        If it does not exceed self.grace_count - ignore the error and increase
+        the counter for the spec.
+
+        :param spec: Spec as returned by RPC
+        :type spec: dict struct
+        :param write: Stderr write handler and a message container
+        :type write: function
+        :returns: Boolean result whether to ignore the error or not
+        """
+        if self.grace_count == 0:
+            # grace counter is not configured
+            return True
+        elif spec['name'] not in self.error_counter:
+            # Create a new counter and return True
+            self.error_counter[spec['name']] = {}
+            write('error count for %s is 0' % spec['name'])
+            self.error_counter[spec['name']]['count'] = 1
+            return False
+        elif self.error_counter[spec['name']]['count'] > self.grace_count:
+            write('error count for %s is %s' % (spec['name'],
+                self.error_counter[spec['name']]['count']))
+            self.error_counter[spec['name']]['count'] = 0
+            return True
+        else:
+            write('error count for %s is %s' % (spec['name'],
+                self.error_counter[spec['name']]['count']))
+            self.error_counter[spec['name']]['count'] += 1
+            return False
+
+
     def cleanCounters(self):
         """
         Function to clean the counter once all monitored programs are
@@ -484,7 +537,7 @@ class HTTPOk:
 
 def main(argv=sys.argv):
     import getopt
-    short_args="hp:at:c:b:B:s:m:g:d:eEr:n:x:G:C:"
+    short_args="hp:at:c:b:B:s:m:g:d:eEr:n:x:G:C:o:"
     long_args=[
         "help",
         "program=",
@@ -503,7 +556,8 @@ def main(argv=sys.argv):
         "restart-timespan=",
         "external-service-script=",
         "grace-period=",
-        "capture-mode="
+        "capture-mode=",
+        "grace-count=",
         ]
     arguments = argv[1:]
     try:
@@ -533,6 +587,7 @@ def main(argv=sys.argv):
     external_service_script = None
     grace_period = 0
     capture_mode_stream = None
+    grace_count = 0
 
     for option, value in opts:
 
@@ -606,6 +661,9 @@ def main(argv=sys.argv):
                 sys.stderr.flush()
                 return
 
+        if option in ('-o', '--grace-count'):
+            grace_count = int(value)
+
     url = arguments[-1]
 
     try:
@@ -630,7 +688,8 @@ def main(argv=sys.argv):
     prog = HTTPOk(rpc, programs, any, url, timeout, status, inbody, email,
                   sendmail, coredir, gcore, eager, retry_time,
                   restart_threshold, restart_timespan, ext_service,
-                  restart_string, grace_period, capture_mode_stream)
+                  restart_string, grace_period, grace_count,
+                  capture_mode_stream)
     prog.runforever()
 
 if __name__ == '__main__':

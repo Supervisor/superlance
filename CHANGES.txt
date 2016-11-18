@@ -1,3 +1,9 @@
+1.0.10 (2016-11-16)
+-------------------
+
+- Added a grace counter option to allow n number of errors before restarting
+  the application
+
 1.0.9 (2016-08-12)
 ------------------
 

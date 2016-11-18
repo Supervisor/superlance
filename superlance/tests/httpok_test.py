@@ -66,7 +66,8 @@ class HTTPOkTests(unittest.TestCase):
 
     def _makeOnePopulated(self, programs, any, response=None, exc=None,
             gcore=None, coredir=None, eager=True, restart_threshold=3,
-            restart_timespan=60, ext_service=None, restart_string=None):
+            restart_timespan=60, ext_service=None, restart_string=None,
+            grace_period=0, grace_count=0):
         if response is None:
             response = DummyResponse()
         rpc = DummyRPCServer()
@@ -81,7 +82,8 @@ class HTTPOkTests(unittest.TestCase):
         coredir = coredir
         prog = self._makeOne(rpc, programs, any, url, timeout, status,
             inbody, email, sendmail, coredir, gcore, eager, retry_time,
-            restart_threshold, restart_timespan, ext_service, restart_string)
+            restart_threshold, restart_timespan, ext_service, restart_string,
+            grace_period, grace_count)
         prog.stdin = StringIO()
         prog.stdout = StringIO()
         prog.stderr = StringIO()
@@ -139,6 +141,23 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(lines[3], ('Not restarting bar anymore. Restarted 3 '
                                     'times'))
 
+    def test_grace_count(self):
+        programs = ['foo']
+        any = None
+        prog = self._makeOnePopulated(programs, any, grace_count=3, exc=True)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        for i in xrange(5):
+            prog.act('subject', 'body')
+        lines = prog.stderr.getvalue().split('\n')
+        self.assertEqual(lines[45], 'error count for foo is 4')
+        self.assertEqual(lines[46], 'foo restart is approved')
+        self.assertEqual(lines[47], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[56], 'error count for foo is 0')
+        self.assertEqual(lines[57], ('Restart counter for foo is lower than 3,'\
+            ' not restarting at this time'))
+
 
     def test_restart_threshold_zero(self):
         programs = ['bar']
@@ -164,7 +183,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')[8:]
         self.assertEqual(lines[0],
-                         "Restarting selected processes ['foo']"
+                         "Trying to restart affected processes ['foo']"
                          )
         self.assertEqual(lines[1], 'foo restart is approved')
         self.assertEqual(lines[2], 'foo is in RUNNING state, restarting')
@@ -183,7 +202,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
         self.assertEqual(lines[6],
-                         "Restarting selected processes ['foo']"
+                         "Trying to restart affected processes ['foo']"
                          )
         self.assertEqual(lines[7], 'foo restart is approved')
         self.assertEqual(lines[8], 'foo is in RUNNING state, restarting')
@@ -227,7 +246,7 @@ class HTTPOkTests(unittest.TestCase):
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 7)
         self.assertEqual(lines[8],
-                         ("Restarting selected processes ['foo', 'bar', "
+                         ("Trying to restart affected processes ['foo', 'bar', "
                           "'baz_01', 'notexisting']")
                          )
         self.assertEqual(lines[9], 'foo restart is approved')
@@ -256,7 +275,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 6)
-        self.assertEqual(lines[8], 'Restarting all running processes')
+        self.assertEqual(lines[8], 'Trying to restart all affected processes')
         self.assertEqual(lines[9], 'foo restart is approved')
         self.assertEqual(lines[10], 'foo is in RUNNING state, restarting')
         self.assertEqual(lines[11], 'Exception during GET before restarting foo: foo')
@@ -282,7 +301,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 5)
-        self.assertEqual(lines[8], "Restarting selected processes ['FAILED']")
+        self.assertEqual(lines[8], "Trying to restart affected processes ['FAILED']")
         self.assertEqual(lines[9], "FAILED restart is approved")
         self.assertEqual(lines[10], 'foo:FAILED is in RUNNING state, restarting')
         self.assertEqual(lines[11],
@@ -307,7 +326,7 @@ class HTTPOkTests(unittest.TestCase):
         lines = prog.stderr.getvalue().split('\n')
         #self.assertEqual(len(lines), 4)
         self.assertEqual(lines[8],
-                         "Restarting selected processes ['SPAWN_ERROR']")
+                         "Trying to restart affected processes ['SPAWN_ERROR']")
         self.assertEqual(lines[9],
                          'SPAWN_ERROR restart is approved')
         self.assertEqual(lines[10],
@@ -332,7 +351,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
         self.assertEqual(lines[8],
-                         ("Restarting selected processes ['foo', 'bar', "
+                         ("Trying to restart affected processes ['foo', 'bar', "
                           "'baz_01', 'notexisting']")
                          )
         self.assertEqual(lines[9], 'foo restart is approved')
@@ -376,7 +395,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(lines[5],
-                         ("Restarting selected processes ['foo', 'bar']")
+                         ("Trying to restart affected processes ['foo', 'bar']")
                          )
         self.assertEqual(lines[6], 'foo restart is approved')
         self.assertEqual(lines[7], 'foo is in RUNNING state, restarting')
@@ -414,7 +433,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(lines[5],
-                         ("Restarting selected processes ['foo', 'bar']")
+                         ("Trying to restart affected processes ['foo', 'bar']")
                          )
         self.assertEqual(lines[6], 'foo restart is approved')
         self.assertEqual(lines[7], 'foo is in RUNNING state, restarting')
