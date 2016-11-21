@@ -135,6 +135,8 @@ import sys
 import time
 import urllib
 
+from collections import defaultdict
+
 from superlance.compat import urlparse
 from superlance.compat import xmlrpclib
 from superlance.utils import ExternalService, Log
@@ -176,7 +178,7 @@ class HTTPOk:
         self.stdout = sys.stdout
         self.stderr = sys.stderr
         self.counter = {}
-        self.error_counter = {}
+        self.error_counter = defaultdict(int)
         self.restart_threshold = restart_threshold
         self.restart_timespan = restart_timespan * 60
         self.ext_service = ext_service
@@ -504,22 +506,16 @@ class HTTPOk:
         if self.grace_count == 0:
             # grace counter is not configured
             return True
-        elif spec['name'] not in self.error_counter:
-            # Create a new counter and return True
-            self.error_counter[spec['name']] = {}
-            write('error count for %s is 0' % spec['name'])
-            self.error_counter[spec['name']]['count'] = 1
-            return False
-        elif self.error_counter[spec['name']]['count'] > self.grace_count:
+        elif self.error_counter[spec['name']] <= self.grace_count:
             write('error count for %s is %s' % (spec['name'],
-                self.error_counter[spec['name']]['count']))
-            self.error_counter[spec['name']]['count'] = 0
-            return True
+                self.error_counter[spec['name']]))
+            self.error_counter[spec['name']] += 1
+            return False
         else:
             write('error count for %s is %s' % (spec['name'],
-                self.error_counter[spec['name']]['count']))
-            self.error_counter[spec['name']]['count'] += 1
-            return False
+                self.error_counter[spec['name']]))
+            self.error_counter[spec['name']] = 0
+            return True
 
 
     def cleanCounters(self):
