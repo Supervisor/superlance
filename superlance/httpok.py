@@ -350,8 +350,8 @@ class HTTPOk:
                         waiting.remove(namespec)
 
         if not logstopper and waiting:
-            write ('Programs not restarted because they did not exist: %s' %
-                waiting
+            write('Programs not restarted because they did not exist: %s' %
+                waiting)
 
         if self.email and email:
             message = '\n'.join(messages)
