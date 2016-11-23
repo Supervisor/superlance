@@ -308,6 +308,8 @@ class HTTPOk:
         messages = [msg]
         email = True
 
+        logstopper = False
+
         def write(msg):
             self.log.logger.warning(msg)
             messages.append(msg)
@@ -330,6 +332,7 @@ class HTTPOk:
                 if (now - starttime) < self.grace_period:
                     write('Grace period has not been elapsed since %s was '
                           'last restarted' % name)
+                    logstopper = True
                     continue
                 if not self.errorCounter(spec, write):
                     write('Restart counter for %s is lower than %s, '
@@ -357,6 +360,7 @@ class HTTPOk:
                     if (now - starttime) < self.grace_period:
                         write('Grace period has not been elapsed since %s was '
                               'last restarted' % name)
+                        logstopper = True
                         continue
                     if not self.errorCounter(spec, write):
                         write('Restart counter for %s is lower than %s, '
@@ -372,9 +376,8 @@ class HTTPOk:
                     if namespec in waiting:
                         waiting.remove(namespec)
 
-        if waiting:
-            write(
-                'Programs not restarted because they did not exist: %s' %
+        if not logstopper and waiting:
+            write('Programs not restarted because they did not exist: %s' %
                 waiting)
 
         if self.email and email:

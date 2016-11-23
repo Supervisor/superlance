@@ -6,6 +6,7 @@
 - Fixed a rare bug when RPC throwed an exception due to communication failure
   with supervisord.
 - Changed "warn" to "warning" in one of log calls as "warn" is being deprecated
+- Fixed a bug with redundant logging when grace time wasn't yet elapsed
 
 1.0.9 (2016-08-12)
 ------------------
