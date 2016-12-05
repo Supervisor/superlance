@@ -161,6 +161,11 @@ Command-Line Syntax
    which are failing their healthchecks. Grace period is counted since
    the last time program was (re)started.
 
+.. cmdoption:: -o specify the grace count to ignore a number of errors before
+         restarting programs which are failing their healthchecks. Grace count
+         is counted since the last time program was (re)started and is checked
+         before program restart counter (-n option). Default is 0.
+
 .. cmdoption:: URL
 
    The URL to which to issue a GET request.
