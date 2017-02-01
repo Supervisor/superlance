@@ -208,7 +208,7 @@ class Memmon:
         uptime = info['now'] - info['start'] #uptime in seconds
         self.stderr.write('%s Restarting %s\n' %
                           (datetime.datetime.now().isoformat(), name))
-        memmonId = self.memmonName and " [%s]" % self.memmonName or ""
+
         try:
             self.rpc.supervisor.stopProcess(name)
         except xmlrpclib.Fault as e:
