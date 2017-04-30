@@ -224,10 +224,11 @@ class Memmon:
 
         if self.email and uptime <= self.email_uptime_limit:
             now = time.asctime()
+            timezone = time.strftime('%Z')
             msg = (
-                'memmon.py restarted the process named %s at %s because '
+                'memmon.py restarted the process named %s at %s %s because '
                 'it was consuming too much memory (%s bytes RSS)' % (
-                name, now, rss)
+                name, now, timezone, rss)
                 )
             subject = self.format_subject(
                 'process %s restarted' % name
