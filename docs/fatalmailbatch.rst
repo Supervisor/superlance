@@ -27,7 +27,7 @@ Command-Line Syntax
 
 .. cmdoption:: -t <destination email>, --toEmail=<destination email>
    
-   Specify an email address to which fatal start notification messages are sent.
+   Specify comma separated email addresses to which fatal start notification messages are sent.
  
 .. cmdoption:: -f <source email>, --fromEmail=<source email>
    
