@@ -64,7 +64,8 @@ class HTTPOkTests(unittest.TestCase):
 
     def _makeOnePopulated(self, programs, any=None, statuses=None, inbody=None,
                           eager=True, gcore=None, coredir=None,
-                          response=None, exc=None, name=None):
+                          response=None, exc=None, name=None,
+                          timeout=10, retry_time=0):
         if statuses is None:
             statuses = [200]
         if response is None:
@@ -80,10 +81,10 @@ class HTTPOkTests(unittest.TestCase):
             name=name,
             rpc=DummyRPCServer(),
             url='http://foo/bar',
-            timeout=10,
+            timeout=timeout,
             email='chrism@plope.com',
             sendmail='cat - > /dev/null',
-            retry_time=0,
+            retry_time=retry_time,
             )
         httpok.stdin = StringIO()
         httpok.stdout = StringIO()
@@ -379,6 +380,22 @@ class HTTPOkTests(unittest.TestCase):
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
         self.assertEqual(mailed[1],
                     'Subject: httpok: http://foo/bar: bad status returned')
+
+    def test_bug_110(self):
+        error = socket.error()
+        error.errno = 111
+        prog = self._makeOnePopulated(programs=['foo'], any=None,
+            exc=[error for x in range(100)], eager=False,
+                                      timeout=1, retry_time=10)
+        prog.stdin.write('eventname:TICK len:0\n')
+        prog.stdin.seek(0)
+        prog.runforever(test=True)
+        lines = [x for x in prog.stderr.getvalue().split('\n') if x]
+        self.assertEqual(lines[0],
+                         ("Restarting selected processes ['foo']")
+                         )
+        self.assertEqual(lines[1], 'foo is in RUNNING state, restarting')
+        self.assertEqual(lines[2], 'foo restarted')
 
     def test_subject_no_name(self):
         """set the name to None to check if subject formats to:

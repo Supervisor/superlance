@@ -183,8 +183,12 @@ class HTTPOk:
             if self.eager or len(specs) > 0:
 
                 try:
+                    # build a loop value that is guaranteed to execute at least
+                    # once and at most until the timeout is reached and that
+                    # has 0 as the last value (to allow raising an exception
+                    # in the last iteration)
                     for will_retry in range(
-                            self.timeout // (self.retry_time or 1) - 1 ,
+                            (self.timeout - 1) // (self.retry_time or 1),
                             -1, -1):
                         try:
                             headers = {'User-Agent': 'httpok'}

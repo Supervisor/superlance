@@ -1,6 +1,10 @@
 1.1.0.dev0 (Next Release)
 -------------------------
 
+- Handle edge case for httpok check. If the timeout value is shorter
+  than the time to wait between retries, the httpok check never executed.
+  #110
+
 1.0.0 (2016-10-02)
 ------------------
 
