@@ -1,6 +1,6 @@
+import sys
 import unittest
 from superlance.compat import StringIO
-from superlance.compat import maxint
 from superlance.memmon import (
     help_request,
     memmon_from_args,
@@ -139,7 +139,7 @@ class MemmonTests(unittest.TestCase):
         self.assertTrue(mailed[3].startswith('memmon.py restarted'))
 
     def test_runforever_tick_programs_norestart(self):
-        programs = {'foo': maxint}
+        programs = {'foo': sys.maxsize}
         groups = {}
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
@@ -148,13 +148,13 @@ class MemmonTests(unittest.TestCase):
         memmon.runforever(test=True)
         lines = memmon.stderr.getvalue().split('\n')
         self.assertEqual(len(lines), 3)
-        self.assertEqual(lines[0], 'Checking programs foo=%s' % maxint)
+        self.assertEqual(lines[0], 'Checking programs foo=%s' % sys.maxsize)
         self.assertEqual(lines[1], 'RSS of foo:foo is 2264064')
         self.assertEqual(lines[2], '')
         self.assertEqual(memmon.mailed, False)
 
     def test_stopprocess_fault_tick_programs_norestart(self):
-        programs = {'foo': maxint}
+        programs = {'foo': sys.maxsize}
         groups = {}
         any = None
         memmon = self._makeOnePopulated(programs, groups, any)
@@ -163,7 +163,7 @@ class MemmonTests(unittest.TestCase):
         memmon.runforever(test=True)
         lines = memmon.stderr.getvalue().split('\n')
         self.assertEqual(len(lines), 3)
-        self.assertEqual(lines[0], 'Checking programs foo=%s' % maxint)
+        self.assertEqual(lines[0], 'Checking programs foo=%s' % sys.maxsize)
         self.assertEqual(lines[1], 'RSS of foo:foo is 2264064')
         self.assertEqual(lines[2], '')
         self.assertEqual(memmon.mailed, False)
@@ -383,7 +383,7 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(memmon.groups, {})
         self.assertEqual(memmon.any, None)
         self.assertTrue('sendmail' in memmon.sendmail, 'not using sendmail as default')
-        self.assertEqual(memmon.email_uptime_limit, maxint)
+        self.assertEqual(memmon.email_uptime_limit, sys.maxsize)
         self.assertEqual(memmon.name, None)
 
         arguments = ['-p', 'foo=50MB']
