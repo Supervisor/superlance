@@ -85,7 +85,6 @@ import os
 import sys
 import time
 from collections import namedtuple
-from superlance.compat import maxint
 from superlance.compat import xmlrpclib
 
 from supervisor import childutils
@@ -364,7 +363,7 @@ def memmon_from_args(arguments):
     any = None
     sendmail = '/usr/sbin/sendmail -t -i'
     email = None
-    uptime_limit = maxint
+    uptime_limit = sys.maxsize
     name = None
 
     for option, value in opts:

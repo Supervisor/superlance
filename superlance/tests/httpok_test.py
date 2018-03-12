@@ -324,7 +324,7 @@ class HTTPOkTests(unittest.TestCase):
         prog.runforever(test=True)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
         self.assertEqual(len(lines), 0, lines)
-        self.assertFalse('mailed' in prog.__dict__)
+        self.assertNotIn('mailed', prog.__dict__)
 
     def test_runforever_not_eager_running(self):
         programs = ['foo', 'bar']

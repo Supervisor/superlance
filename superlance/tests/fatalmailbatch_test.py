@@ -41,7 +41,7 @@ class FatalMailBatchTests(unittest.TestCase):
         crash = self._make_one_mocked()
         hdrs, payload = self.get_process_fatal_event('foo', 'bar')
         msg = crash.get_process_state_change_msg(hdrs, payload)
-        self.assertTrue(self.unexpected_err_msg in msg)
+        self.assertIn(self.unexpected_err_msg, msg)
 
 if __name__ == '__main__':
     unittest.main()

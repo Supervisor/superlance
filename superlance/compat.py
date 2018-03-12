@@ -9,11 +9,6 @@ except ImportError:
     from io import StringIO
 
 try:
-    from sys import maxsize as maxint
-except ImportError:
-    from sys import maxint
-
-try:
     import urllib.parse as urlparse
     import urllib.parse as urllib
 except ImportError:
