@@ -67,7 +67,7 @@ class CrashMailTests(unittest.TestCase):
         self.assertEqual(lines[1], 'Mailed:')
         self.assertEqual(lines[2], '')
         self.assertEqual(lines[3], 'To: chrism@plope.com')
-        self.assertTrue('Subject: [foo]: foo crashed at' in lines[4])
+        self.assertIn('Subject: [foo]: foo crashed at', lines[4])
         self.assertEqual(lines[5], '')
         self.assertTrue(
             'Process foo in group bar exited unexpectedly' in lines[6])

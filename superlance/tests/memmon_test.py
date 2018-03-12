@@ -381,14 +381,14 @@ class MemmonTests(unittest.TestCase):
         self.assertEqual(memmon.cumulative, False)
         self.assertEqual(memmon.programs, {})
         self.assertEqual(memmon.groups, {})
-        self.assertEqual(memmon.any, None)
-        self.assertTrue('sendmail' in memmon.sendmail, 'not using sendmail as default')
+        self.assertIsNone(memmon.any)
+        self.assertIn('sendmail', memmon.sendmail, 'not using sendmail as default')
         self.assertEqual(memmon.email_uptime_limit, sys.maxsize)
-        self.assertEqual(memmon.name, None)
+        self.assertIsNone(memmon.name)
 
         arguments = ['-p', 'foo=50MB']
         memmon = memmon_from_args(arguments)
-        self.assertEqual(memmon.email, None)
+        self.assertIsNone(memmon.email)
 
 if __name__ == '__main__':
     unittest.main()

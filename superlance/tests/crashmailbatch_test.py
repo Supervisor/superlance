@@ -46,7 +46,7 @@ pid:58597' % (pname, gname, expected)
         crash = self._make_one_mocked()
         hdrs, payload = self.get_process_exited_event('foo', 'bar', 0)
         msg = crash.get_process_state_change_msg(hdrs, payload)
-        self.assertTrue(self.unexpected_err_msg in msg)
+        self.assertIn(self.unexpected_err_msg, msg)
 
     def test_handle_event_exit_expected(self):
         crash = self._make_one_mocked()
@@ -61,8 +61,8 @@ pid:58597' % (pname, gname, expected)
         crash.handle_event(hdrs, payload)
         msgs = crash.get_batch_msgs()
         self.assertEqual(1, len(msgs))
-        self.assertTrue(self.unexpected_err_msg in msgs[0])
-        self.assertTrue(self.unexpected_err_msg in crash.stderr.getvalue())
+        self.assertIn(self.unexpected_err_msg, msgs[0])
+        self.assertIn(self.unexpected_err_msg, crash.stderr.getvalue())
 
 if __name__ == '__main__':
     unittest.main()
