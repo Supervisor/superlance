@@ -134,6 +134,7 @@ def main(argv=sys.argv):
     programs = []
     any = False
     channel = None
+    token = None
 
     for option, value in opts:
 
