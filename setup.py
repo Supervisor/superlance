@@ -70,6 +70,7 @@ setup(name='superlance',
       zip_safe=False,
       install_requires=[
             'supervisor',
+            'slackclient'
             ],
       tests_require=tests_require,
       test_suite='superlance.tests',
@@ -81,6 +82,7 @@ setup(name='superlance',
       crashmailbatch = superlance.crashmailbatch:main
       fatalmailbatch = superlance.fatalmailbatch:main
       memmon = superlance.memmon:main
+      crashslack = superlance.crashslack:main
       """
       )
 
