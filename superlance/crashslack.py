@@ -116,50 +116,50 @@ class CrashSlack:
         )
 
 
-    def main(argv=sys.argv):
-        short_args = "hp:a:t:c:"
-        long_args = [
-            "help",
-            "program=",
-            "any",
-            "token=",
-            "channel=",
-            ]
-        arguments = argv[1:]
-        try:
-            opts, args = getopt.getopt(arguments, short_args, long_args)
-        except:
-            usage()
+def main(argv=sys.argv):
+    short_args = "hp:a:t:c:"
+    long_args = [
+        "help",
+        "program=",
+        "any",
+        "token=",
+        "channel=",
+        ]
+    arguments = argv[1:]
+    try:
+        opts, args = getopt.getopt(arguments, short_args, long_args)
+    except:
+        usage()
 
-        programs = []
-        any = False
-        channel = None
+    programs = []
+    any = False
+    channel = None
 
-        for option, value in opts:
+    for option, value in opts:
 
-            if option in ('-h', '--help'):
-                usage(exitstatus=0)
+        if option in ('-h', '--help'):
+            usage(exitstatus=0)
 
-            if option in ('-p', '--program'):
-                programs.append(value)
+        if option in ('-p', '--program'):
+            programs.append(value)
 
-            if option in ('-a', '--any'):
-                any = True
+        if option in ('-a', '--any'):
+            any = True
 
-            if option in ('-c', '--channel'):
-                channel = value
+        if option in ('-c', '--channel'):
+            channel = value
 
-            if option in ('-t', '--token'):
-                token = value
+        if option in ('-t', '--token'):
+            token = value
 
-        if not 'SUPERVISOR_SERVER_URL' in os.environ:
-            sys.stderr.write('crashslack must be run as a supervisor event '
-                            'listener\n')
-            sys.stderr.flush()
-            return
+    if not 'SUPERVISOR_SERVER_URL' in os.environ:
+        sys.stderr.write('crashslack must be run as a supervisor event '
+                        'listener\n')
+        sys.stderr.flush()
+        return
 
-        prog = CrashSlack(programs, any, channel, token)
-        prog.runforever()
+    prog = CrashSlack(programs, any, channel, token)
+    prog.runforever()
 
 
 if __name__ == '__main__':
