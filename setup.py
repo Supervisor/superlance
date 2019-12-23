@@ -39,10 +39,10 @@ if py_version < (3, 3):
     tests_require.append('mock')
 
 setup(name='superlance',
-      version='1.1.0.dev0',
+      version='1.2.0.dev0',
       license='BSD-derived (http://www.repoze.org/LICENSE.txt)',
       description='superlance plugins for supervisord',
-      long_description=README + '\n\n' +  CHANGES,
+      long_description=README + '\n\n' + CHANGES,
       classifiers=[
         "Development Status :: 3 - Alpha",
         'Environment :: No Input/Output (Daemon)',
@@ -81,6 +81,7 @@ setup(name='superlance',
       crashmailbatch = superlance.crashmailbatch:main
       fatalmailbatch = superlance.fatalmailbatch:main
       memmon = superlance.memmon:main
+      crashdingtalk = superlance.crashdingtalk:main
       """
       )
 
