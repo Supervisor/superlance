@@ -130,7 +130,7 @@ class CrashDingtalk(object):
         return socket.gethostname()
 
     def gen_dingtalk_secret(self):
-        timestamp = long(round(time.time()) * 1000)
+        timestamp = long(round(time.time() * 1000))
         secret = self.dingtalk_secret
         sign = "{}\n{}".format(timestamp, secret)
         hash_hac = hmac.new(secret, sign, digestmod=hashlib.sha256).digest()
@@ -158,12 +158,11 @@ class CrashDingtalk(object):
         })
 
         fp = urllib2.urlopen(r, data=json.dumps(j))
-        print("dingtalk server resp: ", fp.read())
+        fp.read()
         fp.close()
 
 
 def main(argv=sys.argv):
-
     command_parser = argparse.ArgumentParser()
     command_parser.add_argument("-p", dest="programs", required=True, type=str, help=doc, action="append")
     command_parser.add_argument("-dingtalk_hook_url", dest="dingtalk_hook_url", type=str, required=True, help=doc)
