@@ -141,13 +141,12 @@ class CrashDingtalk(object):
     def notify(self, subject, msg):
         timestamp, sign = self.gen_dingtalk_secret()
         j = {
-            "type": "markdown",
+            "msgtype": "markdown",
             "markdown": {
                 "title": "supervisor warning: %s" % subject,
                 "text": """
-                    ### supervisor warning \n
+                    ### supervisor warning {subject} \n
                     > hostname: {hostname} \n
-                    > ### {subject} \n
                     > ### {msg} \n
                 """.format(hostname=self.get_hostname(), subject=subject, msg=msg)
             },
@@ -164,7 +163,7 @@ class CrashDingtalk(object):
 
 
 def main(argv=sys.argv):
-    
+
     command_parser = argparse.ArgumentParser()
     command_parser.add_argument("-p", dest="programs", required=True, type=str, help=doc, action="append")
     command_parser.add_argument("-dingtalk_hook_url", dest="dingtalk_hook_url", type=str, required=True, help=doc)
