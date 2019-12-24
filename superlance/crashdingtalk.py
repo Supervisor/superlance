@@ -45,6 +45,7 @@ Options:
       parameters passed in the same crashmail process invocation.
 
 -dingtalk_hook_url -- Dingtalk robot hook url
+-dingtalk_secret -- Dingtalk secret key
 
 The -p option may be specified more than once, allowing for
 specification of multiple processes.  Specifying -a overrides any
@@ -57,10 +58,12 @@ crashdingtalk.py -p program1 -p group1:program2 -dingtalk_hook_url dingtalk hook
 """
 
 import argparse
-import os
 import sys
 import urllib2
+import urllib
 import json
+import time, hmac, hashlib, base64
+import socket
 
 from supervisor import childutils
 
@@ -72,11 +75,12 @@ def usage(exitstatus=255):
 
 class CrashDingtalk(object):
 
-    def __init__(self, programs, any, dingtalk_hool_url):
+    def __init__(self, programs, any, dingtalk_hook_url, dingtalk_secret):
 
         self.programs = programs
         self.any = any
-        self.dingtalk_hoo_url = dingtalk_hool_url
+        self.dingtalk_hook_url = dingtalk_hook_url
+        self.dingtalk_secret = dingtalk_secret
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
@@ -122,19 +126,35 @@ class CrashDingtalk(object):
             if test:
                 break
 
+    def get_hostname(self):
+        return socket.gethostbyname()
+
+    def gen_dingtalk_secret(self):
+        timestamp = long(round(time.time()) * 1000)
+        secret = self.dingtalk_secret
+        sign = "{}\n{}".format(timestamp, secret)
+        hash_hac = hmac.new(secret, sign, digestmod=hashlib.sha3_256).digest()
+        sign = urllib.quote_plus(base64.b64encode(hash_hac))
+
+        return timestamp, sign
+
     def notify(self, subject, msg):
+        timestamp, sign = self.gen_dingtalk_secret()
         j = {
-            "type": "text",
-            "text": {
-                "content": """
-                    subject: %s \r\n
-                    content: %s \r\n
-                """ % (subject, msg)
+            "type": "markdown",
+            "markdown": {
+                "title": "supervisor warning: %s" % subject,
+                "text": """
+                    ### supervisor warning \n
+                    > hostname: {hostname} \n
+                    > ### {subject} \n
+                    > ### {msg} \n
+                """.format(hostname=self.get_hostname(), subject=subject, msg=msg)
             },
             "isAtAll": True,
         }
 
-        r = urllib2.Request(self.dingtalk_hoo_url, headers={
+        r = urllib2.Request(self.dingtalk_hook_url + "timestamp={}&sign={}".format(timestamp, sign), headers={
             "Content-Type": "application/json"
         })
 
@@ -147,11 +167,12 @@ def main(argv=sys.argv):
     command_parser = argparse.ArgumentParser()
     command_parser.add_argument("-p", dest="programs", required=True, type=str, help=doc, action="append")
     command_parser.add_argument("-dingtalk_hook_url", dest="dingtalk_hook_url", type=str, required=True, help=doc)
+    command_parser.add_argument("-dingtalk_secret", dest="dingtalk_secret", type=str, required=True, help=doc)
     command_parser.add_argument("-a", dest="any", type=bool, required=False, help=doc)
     args = command_parser.parse_args()
 
-    programs = command_parser.programs
-    prog = CrashDingtalk(programs, args.get("any", False), args.dingtalk_hook_url)
+    programs = args.programs
+    prog = CrashDingtalk(programs, args.get("any", False), args.dingtalk_hook_url, args.dingtalk_secret)
     prog.runforever()
 
 
