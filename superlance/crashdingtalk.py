@@ -127,13 +127,13 @@ class CrashDingtalk(object):
                 break
 
     def get_hostname(self):
-        return socket.gethostbyname()
+        return socket.gethostname()
 
     def gen_dingtalk_secret(self):
         timestamp = long(round(time.time()) * 1000)
         secret = self.dingtalk_secret
         sign = "{}\n{}".format(timestamp, secret)
-        hash_hac = hmac.new(secret, sign, digestmod=hashlib.sha3_256).digest()
+        hash_hac = hmac.new(secret, sign, digestmod=hashlib.sha256).digest()
         sign = urllib.quote_plus(base64.b64encode(hash_hac))
 
         return timestamp, sign
@@ -154,12 +154,12 @@ class CrashDingtalk(object):
             "isAtAll": True,
         }
 
-        r = urllib2.Request(self.dingtalk_hook_url + "timestamp={}&sign={}".format(timestamp, sign), headers={
+        r = urllib2.Request(self.dingtalk_hook_url + "&timestamp={}&sign={}".format(timestamp, sign), headers={
             "Content-Type": "application/json"
         })
 
         fp = urllib2.urlopen(r, data=json.dumps(j))
-        fp.read()
+        print("dingtalk server resp: ", fp.read())
         fp.close()
 
 
