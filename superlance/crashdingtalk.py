@@ -164,15 +164,16 @@ class CrashDingtalk(object):
 
 
 def main(argv=sys.argv):
+    
     command_parser = argparse.ArgumentParser()
     command_parser.add_argument("-p", dest="programs", required=True, type=str, help=doc, action="append")
     command_parser.add_argument("-dingtalk_hook_url", dest="dingtalk_hook_url", type=str, required=True, help=doc)
     command_parser.add_argument("-dingtalk_secret", dest="dingtalk_secret", type=str, required=True, help=doc)
-    command_parser.add_argument("-a", dest="any", type=bool, required=False, help=doc)
+    command_parser.add_argument("-a", dest="any", type=bool, required=False, help=doc, default=False)
     args = command_parser.parse_args()
 
     programs = args.programs
-    prog = CrashDingtalk(programs, args.get("any", False), args.dingtalk_hook_url, args.dingtalk_secret)
+    prog = CrashDingtalk(programs, args.any, args.dingtalk_hook_url, args.dingtalk_secret)
     prog.runforever()
 
 
