@@ -36,7 +36,7 @@ except (IOError, OSError):
 
 tests_require = ['supervisor']
 if py_version < (3, 3):
-    tests_require.append('mock')
+    tests_require.append('mock<4.0.0.dev0')
 
 setup(name='superlance',
       version='1.1.0.dev0',
