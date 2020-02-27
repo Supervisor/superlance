@@ -38,6 +38,10 @@ controlling processes that run under `Supervisor
 :command:`crashsms`
     Similar to :command:`crashmailbatch` except it sends SMS alerts
     through an email gateway.  Messages are formatted to fit in SMS.
+:command: 'crashdingtalk'
+    Support alibaba dingding bot.
+    command=crashdingtalk  -dingtalk_secret "dingtalk bot secret" -dingtalk_hook_url "dingtalk hook url"
+    events=PROCESS_STATE_EXITED
 
 Contents:
 
