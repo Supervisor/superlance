@@ -9,6 +9,7 @@ Please see ``docs/index.rst`` for complete documentation.
 
 增加对阿里巴巴-钉钉报警支持
 
+only support python-2.7
 
 [eventlistener:dingtalk_monitor]
 
