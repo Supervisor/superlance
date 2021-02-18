@@ -73,14 +73,14 @@ def usage(exitstatus=255):
     sys.exit(exitstatus)
 
 
-class CrashDingtalk(object):
+class Crashwxwork(object):
+    wxwork_rebot_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send'
 
-    def __init__(self, programs, any, dingtalk_hook_url, dingtalk_secret):
+    def __init__(self, programs, any, wxwork_key):
 
         self.programs = programs
         self.any = any
-        self.dingtalk_hook_url = dingtalk_hook_url
-        self.dingtalk_secret = dingtalk_secret
+        self.wxwork_key = wxwork_key
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
@@ -143,17 +143,16 @@ class CrashDingtalk(object):
         j = {
             "msgtype": "markdown",
             "markdown": {
-                "title": "supervisor warning: %s" % subject,
+                "title": "@所有人 supervisor warning: %s" % subject,
                 "text": """
                     ### supervisor warning {subject} \n
                     > hostname: {hostname} \n
                     > ### {msg} \n
                 """.format(hostname=self.get_hostname(), subject=subject, msg=msg)
-            },
-            "isAtAll": True,
+            }
         }
 
-        r = urllib2.Request(self.dingtalk_hook_url + "&timestamp={}&sign={}".format(timestamp, sign), headers={
+        r = urllib2.Request(self.wxwork_rebot_url + '?key={key}'.format(key=self.wxwork_key), headers={
             "Content-Type": "application/json"
         })
 
@@ -165,13 +164,12 @@ class CrashDingtalk(object):
 def main(argv=sys.argv):
     command_parser = argparse.ArgumentParser()
     command_parser.add_argument("-p", dest="programs", required=True, type=str, help=doc, action="append")
-    command_parser.add_argument("-dingtalk_hook_url", dest="dingtalk_hook_url", type=str, required=True, help=doc)
-    command_parser.add_argument("-dingtalk_secret", dest="dingtalk_secret", type=str, required=True, help=doc)
+    command_parser.add_argument("-wxwork_key", dest="wxwork_key", type=str, required=True, help=doc)
     command_parser.add_argument("-a", dest="any", type=bool, required=False, help=doc, default=False)
     args = command_parser.parse_args()
 
     programs = args.programs
-    prog = CrashDingtalk(programs, args.any, args.dingtalk_hook_url, args.dingtalk_secret)
+    prog = Crashwxwork(programs, args.any, args.wxwork_key)
     prog.runforever()
 
 
