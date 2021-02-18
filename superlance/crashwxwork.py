@@ -148,7 +148,7 @@ supervisor warning: <font color="warning">{subject}</font> \n
         })
 
         fp = urllib2.urlopen(r, data=json.dumps(j))
-        print(fp.read())
+        fp.read()
         fp.close()
 
 
