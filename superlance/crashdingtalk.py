@@ -168,7 +168,7 @@ def main(argv=sys.argv):
     args = command_parser.parse_args()
 
     programs = args.programs
-    prog = CrashDingtalk(programs, args.any, args.dingtalk_hook_url, args.dingtalk_secret)
+    prog = Crashwxwork(programs, args.any, args.wxwork_key)
     prog.runforever()
 
 
