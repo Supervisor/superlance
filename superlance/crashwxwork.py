@@ -22,7 +22,7 @@
 #
 # [eventlistener:crashmail]
 # command =
-#     /usr/bin/crashmail
+#     /usr/bin/crashwxwork
 #         -o hostname -a -m notify-on-crash@domain.com
 #         -s '/usr/sbin/sendmail -t -i -f crash-notifier@domain.com'
 # events=PROCESS_STATE
@@ -30,7 +30,7 @@
 # Sendmail is used explicitly here so that we can specify the 'from' address.
 
 doc = """\
-crashwxwork.py [-p processname] [-a] [-o string] [-m mail_address]
+crashmail.py [-p processname] [-a] [-o string] [-m mail_address]
              [-s sendmail] URL
 
 Options:
@@ -44,7 +44,8 @@ Options:
       unexpectedly to the EXITED state unexpectedly.  Overrides any -p
       parameters passed in the same crashmail process invocation.
 
--wxwork_key -- Wxwork robot hook url key
+-dingtalk_hook_url -- Dingtalk robot hook url
+-dingtalk_secret -- Dingtalk secret key
 
 The -p option may be specified more than once, allowing for
 specification of multiple processes.  Specifying -a overrides any
@@ -52,7 +53,7 @@ selection of -p.
 
 A sample invocation:
 
-crashwxwork.py -p program1 -p group1:program2 -wxwork_key "key"
+crashdingtalk.py -p program1 -p group1:program2 -dingtalk_hook_url dingtalk hook url
 
 """
 
@@ -72,14 +73,14 @@ def usage(exitstatus=255):
     sys.exit(exitstatus)
 
 
-class Crashwxwork(object):
-    wxwork_hook_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send'
+class CrashDingtalk(object):
 
-    def __init__(self, programs, any, wxwork_key):
+    def __init__(self, programs, any, dingtalk_hook_url, dingtalk_secret):
 
         self.programs = programs
         self.any = any
-        self.wxwork_key = wxwork_key
+        self.dingtalk_hook_url = dingtalk_hook_url
+        self.dingtalk_secret = dingtalk_secret
         self.stdin = sys.stdin
         self.stdout = sys.stdout
         self.stderr = sys.stderr
@@ -142,16 +143,17 @@ class Crashwxwork(object):
         j = {
             "msgtype": "markdown",
             "markdown": {
-                "title": "@所有人 From supervisor warning: %s" % subject,
-                "content": """
+                "title": "supervisor warning: %s" % subject,
+                "text": """
                     ### supervisor warning {subject} \n
                     > hostname: {hostname} \n
                     > ### {msg} \n
                 """.format(hostname=self.get_hostname(), subject=subject, msg=msg)
-            }
+            },
+            "isAtAll": True,
         }
 
-        r = urllib2.Request(self.wxwork_hook_url + "&key={}".format(self.wxwork_key), headers={
+        r = urllib2.Request(self.dingtalk_hook_url + "&timestamp={}&sign={}".format(timestamp, sign), headers={
             "Content-Type": "application/json"
         })
 

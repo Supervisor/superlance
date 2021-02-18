@@ -82,6 +82,7 @@ setup(name='superlance',
       fatalmailbatch = superlance.fatalmailbatch:main
       memmon = superlance.memmon:main
       crashdingtalk = superlance.crashdingtalk:main
+      crashwxwork = superlance.crashwxwork:main
       """
       )
 
