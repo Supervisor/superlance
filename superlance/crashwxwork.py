@@ -135,10 +135,10 @@ class Crashwxwork(object):
             "msgtype": "markdown",
             "markdown": {
                 "content": """
-                    ## supervisor warning: {subject} \n 
-                    > Host: {hostname} \n
-                    > Event: {msg} \n
-                    > @所有人
+supervisor warning: <font color="warning">{subject}</font> \n 
+> Host: {hostname}
+> Event: {msg}
+> @所有人 1
                 """.format(hostname=self.get_hostname(), subject=subject, msg=msg)
             }
         }
