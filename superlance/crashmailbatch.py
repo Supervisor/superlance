@@ -37,7 +37,7 @@ Options:
                   This means that all events in each cycle are batched together
                   and sent as a single email
 
---toEmail   - the email address to send alerts to
+--toEmail   - the email address(es) to send alerts to - comma separated
 
 --fromEmail - the email address to send alerts from
 

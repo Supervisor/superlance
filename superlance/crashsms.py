@@ -45,7 +45,7 @@ Options:
                  This means that all events in each cycle are batched together
                  and sent as a single email
 
--t,--toEmail   - the email address to send alerts to. Mobile providers
+-t,--toEmail   - the comma separated email addresses to send alerts to. Mobile providers
                  tend to allow sms messages to be sent to their phone numbers
                  via an email address (e.g.: 1234567890@txt.att.net)
 
