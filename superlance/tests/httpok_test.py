@@ -207,17 +207,15 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        self.assertEqual(lines[0],
-                         ("Restarting selected processes ['foo', 'bar', "
-                          "'baz_01', 'notexisting']")
-                         )
-        self.assertEqual(lines[1], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[2], 'foo restarted')
-        self.assertEqual(lines[3], 'bar not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[4],
-                         'baz:baz_01 not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[5],
-          "Programs not restarted because they did not exist: ['notexisting']")
+        self.assertTrue("Restarting selected processes ['foo', 'bar', "
+                          "'baz_01', 'notexisting']" in lines[0])
+        self.assertTrue('foo is in RUNNING state, restarting' in lines[1])
+        self.assertTrue('foo restarted' in lines[2])
+        self.assertTrue('bar not in RUNNING state, NOT restarting' in lines[3])
+        self.assertTrue('baz:baz_01 not in RUNNING state, NOT restarting' in
+                                                                    lines[4])
+        self.assertTrue("Programs not restarted because "
+                      "they did not exist: ['notexisting']", lines[5])
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 12)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
@@ -232,12 +230,12 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        self.assertEqual(lines[0], 'Restarting all running processes')
-        self.assertEqual(lines[1], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[2], 'foo restarted')
-        self.assertEqual(lines[3], 'bar not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[4],
-                         'baz:baz_01 not in RUNNING state, NOT restarting')
+        self.assertTrue('Restarting all running processes' in lines[0])
+        self.assertTrue('foo is in RUNNING state, restarting' in lines[1])
+        self.assertTrue('foo restarted' in lines[2])
+        self.assertTrue('bar not in RUNNING state, NOT restarting' in lines[3])
+        self.assertTrue('baz:baz_01 not in RUNNING state, NOT restarting' in
+                    lines[4])
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 11)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
@@ -253,11 +251,11 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        self.assertEqual(lines[0], "Restarting selected processes ['FAILED']")
-        self.assertEqual(lines[1], 'foo:FAILED is in RUNNING state, restarting')
-        self.assertEqual(lines[2],
-                    "Failed to stop process foo:FAILED: <Fault 30: 'FAILED'>")
-        self.assertEqual(lines[3], 'foo:FAILED restarted')
+        self.assertTrue("Restarting selected processes ['FAILED']" in lines[0])
+        self.assertTrue('foo:FAILED is in RUNNING state, restarting' in lines[1])
+        self.assertTrue("Failed to stop process foo:FAILED: "
+                      "<Fault 30: 'FAILED'>" in lines[2])
+        self.assertTrue('foo:FAILED restarted' in lines[3])
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 10)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
@@ -273,12 +271,11 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        self.assertEqual(lines[0],
-                         "Restarting selected processes ['SPAWN_ERROR']")
-        self.assertEqual(lines[1],
-                         'foo:SPAWN_ERROR is in RUNNING state, restarting')
-        self.assertEqual(lines[2],
-           "Failed to start process foo:SPAWN_ERROR: <Fault 50: 'SPAWN_ERROR'>")
+        self.assertTrue("Restarting selected processes ['SPAWN_ERROR']" in lines[0])
+        self.assertTrue('foo:SPAWN_ERROR is in RUNNING state, restarting' in
+                    lines[1])
+        self.assertTrue("Failed to start process foo:SPAWN_ERROR: "
+                      "<Fault 50: 'SPAWN_ERROR'>" in lines[2])
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 9)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
@@ -294,20 +291,18 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = prog.stderr.getvalue().split('\n')
-        self.assertEqual(lines[0],
-                         ("Restarting selected processes ['foo', 'bar', "
-                          "'baz_01', 'notexisting']")
-                         )
-        self.assertEqual(lines[1], 'gcore output for foo:')
+        self.assertTrue("Restarting selected processes ['foo', 'bar', "
+                          "'baz_01', 'notexisting']" in lines[0])
+        self.assertTrue('gcore output for foo:' in lines[1])
         self.assertEqual(lines[2], '')
         self.assertEqual(lines[3], ' ')
-        self.assertEqual(lines[4], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[5], 'foo restarted')
-        self.assertEqual(lines[6], 'bar not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[7],
-                         'baz:baz_01 not in RUNNING state, NOT restarting')
-        self.assertEqual(lines[8],
-          "Programs not restarted because they did not exist: ['notexisting']")
+        self.assertTrue('foo is in RUNNING state, restarting' in lines[4])
+        self.assertTrue('foo restarted' in lines[5])
+        self.assertTrue('bar not in RUNNING state, NOT restarting' in lines[6])
+        self.assertTrue('baz:baz_01 not in RUNNING state, NOT restarting' in
+                lines[7])
+        self.assertTrue("Programs not restarted because they did not exist: "
+                      "['notexisting']" in lines[8])
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 15)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
@@ -334,12 +329,10 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
-        self.assertEqual(lines[0],
-                         ("Restarting selected processes ['foo', 'bar']")
-                         )
-        self.assertEqual(lines[1], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[2], 'foo restarted')
-        self.assertEqual(lines[3], 'bar not in RUNNING state, NOT restarting')
+        self.assertTrue("Restarting selected processes ['foo', 'bar']" in lines[0])
+        self.assertTrue('foo is in RUNNING state, restarting' in lines[1])
+        self.assertTrue('foo restarted' in lines[2])
+        self.assertTrue('bar not in RUNNING state, NOT restarting' in lines[3])
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 10)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')
@@ -369,12 +362,11 @@ class HTTPOkTests(unittest.TestCase):
         prog.stdin.seek(0)
         prog.runforever(test=True)
         lines = [x for x in prog.stderr.getvalue().split('\n') if x]
-        self.assertEqual(lines[0],
-                         ("Restarting selected processes ['foo', 'bar']")
-                         )
-        self.assertEqual(lines[1], 'foo is in RUNNING state, restarting')
-        self.assertEqual(lines[2], 'foo restarted')
-        self.assertEqual(lines[3], 'bar not in RUNNING state, NOT restarting')
+        self.assertTrue("Restarting selected processes ['foo', 'bar']"
+                        in lines[0])
+        self.assertTrue('foo is in RUNNING state, restarting' in lines[1])
+        self.assertTrue('foo restarted' in lines[2])
+        self.assertTrue('bar not in RUNNING state, NOT restarting' in lines[3])
         mailed = prog.mailed.split('\n')
         self.assertEqual(len(mailed), 10)
         self.assertEqual(mailed[0], 'To: chrism@plope.com')

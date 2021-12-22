@@ -84,6 +84,7 @@ import getopt
 import os
 import sys
 import time
+import datetime
 from collections import namedtuple
 from superlance.compat import maxint
 from superlance.compat import xmlrpclib
@@ -147,7 +148,8 @@ class Memmon:
             if self.any is not None:
                 status.append('Checking any=%s' % self.any)
 
-            self.stderr.write('\n'.join(status) + '\n')
+            self.stderr.write(datetime.datetime.now().isoformat() + ' ' +
+                              '\n'.join(status) + '\n')
 
             infos = self.rpc.supervisor.getAllProcessInfo()
 
@@ -170,19 +172,28 @@ class Memmon:
 
                 for n in name, pname:
                     if n in self.programs:
-                        self.stderr.write('RSS of %s is %s\n' % (pname, rss))
-                        if  rss > self.programs[name]:
+                        self.stderr.write('%s RSS of %s is %s\n' %
+                                          (datetime.datetime.now().isoformat(),
+                                           pname,
+                                           rss))
+                        if rss > self.programs[name]:
                             self.restart(pname, rss)
                             continue
 
                 if group in self.groups:
-                    self.stderr.write('RSS of %s is %s\n' % (pname, rss))
+                    self.stderr.write('%s RSS of %s is %s\n' %
+                                      (datetime.datetime.now().isoformat(),
+                                       pname,
+                                       rss))
                     if rss > self.groups[group]:
                         self.restart(pname, rss)
                         continue
 
                 if self.any is not None:
-                    self.stderr.write('RSS of %s is %s\n' % (pname, rss))
+                    self.stderr.write('%s RSS of %s is %s\n' %
+                                      (datetime.datetime.now().isoformat(),
+                                       pname,
+                                       rss))
                     if rss > self.any:
                         self.restart(pname, rss)
                         continue
@@ -195,12 +206,14 @@ class Memmon:
     def restart(self, name, rss):
         info = self.rpc.supervisor.getProcessInfo(name)
         uptime = info['now'] - info['start'] #uptime in seconds
-        self.stderr.write('Restarting %s\n' % name)
+        self.stderr.write('%s Restarting %s\n' %
+                          (datetime.datetime.now().isoformat(), name))
+
         try:
             self.rpc.supervisor.stopProcess(name)
         except xmlrpclib.Fault as e:
-            msg = ('Failed to stop process %s (RSS %s), exiting: %s' %
-                   (name, rss, e))
+            msg = ('%s Failed to stop process %s (RSS %s), exiting: %s' %
+                   (datetime.datetime.now().isoformat(), name, rss, e))
             self.stderr.write(str(msg))
             if self.email:
                 subject = self.format_subject(
@@ -212,8 +225,9 @@ class Memmon:
         try:
             self.rpc.supervisor.startProcess(name)
         except xmlrpclib.Fault as e:
-            msg = ('Failed to start process %s after stopping it, '
-                   'exiting: %s' % (name, e))
+            msg = ('%s Failed to start process %s after stopping it, '
+                   'exiting: %s' %
+                   (datetime.datetime.now().isoformat(), name, e))
             self.stderr.write(str(msg))
             if self.email:
                 subject = self.format_subject(
