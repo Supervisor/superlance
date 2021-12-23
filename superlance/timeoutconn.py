@@ -21,7 +21,7 @@ class TimeoutHTTPConnection(httplib.HTTPConnection):
                 if self.timeout:   # this is the new bit
                     self.sock.settimeout(self.timeout)
                 self.sock.connect(sa)
-            except socket.error as e:
+            except socket.error:
                 if self.sock:
                     self.sock.close()
                 self.sock = None
