@@ -1,5 +1,11 @@
-1.1.0.dev0 (Next Release)
+2.0.0.dev0 (Next Release)
 -------------------------
+
+- Support for Python 2.6 has been dropped.  On Python 2, Superlance
+  now requires Python 2.7.
+
+- Support for Python 3.2 and 3.3 has been dropped.  On Python 3, Superlance
+  now requires Python 3.4 or later.
 
 - Fixed a bug introduced in 0.10 where if the timeout value is shorter
   than the time to wait between retries, the httpok check never executed.

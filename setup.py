@@ -39,22 +39,19 @@ if py_version < (3, 3):
     tests_require.append('mock<4.0.0.dev0')
 
 setup(name='superlance',
-      version='1.1.0.dev0',
+      version='2.0.0.dev0',
       license='BSD-derived (http://www.repoze.org/LICENSE.txt)',
       description='superlance plugins for supervisord',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         'Environment :: No Input/Output (Daemon)',
         'Intended Audience :: System Administrators',
         'Natural Language :: English',
         'Operating System :: POSIX',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
@@ -88,4 +85,3 @@ setup(name='superlance',
       memmon = superlance.memmon:main
       """
       )
-
