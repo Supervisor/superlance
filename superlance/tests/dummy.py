@@ -1,3 +1,8 @@
+import time
+from supervisor.process import ProcessStates
+
+_NOW = time.time()
+
 class DummyRPCServer:
     def __init__(self):
         self.supervisor = DummySupervisorRPCNamespace()
@@ -12,12 +17,6 @@ class DummyResponse:
 
 class DummySystemRPCNamespace:
     pass
-
-
-import time
-from supervisor.process import ProcessStates
-
-_NOW = time.time()
 
 class DummySupervisorRPCNamespace:
     _restartable = True
