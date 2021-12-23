@@ -14,6 +14,9 @@
 - Fixed a bug where ``crashmailbatch`` and ``fatalmatchbatch`` did not set
   the intended default subject.  Patch by Joe Portela.
 
+- Added a new ``--tls`` option to ``crashmailbatch``, ``fatalmailbath``, and
+  ``crashsms`` to use Transport Layer Security (TLS).  Patch by Zhe Li.
+
 1.0.0 (2016-10-02)
 ------------------
 
