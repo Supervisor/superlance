@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from superlance.compat import StringIO
 from superlance.compat import maxint
@@ -312,11 +313,11 @@ class MemmonTests(unittest.TestCase):
     def test_calc_rss_cumulative(self):
         """Let calc_rss() do its work on a fake process tree:
 
-        |-+= 99
-        | \-+= 1
-        |   \-+- 2
-        |     |-+- 3
-        |     \-+- 4
+        ├─┬= 99
+        │ └─┬= 1
+        │   └─┬= 2
+        │     ├─── 3
+        │     └─── 4
 
         (Where the process with PID 1 is the one being monitored)
         """
