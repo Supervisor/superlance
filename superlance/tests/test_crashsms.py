@@ -1,6 +1,6 @@
 import unittest
 
-from .crashmailbatch_test import CrashMailBatchTests
+from .test_crashmailbatch import CrashMailBatchTests
 
 class CrashSMSTests(CrashMailBatchTests):
     subject = 'None'
