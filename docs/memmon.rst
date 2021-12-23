@@ -131,9 +131,13 @@ An ``[eventlistener:x]`` section must be placed in :file:`supervisord.conf`
 in order for :command:`memmon` to do its work. See the "Events" chapter in the
 Supervisor manual for more information about event listeners.
 
-In case of using authentication for the unix http server add the environment
-variables SUPERVISOR_USERNAME, SUPERVISOR_PASSWORD and SUPERVISOR_SERVER_URL 
-in the eventlistener section.
+If the `[unix_http_server]
+<http://supervisord.org/configuration.html#unix-http-server-section-settings>`_
+or `[inet_http_server]
+<http://supervisord.org/configuration.html#inet-http-server-section-settings>`_
+has been configured to use authentication, add the environment variables
+``SUPERVISOR_USERNAME`` and ``SUPERVISOR_PASSWORD`` in the ``[eventlistener:x]``
+section as shown in Example Configuration 5.
 
 The following examples assume that :command:`memmon` is on your system
 :envvar:`PATH`.
@@ -199,17 +203,19 @@ The email will only be sent if the process' uptime is less or equal than
    events=TICK_60
 
 
-Example Configuration 5 (With Authentication)
-#######################
+Example Configuration 5 (Authentication)
+########################################
 
 This configuration is the same as the one in `Example Configuration 1`_ with
-the only difference being that the unix_http_server now requires authentication.
+the only difference being that the `[unix_http_server]
+<http://supervisord.org/configuration.html#unix-http-server-section-settings>`_
+or `[inet_http_server]
+<http://supervisord.org/configuration.html#inet-http-server-section-settings>`_
+has been configured to use authentication.
 
 .. code-block:: ini
 
    [eventlistener:memmon]
    command=memmon -a 200MB -m bob@example.com
-   environment=SUPERVISOR_USERNAME="<your_username>",SUPERVISOR_PASSWORD="<your_password>",SUPERVISOR_SERVER_URL="<server_url>"
+   environment=SUPERVISOR_USERNAME="<username>",SUPERVISOR_PASSWORD="<password>"
    events=TICK_60
-
-
