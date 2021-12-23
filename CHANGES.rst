@@ -11,6 +11,9 @@
   than the time to wait between retries, the httpok check never executed.
   Issue #110.
 
+- Fixed a bug where ``crashmailbatch`` and ``fatalmatchbatch`` did not set
+  the intended default subject.  Patch by Joe Portela.
+
 1.0.0 (2016-10-02)
 ------------------
 

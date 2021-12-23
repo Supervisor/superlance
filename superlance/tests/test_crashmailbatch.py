@@ -64,5 +64,9 @@ pid:58597' % (pname, gname, expected)
         self.assertTrue(self.unexpected_err_msg in msgs[0])
         self.assertTrue(self.unexpected_err_msg in crash.stderr.getvalue())
 
+    def test_sets_default_subject_when_None(self):
+        crash = self._make_one_mocked(subject=None) # see issue #109
+        self.assertEqual(crash.subject, "Crash alert from supervisord")
+
 if __name__ == '__main__':
     unittest.main()

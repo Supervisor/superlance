@@ -43,5 +43,9 @@ class FatalMailBatchTests(unittest.TestCase):
         msg = crash.get_process_state_change_msg(hdrs, payload)
         self.assertTrue(self.unexpected_err_msg in msg)
 
+    def test_sets_default_subject_when_None(self):
+        crash = self._make_one_mocked(subject=None) # see issue #109
+        self.assertEqual(crash.subject, "Fatal start alert from supervisord")
+
 if __name__ == '__main__':
     unittest.main()

@@ -38,7 +38,7 @@ Options:
 --interval  - batch cycle length (in minutes).  The default is 1 minute.
                   This means that all events in each cycle are batched together
                   and sent as a single email
-                  
+
 --toEmail   - the email address(es) to send alerts to - comma separated
 
 --fromEmail - the email address to send alerts from
@@ -55,14 +55,15 @@ from supervisor import childutils
 from superlance.process_state_email_monitor import ProcessStateEmailMonitor
 
 class FatalMailBatch(ProcessStateEmailMonitor):
-    
+
     process_state_events = ['PROCESS_STATE_FATAL']
 
     def __init__(self, **kwargs):
-        kwargs['subject'] = kwargs.get('subject', 'Fatal start alert from supervisord')
+        if kwargs.get('subject') is None:
+            kwargs['subject'] = 'Fatal start alert from supervisord'
         ProcessStateEmailMonitor.__init__(self, **kwargs)
         self.now = kwargs.get('now', None)
- 
+
     def get_process_state_change_msg(self, headers, payload):
         pheaders, pdata = childutils.eventdata(payload+'\n')
 
