@@ -30,7 +30,7 @@ try:
 except (IOError, OSError):
     README = ''
 try:
-    CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
+    CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 except (IOError, OSError):
     CHANGES = ''
 
