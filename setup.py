@@ -18,9 +18,9 @@ import sys
 py_version = sys.version_info[:2]
 
 if py_version < (2, 6):
-    raise RuntimeError('On Python 2, superlance requires Python 2.6 or later')
+    raise RuntimeError('On Python 2, superlance requires Python 2.7 or later')
 elif (3, 0) < py_version < (3, 2):
-    raise RuntimeError('On Python 3, superlance requires Python 3.2 or later')
+    raise RuntimeError('On Python 3, superlance requires Python 3.4 or later')
 
 from setuptools import setup, find_packages
 
