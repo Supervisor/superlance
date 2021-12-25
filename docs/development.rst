@@ -1,15 +1,6 @@
 Resources and Development
 =========================
 
-Mailing Lists
--------------
-
-Superlance does not have a dedicated mailing list but the main
-`Supervisor-users mailing list
-<http://lists.supervisord.org/mailman/listinfo/supervisor-users>`_
-can be used for discussing Superlance.  This is a good place to ask questions
-about installing or using Superlance.
-
 Bug Tracker
 -----------
 
