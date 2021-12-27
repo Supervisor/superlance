@@ -29,3 +29,20 @@ jobs:
 
     - name: Run the unit tests
       run: tox
+
+  docs:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.8"
+
+    - name: Install dependencies
+      run: pip install virtualenv tox
+
+    - name: Build the docs
+      run: TOXENV=docs tox
