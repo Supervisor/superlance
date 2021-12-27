@@ -1,5 +1,5 @@
-2.0.0.dev0 (Next Release)
--------------------------
+2.0.0 (2021-12-26)
+------------------
 
 - Support for Python 2.6 has been dropped.  On Python 2, Superlance
   now requires Python 2.7.
