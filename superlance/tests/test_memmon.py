@@ -390,7 +390,3 @@ class MemmonTests(unittest.TestCase):
         arguments = ['-p', 'foo=50MB']
         memmon = memmon_from_args(arguments)
         self.assertEqual(memmon.email, None)
-
-if __name__ == '__main__':
-    unittest.main()
-

@@ -67,6 +67,3 @@ pid:58597' % (pname, gname, expected)
     def test_sets_default_subject_when_None(self):
         crash = self._make_one_mocked(subject=None) # see issue #109
         self.assertEqual(crash.subject, "Crash alert from supervisord")
-
-if __name__ == '__main__':
-    unittest.main()

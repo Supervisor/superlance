@@ -432,6 +432,3 @@ class HTTPOkTests(unittest.TestCase):
         mailed = prog.mailed.split('\n')
         self.assertEqual(mailed[1],
           'Subject: httpok [thinko]: http://foo/bar: bad status returned')
-
-if __name__ == '__main__':
-    unittest.main()

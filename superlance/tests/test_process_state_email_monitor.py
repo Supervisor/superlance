@@ -157,6 +157,3 @@ Subject: yo yo
 Body:
 aaaaaaaaaaaaaaaaaaaa
 """, monitor.stderr.getvalue())
-
-if __name__ == '__main__':
-    unittest.main()

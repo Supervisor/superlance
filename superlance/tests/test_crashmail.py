@@ -77,6 +77,3 @@ class CrashMailTests(unittest.TestCase):
         f.close()
         self.assertTrue(
             'Process foo in group bar exited unexpectedly' in mail)
-
-if __name__ == '__main__':
-    unittest.main()

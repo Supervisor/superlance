@@ -13,6 +13,3 @@ class CrashSMSTests(CrashMailBatchTests):
     def test_sets_default_subject_when_None(self):
         crash = self._make_one_mocked(subject=None)
         self.assertEqual(crash.subject, self.subject)
-
-if __name__ == '__main__':
-    unittest.main()
